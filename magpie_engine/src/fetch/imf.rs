@@ -45,6 +45,14 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<ImfSet, ImfError> {
     for c in set.cards {
         let card = Rc::new(ImfCard {
             set: code.clone(),
+            portrait: c
+                .pixport_url
+                .is_empty()
+                .then_some(format!(
+                    "https://github.com/107zxz/inscr-onln/raw/main/gfx/pixport/{}.png",
+                    c.name.replace(" ", "%20")
+                ))
+                .unwrap_or(c.pixport_url),
             name: c.name,
             description: c.description,
             rarity: if c.rare { Rarity::RARE } else { Rarity::COMMON },
@@ -113,6 +121,7 @@ pub struct ImfCard {
     set: SetCode,
     name: String,
     description: String,
+    portrait: String,
 
     rarity: Rarity,
     temple: Temple,
@@ -150,6 +159,10 @@ impl Card for ImfCard {
 
     fn description(&self) -> &str {
         &self.description
+    }
+
+    fn portrait(&self) -> &str {
+        &self.portrait
     }
 
     fn rarity(&self) -> &Rarity {

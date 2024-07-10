@@ -10,7 +10,6 @@ use std::vec;
 
 /// The query object containing your results and infomation about the filter that give you
 /// the results.
-#[derive(Debug)]
 pub struct Query {
     /// The result of this query
     pub cards: Vec<Rc<dyn Card>>,
@@ -136,7 +135,7 @@ pub enum Filters {
 }
 
 /// Trait for a Filter.
-pub trait Filter: Debug + Clone + Eq {
+pub trait Filter: Clone + Eq {
     /// Turn the value into a filter that take a card and return a bool
     fn to_fn(self) -> FilterFn;
 }

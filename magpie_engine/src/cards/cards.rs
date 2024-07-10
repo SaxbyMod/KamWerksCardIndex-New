@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use std::rc::Rc;
 
 /// All card that can be query must implement this trait.
-pub trait Card: Debug {
+pub trait Card {
     /// Return the set code that the card belong to.
     fn set(&self) -> &SetCode;
 
@@ -12,6 +12,8 @@ pub trait Card: Debug {
     fn name(&self) -> &str;
     /// Return the card description, note or favor text.
     fn description(&self) -> &str;
+    /// Return the url to the card portrait
+    fn portrait(&self) -> &str;
 
     /// Return the card rarity.
     fn rarity(&self) -> &Rarity;

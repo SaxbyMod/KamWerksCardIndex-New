@@ -38,7 +38,7 @@ impl Debug for SetCode {
 ///
 /// Sets are container for cards, they also carry a few other infomation like the sigils look up
 /// table and pools. Pools are pre-sorted cards into categories.
-pub trait Set: Debug {
+pub trait Set {
     /// Return the set code for the deck.
     fn code(&self) -> &SetCode;
     /// Return the name of the set.
