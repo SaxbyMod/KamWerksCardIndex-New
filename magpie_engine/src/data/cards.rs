@@ -1,9 +1,10 @@
 use crate::data::sets::*;
 use crate::helper::bitsflag;
+use crate::Ptr;
 use std::fmt::Debug;
-use std::rc::Rc;
 
 /// Represent a card containing all the infomation on the cards.
+#[derive(Debug)]
 pub struct Card {
     /// The set code that the card belong to.
     pub set: SetCode,
@@ -31,7 +32,7 @@ pub struct Card {
     pub health: isize,
 
     /// The sigils or abilities on the card.
-    pub sigils: Vec<Rc<String>>,
+    pub sigils: Vec<Ptr<String>>,
 
     /// The card special attack, [`None`] if the card have no special attack
     ///

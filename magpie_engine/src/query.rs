@@ -3,16 +3,16 @@
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
 use crate::data::{Card, Costs, Rarity, Set, SpAtk, Traits};
+use crate::Ptr;
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
-use std::rc::Rc;
 use std::vec;
 
 /// The query object containing your results and infomation about the filter that give you
 /// the results.
 pub struct Query {
     /// The result of this query
-    pub cards: Vec<Rc<Card>>,
+    pub cards: Vec<Ptr<Card>>,
     /// The filter that produce this query
     pub filters: Vec<Filters>,
 }
@@ -32,7 +32,7 @@ impl Display for Query {
 }
 
 /// Type shorthand for a filter.
-pub type FilterFn = Box<dyn Fn(Rc<Card>) -> bool>;
+pub type FilterFn = Box<dyn Fn(Ptr<Card>) -> bool>;
 
 /// Query builder, it contain the set and is the main way to query cards
 ///
@@ -40,35 +40,33 @@ pub type FilterFn = Box<dyn Fn(Rc<Card>) -> bool>;
 /// start querying for cards
 pub struct QueryBuilder<'a> {
     /// All the set that is use for this query
-    pub sets: &'a Vec<Rc<Set>>,
-    pub filters: Vec<Filters>,
+    pub sets: &'a Vec<Set>,
+    filters: Vec<Filters>,
+    funcs: Vec<FilterFn>,
 }
 
 impl<'a> QueryBuilder<'a> {
-    pub fn new(sets: &'a Vec<Rc<Set>>) -> Self {
+    /// Create a new [`QueryBuilder`] from a collection of set.
+    pub fn new(sets: &'a Vec<Set>) -> Self {
         QueryBuilder {
             sets,
             filters: vec![],
+            funcs: vec![],
         }
     }
     /// Add a new filter to this query.
     pub fn add_filter(mut self, filter: Filters) -> Self {
-        self.filters.push(filter);
+        self.filters.push(filter.clone());
+        self.funcs.push(filter.to_fn());
         self
     }
 
     /// Compile all the query and give you the result.
     pub fn query(self) -> Query {
-        let t = self.filters.clone();
-        let filter = move |c: Rc<Card>| {
-            self.filters
-                .iter()
-                .map(|f| f.clone().to_fn())
-                .all(move |f| f(c.clone()))
-        };
+        let filter = move |c: Ptr<Card>| self.funcs.iter().all(move |f| f(c.clone()));
 
         Query {
-            filters: t,
+            filters: self.filters,
             cards: self
                 .sets
                 .iter()
@@ -143,7 +141,7 @@ pub trait Filter: Clone + Eq {
 impl Filter for Filters {
     fn to_fn(self) -> FilterFn {
         match self {
-            Filters::Name(name) => Box::new(move |c| c.name.contains(name.as_str())),
+            Filters::Name(name) => Box::new(move |c| c.name.to_lowercase().contains(name.as_str())),
             Filters::Description(desc) => {
                 Box::new(move |c| c.description.to_lowercase().contains(desc.as_str()))
             }

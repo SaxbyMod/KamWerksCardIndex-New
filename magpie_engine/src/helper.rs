@@ -85,12 +85,3 @@ macro_rules! bitsflag {
     };
 }
 pub(crate) use bitsflag;
-
-/// Todo variant also remove unused variable warning
-macro_rules! todo_unused {
-    ($($var:ident),*) => {
-        $(let _ = $var;)*
-        todo!()
-    };
-}
-pub(crate) use todo_unused;

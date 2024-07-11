@@ -3,11 +3,11 @@
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
 use crate::data::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, TraitFlag, Traits};
+use crate::Ptr;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
-use std::rc::Rc;
 
 use super::{fetch_json, FetchError};
 
@@ -19,7 +19,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
     };
 
     // idk why i need explicit type here but rust want it there
-    let mut cards: Vec<Rc<Card>> = Vec::with_capacity(set.cards.len() + 1);
+    let mut cards: Vec<Ptr<Card>> = Vec::with_capacity(set.cards.len() + 1);
 
     let pools = {
         let mut m = HashMap::with_capacity(7);
@@ -29,21 +29,21 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
         m
     };
 
-    let undefined_sigil = Rc::new("UNDEFINDED SIGILS".to_string());
+    let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
 
     let mut sigil_rc = HashMap::with_capacity(set.sigils.len());
     let mut sigils_description = HashMap::with_capacity(set.sigils.len());
 
     for s in set.sigils {
         // Convert the sigil to a rc
-        let rc = Rc::new(s.0.clone());
+        let rc = Ptr::new(s.0.clone());
 
         sigil_rc.insert(s.0, rc.clone());
         sigils_description.insert(rc.clone(), s.1);
     }
 
     for c in set.cards {
-        let card = Rc::new(Card {
+        let card = Ptr::new(Card {
             set: code.clone(),
             portrait: c
                 .pixport_url

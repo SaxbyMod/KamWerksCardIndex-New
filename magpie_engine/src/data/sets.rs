@@ -1,7 +1,7 @@
 use crate::data::Card;
+use crate::Ptr;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::rc::Rc;
 
 /// A 3 ascii characters set code for card and set
 #[allow(dead_code)] // idk why it yelling the thing is use in the new
@@ -45,12 +45,12 @@ pub struct Set {
     /// The cards store in the set.
     ///
     /// These cards should be shared along with the card in the pools to save space on larger set.
-    pub cards: Vec<Rc<Card>>,
+    pub cards: Vec<Ptr<Card>>,
     /// The sigils description look up table for the set.
-    pub sigils_description: HashMap<Rc<String>, String>,
+    pub sigils_description: HashMap<Ptr<String>, String>,
     /// The card pools for the set.
     ///
     /// These cards should be shared along with the card in the card list to save space on larger
     /// set.
-    pub pools: HashMap<String, Vec<Rc<Card>>>,
+    pub pools: HashMap<String, Vec<Ptr<Card>>>,
 }
