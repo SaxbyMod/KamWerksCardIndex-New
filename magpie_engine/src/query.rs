@@ -143,18 +143,18 @@ pub trait Filter: Clone + Eq {
 impl Filter for Filters {
     fn to_fn(self) -> FilterFn {
         match self {
-            Filters::Name(n) => Box::new(move |c| c.name.contains(n.as_str())),
-            Filters::Description(d) => {
-                Box::new(move |c| c.description.to_lowercase().contains(d.as_str()))
+            Filters::Name(name) => Box::new(move |c| c.name.contains(name.as_str())),
+            Filters::Description(desc) => {
+                Box::new(move |c| c.description.to_lowercase().contains(desc.as_str()))
             }
 
-            Filters::Rarity(r) => Box::new(move |c| c.rarity == r),
-            Filters::Temple(t) => Box::new(move |c| c.temple == t),
-            Filters::Attack(ord, eq, a) => {
-                Box::new(move |c| (eq && c.attack == a) || c.attack.cmp(&a) == ord)
+            Filters::Rarity(rarity) => Box::new(move |c| c.rarity == rarity),
+            Filters::Temple(temple) => Box::new(move |c| c.temple == temple),
+            Filters::Attack(ord, eq, attack) => {
+                Box::new(move |c| (eq && c.attack == attack) || c.attack.cmp(&attack) == ord)
             }
-            Filters::Health(ord, eq, h) => {
-                Box::new(move |c| (eq && c.attack == h) || c.attack.cmp(&h) == ord)
+            Filters::Health(ord, eq, heath) => {
+                Box::new(move |c| (eq && c.health == heath) || c.health.cmp(&heath) == ord)
             }
             Filters::Sigils(s) => {
                 let lower = s.to_lowercase();
@@ -166,9 +166,9 @@ impl Filter for Filters {
                         .is_some()
                 })
             }
-            Filters::SpAtk(_) => todo!(),
-            Filters::Costs(_) => todo!(),
-            Filters::Traits(_) => todo!(),
+            Filters::SpAtk(a) => Box::new(move |c| c.sp_atk == a),
+            Filters::Costs(cost) => Box::new(move |c| c.costs == cost),
+            Filters::Traits(traits) => Box::new(move |c| c.traits == traits),
         }
     }
 }
