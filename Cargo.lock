@@ -1194,6 +1194,7 @@ dependencies = [
  "isahc",
  "magpie_engine",
  "poise",
+ "regex",
  "tokio",
 ]
 

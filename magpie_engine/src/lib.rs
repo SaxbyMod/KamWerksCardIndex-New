@@ -8,8 +8,17 @@
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
-pub mod cards;
-pub mod fetch;
-mod helper;
 pub mod prelude;
+
+mod helper;
+
+pub mod fetch;
 pub mod query;
+
+pub mod data {
+    mod cards;
+    mod sets;
+
+    pub use cards::*;
+    pub use sets::*;
+}

@@ -2,7 +2,7 @@
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
-use crate::cards::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, TraitFlag, Traits};
+use crate::data::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, TraitFlag, Traits};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;
@@ -12,14 +12,14 @@ use std::rc::Rc;
 use super::{fetch_json, FetchError};
 
 /// Fetch a IMF Set from a url
-pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<ImfSet, ImfError> {
+pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
     let set: ImfSetJson = match fetch_json(url) {
         Ok(it) => it,
         Err(e) => return Err(ImfError::FetchError(e)),
     };
 
     // idk why i need explicit type here but rust want it there
-    let mut cards: Vec<Rc<dyn Card>> = Vec::with_capacity(set.cards.len() + 1);
+    let mut cards: Vec<Rc<Card>> = Vec::with_capacity(set.cards.len() + 1);
 
     let pools = {
         let mut m = HashMap::with_capacity(7);
@@ -43,7 +43,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<ImfSet, ImfError> {
     }
 
     for c in set.cards {
-        let card = Rc::new(ImfCard {
+        let card = Rc::new(Card {
             set: code.clone(),
             portrait: c
                 .pixport_url
@@ -60,8 +60,9 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<ImfSet, ImfError> {
                 .set_if(Temple::BEAST, c.blood_cost != 0)
                 .set_if(Temple::UNDEAD, c.bone_cost != 0)
                 .set_if(Temple::TECH, c.energy_cost != 0)
-                .set_if(Temple::MAGICK, c.mox_cost.len() != 0),
-            attak: c.attack,
+                .set_if(Temple::MAGICK, c.mox_cost.len() != 0)
+                .into(),
+            attack: c.attack,
             health: c.health,
             sigils: c
                 .sigils
@@ -106,118 +107,13 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<ImfSet, ImfError> {
 
         cards.push(card)
     }
-    Ok(ImfSet {
+    Ok(Set {
         code,
         cards,
         name: set.ruleset,
         sigils_description,
         pools,
     })
-}
-
-/// Implementation of [`Card`] for IMF card
-#[derive(Debug)]
-pub struct ImfCard {
-    set: SetCode,
-    name: String,
-    description: String,
-    portrait: String,
-
-    rarity: Rarity,
-    temple: Temple,
-
-    attak: isize,
-    health: isize,
-
-    sigils: Vec<Rc<String>>,
-
-    sp_atk: SpAtk,
-
-    costs: Costs,
-
-    traits: Traits,
-}
-
-/// Implementation of [`Set`] for IMF Card
-#[derive(Debug)]
-pub struct ImfSet {
-    code: SetCode,
-    name: String,
-    cards: Vec<Rc<dyn Card>>,
-    sigils_description: HashMap<Rc<String>, String>,
-    pools: HashMap<String, Vec<Rc<dyn Card>>>,
-}
-
-impl Card for ImfCard {
-    fn set(&self) -> &SetCode {
-        &self.set
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn description(&self) -> &str {
-        &self.description
-    }
-
-    fn portrait(&self) -> &str {
-        &self.portrait
-    }
-
-    fn rarity(&self) -> &Rarity {
-        &self.rarity
-    }
-
-    fn temple(&self) -> u16 {
-        self.temple.0
-    }
-
-    fn attack(&self) -> isize {
-        self.attak
-    }
-
-    fn health(&self) -> isize {
-        self.health
-    }
-
-    fn sigils(&self) -> &Vec<Rc<String>> {
-        &self.sigils
-    }
-
-    fn sp_atk(&self) -> &SpAtk {
-        &self.sp_atk
-    }
-
-    fn costs(&self) -> &Costs {
-        &self.costs
-    }
-
-    fn traits(&self) -> &Traits {
-        &self.traits
-    }
-}
-
-impl Set for ImfSet {
-    fn code(&self) -> &SetCode {
-        &self.code
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn cards(&self) -> &Vec<Rc<dyn Card>> {
-        &self.cards
-    }
-
-    fn sigils_description(&self) -> &HashMap<Rc<String>, String> {
-        &self.sigils_description
-    }
-
-    fn pools(&self) -> &HashMap<String, Vec<Rc<dyn Card>>> {
-        &self.pools
-    }
 }
 
 #[derive(Debug)]

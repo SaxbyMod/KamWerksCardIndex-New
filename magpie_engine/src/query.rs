@@ -2,7 +2,7 @@
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
-use crate::cards::{Card, Costs, Rarity, Set, SpAtk, Traits};
+use crate::data::{Card, Costs, Rarity, Set, SpAtk, Traits};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 use std::rc::Rc;
@@ -12,7 +12,7 @@ use std::vec;
 /// the results.
 pub struct Query {
     /// The result of this query
-    pub cards: Vec<Rc<dyn Card>>,
+    pub cards: Vec<Rc<Card>>,
     /// The filter that produce this query
     pub filters: Vec<Filters>,
 }
@@ -24,7 +24,7 @@ impl Display for Query {
             "{}",
             self.cards
                 .iter()
-                .map(|c| c.name())
+                .map(|c| c.name.as_str())
                 .collect::<Vec<&str>>()
                 .join("\n")
         )
@@ -32,7 +32,7 @@ impl Display for Query {
 }
 
 /// Type shorthand for a filter.
-pub type FilterFn = Box<dyn Fn(Rc<dyn Card>) -> bool>;
+pub type FilterFn = Box<dyn Fn(Rc<Card>) -> bool>;
 
 /// Query builder, it contain the set and is the main way to query cards
 ///
@@ -40,12 +40,12 @@ pub type FilterFn = Box<dyn Fn(Rc<dyn Card>) -> bool>;
 /// start querying for cards
 pub struct QueryBuilder<'a> {
     /// All the set that is use for this query
-    pub sets: &'a Vec<Box<dyn Set>>,
+    pub sets: &'a Vec<Rc<Set>>,
     pub filters: Vec<Filters>,
 }
 
 impl<'a> QueryBuilder<'a> {
-    pub fn new(sets: &'a Vec<Box<dyn Set>>) -> Self {
+    pub fn new(sets: &'a Vec<Rc<Set>>) -> Self {
         QueryBuilder {
             sets,
             filters: vec![],
@@ -60,7 +60,7 @@ impl<'a> QueryBuilder<'a> {
     /// Compile all the query and give you the result.
     pub fn query(self) -> Query {
         let t = self.filters.clone();
-        let filter = move |c: Rc<dyn Card>| {
+        let filter = move |c: Rc<Card>| {
             self.filters
                 .iter()
                 .map(|f| f.clone().to_fn())
@@ -72,7 +72,7 @@ impl<'a> QueryBuilder<'a> {
             cards: self
                 .sets
                 .iter()
-                .map(|s| s.cards())
+                .map(|s| &s.cards)
                 .flatten()
                 .into_iter()
                 .filter(|&c| filter(c.clone()))
@@ -143,23 +143,23 @@ pub trait Filter: Clone + Eq {
 impl Filter for Filters {
     fn to_fn(self) -> FilterFn {
         match self {
-            Filters::Name(n) => Box::new(move |c| c.name().contains(n.as_str())),
+            Filters::Name(n) => Box::new(move |c| c.name.contains(n.as_str())),
             Filters::Description(d) => {
-                Box::new(move |c| c.description().to_lowercase().contains(d.as_str()))
+                Box::new(move |c| c.description.to_lowercase().contains(d.as_str()))
             }
 
-            Filters::Rarity(r) => Box::new(move |c| *c.rarity() == r),
-            Filters::Temple(t) => Box::new(move |c| c.temple() == t),
+            Filters::Rarity(r) => Box::new(move |c| c.rarity == r),
+            Filters::Temple(t) => Box::new(move |c| c.temple == t),
             Filters::Attack(ord, eq, a) => {
-                Box::new(move |c| (eq && c.attack() == a) || c.attack().cmp(&a) == ord)
+                Box::new(move |c| (eq && c.attack == a) || c.attack.cmp(&a) == ord)
             }
             Filters::Health(ord, eq, h) => {
-                Box::new(move |c| (eq && c.attack() == h) || c.attack().cmp(&h) == ord)
+                Box::new(move |c| (eq && c.attack == h) || c.attack.cmp(&h) == ord)
             }
             Filters::Sigils(s) => {
                 let lower = s.to_lowercase();
                 Box::new(move |c| {
-                    c.sigils()
+                    c.sigils
                         .iter()
                         .map(|s| s.to_lowercase())
                         .find(|s| s.eq(&lower))

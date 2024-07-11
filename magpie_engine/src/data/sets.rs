@@ -1,8 +1,7 @@
+use crate::data::Card;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::rc::Rc;
-
-use super::Card;
 
 /// A 3 ascii characters set code for card and set
 #[allow(dead_code)] // idk why it yelling the thing is use in the new
@@ -34,24 +33,24 @@ impl Debug for SetCode {
     }
 }
 
-/// Trait for sets.
+/// Representation of a set containing info on the set and cards.
 ///
 /// Sets are container for cards, they also carry a few other infomation like the sigils look up
 /// table and pools. Pools are pre-sorted cards into categories.
-pub trait Set {
-    /// Return the set code for the deck.
-    fn code(&self) -> &SetCode;
-    /// Return the name of the set.
-    fn name(&self) -> &str;
-    /// Return the cards store in the set.
+pub struct Set {
+    /// The set code for the deck.
+    pub code: SetCode,
+    /// The name of the set.
+    pub name: String,
+    /// The cards store in the set.
     ///
     /// These cards should be shared along with the card in the pools to save space on larger set.
-    fn cards(&self) -> &Vec<Rc<dyn Card>>;
-    /// Return the sigils description look up table for the set.
-    fn sigils_description(&self) -> &HashMap<Rc<String>, String>;
-    /// Return the card pools for the set.
+    pub cards: Vec<Rc<Card>>,
+    /// The sigils description look up table for the set.
+    pub sigils_description: HashMap<Rc<String>, String>,
+    /// The card pools for the set.
     ///
     /// These cards should be shared along with the card in the card list to save space on larger
     /// set.
-    fn pools(&self) -> &HashMap<String, Vec<Rc<dyn Card>>>;
+    pub pools: HashMap<String, Vec<Rc<Card>>>,
 }

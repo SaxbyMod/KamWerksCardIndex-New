@@ -1,57 +1,55 @@
-use super::sets::*;
+use crate::data::sets::*;
 use crate::helper::bitsflag;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-/// All card that can be query must implement this trait.
-pub trait Card {
-    /// Return the set code that the card belong to.
-    fn set(&self) -> &SetCode;
+/// Represent a card containing all the infomation on the cards.
+pub struct Card {
+    /// The set code that the card belong to.
+    pub set: SetCode,
 
-    /// Return the card name.
-    fn name(&self) -> &str;
-    /// Return the card description, note or favor text.
-    fn description(&self) -> &str;
+    /// The card name.
+    pub name: String,
+    /// The card description, note or favor text.
+    pub description: String,
     /// Return the url to the card portrait
-    fn portrait(&self) -> &str;
+    pub portrait: String,
 
-    /// Return the card rarity.
-    fn rarity(&self) -> &Rarity;
-    /// Return the card temple or archetype.
+    /// The card rarity.
+    pub rarity: Rarity,
+    /// The card temple or archetype.
     ///
     /// Temple are a bit flag to tell which temple the card belong to. You should use the associated
-    /// constant of [`Temple`]. to set these bit flags. We use a [`u16`] instead of other crate like
+    /// constant of [`Temple`] to set these bit flags. We use a [`u16`] instead of other crate like
     /// [`Bitflags`](https://docs.rs/bitflags/) so we can support more temple and make it easier to
     /// extend, if you need more than 16 temples, may god help you.
-    fn temple(&self) -> u16;
+    pub temple: u16,
 
-    /// Return the card attack or power.
-    fn attack(&self) -> isize;
-    /// Return the card health.
-    fn health(&self) -> isize;
+    /// The card attack or power.
+    pub attack: isize,
+    /// The card health.
+    pub health: isize,
 
-    /// Return the sigils or abilities on the card.
-    ///
-    /// These string should be share with the sigils look up keys from [`Set`]
-    fn sigils(&self) -> &Vec<Rc<String>>;
+    /// The sigils or abilities on the card.
+    pub sigils: Vec<Rc<String>>,
 
-    /// Return the card special attack, [`None`] if the card have no special attack
+    /// The card special attack, [`None`] if the card have no special attack
     ///
     /// Usually for card with variable attack or attack that are affected by traits. You would
     /// usually want [`Card::attack`] to return `0` if the card have a special attack.
-    fn sp_atk(&self) -> &SpAtk;
+    pub sp_atk: SpAtk,
 
-    /// Return the card cost
+    /// The card cost
     ///
     /// Cost contain a few component, one for each of the cost a card may have blood, bone, etc.
     /// The [`mox_count`](Costs::Costs::mox_count) component
-    fn costs(&self) -> &Costs;
-    /// Return the card traits
+    pub costs: Costs,
+    /// The card traits
     ///
     /// Traits contain 2 components, the string component which is for uncommon or unique traits and
     /// the flags component for common traits. The flags iare just bit flags that multiple cards have
     /// like terrain, conductive, etc.
-    fn traits(&self) -> &Traits;
+    pub traits: Traits,
 }
 
 /// Rarities or tiers cards belong to
