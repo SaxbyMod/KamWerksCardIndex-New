@@ -122,16 +122,16 @@ pub enum Filters {
     /// filter for card special attack.
     ///
     /// The value in this variant is the special attack to filter for.
-    SpAtk(SpAtk),
+    SpAtk(Option<SpAtk>),
 
     /// Filter for card cost
     ///
     /// The value in this variant is cost table to filter for
-    Costs(Costs),
+    Costs(Option<Costs>),
     /// Filter for card trait
     ///
     /// The value in this variant is trait table to filter for
-    Traits(Traits),
+    Traits(Option<Traits>),
 }
 
 /// Trait for a Filter.

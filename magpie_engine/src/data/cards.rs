@@ -37,19 +37,19 @@ pub struct Card {
     ///
     /// Usually for card with variable attack or attack that are affected by traits. You would
     /// usually want [`Card::attack`] to return `0` if the card have a special attack.
-    pub sp_atk: SpAtk,
+    pub sp_atk: Option<SpAtk>,
 
     /// The card cost
     ///
     /// Cost contain a few component, one for each of the cost a card may have blood, bone, etc.
     /// The [`mox_count`](Costs::Costs::mox_count) component
-    pub costs: Costs,
+    pub costs: Option<Costs>,
     /// The card traits
     ///
     /// Traits contain 2 components, the string component which is for uncommon or unique traits and
     /// the flags component for common traits. The flags iare just bit flags that multiple cards have
     /// like terrain, conductive, etc.
-    pub traits: Traits,
+    pub traits: Option<Traits>,
 }
 
 /// Rarities or tiers cards belong to
@@ -149,24 +149,20 @@ pub struct MoxCount {
 
 /// Contain all the cost info.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Costs {
-    /// Case where the card is free.
-    Free,
+pub struct Costs {
     /// Other case where the card are not free.
-    Costs {
-        /// Blood cost for the card
-        blood: isize,
-        /// Bone cost for the card
-        bone: isize,
-        /// Energy cost for the card
-        energy: isize,
-        /// Mox bit flags for the card
-        mox: Mox,
-        /// Multiple Mox support for card.
-        ///
-        /// If the card only cost 1 Mox max you should not add this type.
-        mox_count: Option<MoxCount>,
-    },
+    /// Blood cost for the card
+    pub blood: isize,
+    /// Bone cost for the card
+    pub bone: isize,
+    /// Energy cost for the card
+    pub energy: isize,
+    /// Mox bit flags for the card
+    pub mox: Mox,
+    /// Multiple Mox support for card.
+    ///
+    /// If the card only cost 1 Mox max you should not add this type.
+    pub mox_count: Option<MoxCount>,
 }
 
 bitsflag! {
@@ -185,18 +181,13 @@ bitsflag! {
 
 /// Store both flag based traits and string based traits.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Traits {
-    /// Case where the card is traitless.
-    Traitsless,
-    /// Other case where the card have traits.
-    Traits {
-        /// Traits that are not flags so they are [`String`].
-        ///
-        /// Uncommon trait are store in [`String`] form to reduce headache.
-        traits: Option<Vec<String>>,
-        /// Trait that are in bit flags form.
-        ///
-        /// Common traits are store using bit flags to save space.
-        flags: u16,
-    },
+pub struct Traits {
+    /// Traits that are not flags so they are [`String`].
+    ///
+    /// Uncommon trait are store in [`String`] form to reduce headache.
+    pub traits: Option<Vec<String>>,
+    /// Trait that are in bit flags form.
+    ///
+    /// Common traits are store using bit flags to save space.
+    pub flags: u16,
 }

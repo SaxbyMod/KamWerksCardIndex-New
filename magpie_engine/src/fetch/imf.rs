@@ -70,39 +70,43 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
                 .map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone())
                 .collect(),
             sp_atk: match c.atkspecial.as_str() {
-                "" => SpAtk::NONE,
-                atk => match atk {
+                "" => None,
+                atk => Some(match atk {
                     "mox" => SpAtk::MOX,
                     "green_mox" => SpAtk::GREEN_MOX,
                     "mirror" => SpAtk::MIRROR,
                     "ant" => SpAtk::ANT,
                     _ => return Err(ImfError::InvalidSpAtk(c.atkspecial)),
-                },
+                }),
             },
-            costs: Costs::Costs {
-                blood: c.blood_cost,
-                bone: c.bone_cost,
-                energy: c.energy_cost,
-                mox: c
-                    .mox_cost
-                    .iter()
-                    .fold(Mox(0), |flags, mox| match mox.as_str() {
-                        "Orange" => flags | Mox::R,
-                        "Green" => flags | Mox::R,
-                        "Blue" => flags | Mox::R,
-                        _ => unreachable!(),
-                    }),
-                mox_count: None,
-            },
-            traits: Traits::Traits {
+            costs: ((c.blood_cost > 0)
+                | (c.bone_cost > 0)
+                | (c.energy_cost > 0)
+                | (c.mox_cost.len() > 0))
+                .then(|| Costs {
+                    blood: c.blood_cost,
+                    bone: c.bone_cost,
+                    energy: c.energy_cost,
+                    mox: c
+                        .mox_cost
+                        .iter()
+                        .fold(Mox(0), |flags, mox| match mox.as_str() {
+                            "Orange" => flags | Mox::R,
+                            "Green" => flags | Mox::R,
+                            "Blue" => flags | Mox::R,
+                            _ => unreachable!(),
+                        }),
+                    mox_count: None,
+                }),
+            traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
                 traits: None,
                 flags: TraitFlag::EMPTY
                     .set_if(TraitFlag::CONDUCTIVE, c.conduit)
                     .set_if(TraitFlag::BAN, c.banned)
                     .set_if(TraitFlag::TERRAIN, c.nosac)
                     .set_if(TraitFlag::HARD, c.nohammer)
-                    | 0, // convert the flag into the correct type
-            },
+                    .into(),
+            }),
         });
 
         cards.push(card)
