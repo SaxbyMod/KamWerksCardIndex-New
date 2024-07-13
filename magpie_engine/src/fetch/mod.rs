@@ -48,13 +48,10 @@ pub fn fetch_json<S>(url: &str) -> Result<S, FetchError>
 where
     S: for<'de> Deserialize<'de>,
 {
-    match isahc::get(url) {
-        Err(e) => Err(FetchError::IsahcError(e)),
-        Ok(mut res) => match res.json() {
-            Err(e) => Err(FetchError::SerdeError(e)),
-            Ok(json) => Ok(json),
-        },
-    }
+    isahc::get(url)
+        .map_err(|e| FetchError::IsahcError(e))?
+        .json()
+        .map_err(|e| FetchError::SerdeError(e))
 }
 
 /// Fetch google sheet json using [`opensheet`](https://github.com/benborgers/opensheet).

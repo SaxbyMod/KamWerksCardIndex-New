@@ -13,10 +13,7 @@ use super::{fetch_json, FetchError};
 
 /// Fetch a IMF Set from a url
 pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
-    let set: ImfSetJson = match fetch_json(url) {
-        Ok(it) => it,
-        Err(e) => return Err(ImfError::FetchError(e)),
-    };
+    let set: ImfSetJson = fetch_json(url).map_err(|e| ImfError::FetchError(e))?;
 
     // idk why i need explicit type here but rust want it there
     let mut cards: Vec<Ptr<Card>> = Vec::with_capacity(set.cards.len() + 1);
