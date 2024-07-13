@@ -43,7 +43,8 @@ pub struct Card {
     /// The card cost
     ///
     /// Cost contain a few component, one for each of the cost a card may have blood, bone, etc.
-    /// The [`mox_count`](Costs::mox_count) component
+    /// The [`mox_count`](Costs::mox_count) component is available if the card can have multiple
+    /// mox of each color.
     pub costs: Option<Costs>,
     /// The card traits
     ///

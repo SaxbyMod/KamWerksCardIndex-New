@@ -21,11 +21,10 @@ mod helper;
 pub mod fetch;
 pub mod query;
 
-/// Contain data type for magpie
-pub mod data {
-    mod cards;
-    mod sets;
+pub use data::cards::*;
+pub use data::sets::*;
 
-    pub use cards::*;
-    pub use sets::*;
+mod data {
+    pub mod cards;
+    pub mod sets;
 }

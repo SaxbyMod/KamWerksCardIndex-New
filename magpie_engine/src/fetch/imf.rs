@@ -2,8 +2,8 @@
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
-use crate::data::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, TraitFlag, Traits};
 use crate::Ptr;
+use crate::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, TraitFlag, Traits};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;

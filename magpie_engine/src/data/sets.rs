@@ -1,4 +1,4 @@
-use crate::data::Card;
+use crate::Card;
 use crate::Ptr;
 use std::collections::HashMap;
 use std::fmt::Debug;

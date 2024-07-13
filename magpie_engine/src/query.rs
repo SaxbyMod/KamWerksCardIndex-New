@@ -2,8 +2,8 @@
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
-use crate::data::{Card, Costs, Rarity, Set, SpAtk, Traits};
 use crate::Ptr;
+use crate::{Card, Costs, Rarity, Set, SpAtk, Traits};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 use std::vec;
