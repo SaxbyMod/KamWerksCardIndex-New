@@ -1,4 +1,4 @@
-//! Contain implementation for querying card
+//! Implementation for querying card
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
@@ -10,6 +10,7 @@ use std::vec;
 
 /// The query object containing your results and infomation about the filter that give you
 /// the results.
+#[derive(Debug)]
 pub struct Query {
     /// The result of this query
     pub cards: Vec<Ptr<Card>>,
@@ -40,14 +41,15 @@ pub type FilterFn = Box<dyn Fn(Ptr<Card>) -> bool>;
 /// start querying for cards
 pub struct QueryBuilder<'a> {
     /// All the set that is use for this query
-    pub sets: &'a Vec<Set>,
+    pub sets: Vec<&'a Set>,
+
     filters: Vec<Filters>,
     funcs: Vec<FilterFn>,
 }
 
 impl<'a> QueryBuilder<'a> {
     /// Create a new [`QueryBuilder`] from a collection of set.
-    pub fn new(sets: &'a Vec<Set>) -> Self {
+    pub fn new(sets: Vec<&'a Set>) -> Self {
         QueryBuilder {
             sets,
             filters: vec![],
