@@ -25,11 +25,13 @@ macro_rules! bitsflag {
             $v const EMPTY: $name = $name(0);
 
             /// Set all bit to true.
+            #[must_use]
             pub fn all() -> $t {
                 $(Self::$flag | )* 0
             }
 
             /// Check if this bit flag contain a bit.
+            #[must_use]
             pub fn contains(&self, that: $t) -> bool {
                 self.0 & that == that
             }
@@ -37,11 +39,13 @@ macro_rules! bitsflag {
             /// Turn a bit on if the `toggle` is true and do nothing otherwise
             ///
             /// This is just sugar for `self | (bit * toggle)`
+            #[must_use]
             pub fn set_if(self, bit: $name, toggle: bool) -> $name {
                 self | (bit * toggle)
             }
 
             /// Get the actual flag inside the struct
+            #[must_use]
             pub fn flags(self) -> $t {
                 self.0
             }

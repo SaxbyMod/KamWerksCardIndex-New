@@ -20,6 +20,8 @@ impl SetCode {
     /// assert!(SetCode::new("ABC").is_some());
     /// assert!(SetCode::new("ABCD").is_none());
     /// ```
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)] // should never panic because we already check if the bytes are ascii
     pub fn new(code: &str) -> Option<Self> {
         let bytes = code.as_bytes();
         (bytes.len() == 3 && bytes.is_ascii()).then(|| SetCode(bytes.try_into().unwrap()))
@@ -44,12 +46,30 @@ pub struct Set<C> {
     /// The cards store in the set.
     ///
     /// These cards should be shared along with the card in the pools to save space on larger set.
-    pub cards: Vec<Ptr<Card<C>>>,
+    pub cards: Vec<Card<C>>,
     /// The sigils description look up table for the set.
     pub sigils_description: HashMap<Ptr<String>, String>,
-    /// The card pools for the set.
+}
+
+impl Set<()> {
+    /// Convert a empty, no extension set into set with a extension
     ///
-    /// These cards should be shared along with the card in the card list to save space on larger
-    /// set.
-    pub pools: HashMap<String, Vec<Ptr<Card<C>>>>,
+    /// This is quite expensive because it need to remake all the shared pointer and also you will lose
+    /// the pools. If you can build the set with the correct extension do it.
+    #[must_use]
+    pub fn upcast<T>(self) -> Set<T>
+    where
+        T: Default,
+    {
+        let mut cards = vec![];
+        for c in self.cards {
+            cards.push(c.upgrade());
+        }
+        Set {
+            code: self.code,
+            name: self.name,
+            cards,
+            sigils_description: self.sigils_description,
+        }
+    }
 }

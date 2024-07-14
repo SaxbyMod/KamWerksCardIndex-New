@@ -14,17 +14,9 @@ use super::{fetch_json, FetchError};
 
 /// Fetch a IMF Set from a url
 pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
-    let set: ImfSetJson = fetch_json(url).map_err(|e| ImfError::FetchError(e))?;
+    let set: ImfSetJson = fetch_json(url).map_err(ImfError::FetchError)?;
 
     let mut cards = Vec::with_capacity(set.cards.len() + 1);
-
-    let pools = {
-        let mut m = HashMap::with_capacity(7);
-        for p in vec!["rare", "ban", "beast", "undead", "tech", "magick"] {
-            m.insert(p.to_string(), Vec::with_capacity(set.cards.len() / 4));
-        }
-        m
-    };
 
     let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
 
@@ -40,14 +32,14 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
     }
 
     for c in set.cards {
-        let card = Ptr::new(Card {
-            set: code.clone(),
+        let card = Card {
+            set: code,
             portrait: c
                 .pixport_url
                 .is_empty()
                 .then_some(format!(
                     "https://github.com/107zxz/inscr-onln/raw/main/gfx/pixport/{}.png",
-                    c.name.replace(" ", "%20")
+                    c.name.replace(' ', "%20")
                 ))
                 .unwrap_or(c.pixport_url),
             name: c.name,
@@ -57,7 +49,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                 .set_if(Temple::BEAST, c.blood_cost != 0)
                 .set_if(Temple::UNDEAD, c.bone_cost != 0)
                 .set_if(Temple::TECH, c.energy_cost != 0)
-                .set_if(Temple::MAGICK, c.mox_cost.len() != 0)
+                .set_if(Temple::MAGICK, !c.mox_cost.is_empty())
                 .into(),
             attack: c.attack,
             health: c.health,
@@ -79,23 +71,23 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
             costs: ((c.blood_cost > 0)
                 | (c.bone_cost > 0)
                 | (c.energy_cost > 0)
-                | (c.mox_cost.len() > 0))
-                .then(|| Costs {
-                    blood: c.blood_cost,
-                    bone: c.bone_cost,
-                    energy: c.energy_cost,
-                    mox: c
-                        .mox_cost
-                        .iter()
-                        .fold(Mox(0), |flags, mox| match mox.as_str() {
-                            "Orange" => flags | Mox::R,
-                            "Green" => flags | Mox::R,
-                            "Blue" => flags | Mox::R,
-                            _ => unreachable!(),
-                        })
-                        .into(),
-                    mox_count: None,
-                }),
+                | (!c.mox_cost.is_empty()))
+            .then(|| Costs {
+                blood: c.blood_cost,
+                bone: c.bone_cost,
+                energy: c.energy_cost,
+                mox: c
+                    .mox_cost
+                    .iter()
+                    .fold(Mox(0), |flags, mox| match mox.as_str() {
+                        "Orange" => flags | Mox::R,
+                        "Green" => flags | Mox::G,
+                        "Blue" => flags | Mox::B,
+                        _ => unreachable!(),
+                    })
+                    .into(),
+                mox_count: None,
+            }),
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
                 traits: None,
                 flags: TraitFlag::EMPTY
@@ -117,16 +109,15 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
             }),
 
             extra: (),
-        });
+        };
 
-        cards.push(card)
+        cards.push(card);
     }
     Ok(Set {
         code,
         cards,
         name: set.ruleset,
         sigils_description,
-        pools,
     })
 }
 
@@ -159,6 +150,7 @@ struct ImfSetJson {
 
 /// Json scheme for IMF card
 #[derive(Debug, Deserialize)]
+#[allow(clippy::struct_excessive_bools)]
 struct ImfCardJson {
     pub name: String,
 

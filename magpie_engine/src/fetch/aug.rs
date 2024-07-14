@@ -11,7 +11,7 @@ use std::fmt::Display;
 use std::ops::Not;
 
 /// Augmented's [`Card`] extensions
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct AugExt {
     /// Shattered mox cost count.
     pub shattered_count: Option<MoxCount>,
@@ -25,25 +25,18 @@ pub struct AugExt {
 
 /// Fetch Augmented from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/edit?gid=0#gid=0).
+/// # Panics
+#[allow(clippy::too_many_lines)]
 pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
     let raw_card: Vec<AugCard> =
         fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Cards")
-            .map_err(|e| AugError::CardFetchError(e))?;
+            .map_err(AugError::CardFetchError)?;
 
     let sigil: Vec<AugSigil> =
         fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Sigils")
-            .map_err(|e| AugError::SigilFetchError(e))?;
+            .map_err(AugError::SigilFetchError)?;
 
     let mut cards = Vec::with_capacity(raw_card.len());
-    let pools = {
-        let mut m = HashMap::with_capacity(9);
-        for p in [
-            "common", "uncommon", "rare", "talk", "side", "beast", "undead", "tech", "magicj",
-        ] {
-            m.insert(p.to_string(), Vec::with_capacity(raw_card.len() / 4));
-        }
-        m
-    };
 
     let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
 
@@ -60,7 +53,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         let traits = c
             .traits
             .split(", ")
-            .map(|s| s.to_owned())
+            .map(ToOwned::to_owned)
             .collect::<Vec<String>>();
 
         let costs;
@@ -79,11 +72,11 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                 .replace("emeralds", "emerald")
                 .replace("sapphires", "sapphire")
                 .replace("prisms", "prism")
-                .split("+")
+                .split('+')
             {
                 let (count, mut cost): (isize, Vec<String>) = {
                     let s = c.to_lowercase().trim().to_string();
-                    let mut t = s.split_whitespace().map(|s| s.to_owned());
+                    let mut t = s.split_whitespace().map(ToOwned::to_owned);
 
                     let first = t.next().unwrap().parse::<isize>().unwrap();
                     let mut rest = t.collect::<Vec<String>>();
@@ -100,11 +93,11 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     "shattered" => match cost.pop().unwrap().as_str() {
                         "ruby" => {
                             t.mox |= Mox::R;
-                            shattered_count.r += count
+                            shattered_count.r += count;
                         }
                         "emerald" => {
                             t.mox |= Mox::G;
-                            shattered_count.g += count
+                            shattered_count.g += count;
                         }
                         "sapphire" => {
                             t.mox |= Mox::B;
@@ -140,16 +133,16 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                 }
             }
             if mox_count != MoxCount::default() {
-                t.mox_count = Some(mox_count)
+                t.mox_count = Some(mox_count);
             }
             costs = Some(t);
         } else {
             costs = None;
         }
 
-        let card = Ptr::new(Card {
-            portrait: format!("https://github.com/answearingmachine/card-printer/raw/main/dist/printer/assets/art/{}.png", c.name.replace(" ", "%20")),
-            set: code.clone(),
+        let card = Card {
+            portrait: format!("https://github.com/answearingmachine/card-printer/raw/main/dist/printer/assets/art/{}.png", c.name.replace(' ', "%20")),
+            set: code,
             name: c.name,
             description: c.description,
             rarity: match c.rarity.as_str() {
@@ -179,16 +172,16 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                 traits: Some(traits),
                 flags: 0
             }),
-            related: c.token.is_empty().not().then(||c.token.split(", ").map(|s|s.to_owned()).collect()),
+            related: c.token.is_empty().not().then(||c.token.split(", ").map(ToOwned::to_owned).collect()),
             extra: AugExt {
                 artist: c.artist,
                 max,
-                shattered_count: shattered_count.eq(&MoxCount::default()).not().then(||Some(shattered_count)).unwrap_or(None),
+                shattered_count: if shattered_count.eq(&MoxCount::default()).not() { Some(shattered_count) } else { None },
                 tribes: c.tribes
             }
-        });
+        };
 
-        cards.push(card)
+        cards.push(card);
     }
 
     Ok(Set {
@@ -196,7 +189,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         name: String::from("Augmented"),
         cards,
         sigils_description,
-        pools,
     })
 }
 

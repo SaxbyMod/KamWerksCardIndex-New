@@ -49,9 +49,9 @@ where
     S: for<'de> Deserialize<'de>,
 {
     isahc::get(url)
-        .map_err(|e| FetchError::IsahcError(e))?
+        .map_err(FetchError::IsahcError)?
         .json()
-        .map_err(|e| FetchError::SerdeError(e))
+        .map_err(FetchError::SerdeError)
 }
 
 /// Fetch google sheet json using [`opensheet`](https://github.com/benborgers/opensheet).

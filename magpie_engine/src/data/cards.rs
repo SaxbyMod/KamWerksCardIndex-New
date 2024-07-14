@@ -1,9 +1,11 @@
-use crate::data::sets::*;
 use crate::helper::bitsflag;
 use crate::Ptr;
+use crate::SetCode;
 use std::fmt::Debug;
 
 /// Represent a card containing all the infomation on the cards.
+///
+/// You can add extra infomation using the [`Card::extra`] field and the generic `E`
 #[derive(Debug)]
 pub struct Card<E> {
     /// The set code that the card belong to.
@@ -60,6 +62,33 @@ pub struct Card<E> {
 
     /// Extra
     pub extra: E,
+}
+
+impl Card<()> {
+    /// Convert a empty, no extension card into something with a extension
+    #[must_use]
+    pub fn upgrade<T>(self) -> Card<T>
+    where
+        T: Default,
+    {
+        Card {
+            extra: T::default(),
+
+            set: self.set,
+            name: self.name,
+            description: self.description,
+            portrait: self.portrait,
+            rarity: self.rarity,
+            temple: self.temple,
+            attack: self.attack,
+            health: self.health,
+            sigils: self.sigils,
+            sp_atk: self.sp_atk,
+            costs: self.costs,
+            traits: self.traits,
+            related: self.related,
+        }
+    }
 }
 
 /// Rarities or tiers cards belong to
