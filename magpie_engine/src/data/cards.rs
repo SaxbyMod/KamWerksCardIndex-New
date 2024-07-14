@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 /// Represent a card containing all the infomation on the cards.
 #[derive(Debug)]
-pub struct Card {
+pub struct Card<E> {
     /// The set code that the card belong to.
     pub set: SetCode,
 
@@ -52,6 +52,14 @@ pub struct Card {
     /// the flags component for common traits. The flags iare just bit flags that multiple cards have
     /// like terrain, conductive, etc.
     pub traits: Option<Traits>,
+
+    /// Related card or token
+    ///
+    /// Usuall for tokens, evolution, etc.
+    pub related: Option<Vec<String>>,
+
+    /// Extra
+    pub extra: E,
 }
 
 /// Rarities or tiers cards belong to
@@ -137,30 +145,30 @@ bitsflag! {
 }
 
 /// Component for when card cost multiple of 1 Mox color.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct MoxCount {
     /// The Red, Orange or Ruby component
-    pub r: usize,
+    pub r: isize,
     /// The Green or Emerald component
-    pub g: usize,
+    pub g: isize,
     /// The Blue or Sapphire component
-    pub b: usize,
+    pub b: isize,
     /// The Gray, Prism component
-    pub y: usize,
+    pub y: isize,
 }
 
 /// Contain all the cost info.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Costs {
     /// Other case where the card are not free.
-    /// Blood cost for the card
+    /// Blood cost for the card.
     pub blood: isize,
-    /// Bone cost for the card
+    /// Bone cost for the card.
     pub bone: isize,
-    /// Energy cost for the card
+    /// Energy cost for the card.
     pub energy: isize,
-    /// Mox bit flags for the card
-    pub mox: Mox,
+    /// Mox bit flags for the card.
+    pub mox: u16,
     /// Multiple Mox support for card.
     ///
     /// If the card only cost 1 Mox max you should not add this type.

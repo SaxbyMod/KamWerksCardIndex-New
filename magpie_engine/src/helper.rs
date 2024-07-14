@@ -61,6 +61,19 @@ macro_rules! bitsflag {
             }
         }
 
+        impl std::ops::BitOr<$name> for $t {
+            type Output = $t;
+            fn bitor(self, rhs: $name) -> Self::Output {
+                self | rhs.0
+            }
+        }
+
+        impl std::ops::BitOrAssign<$name> for $t {
+            fn bitor_assign(&mut self, rhs: $name) {
+                *self = rhs | *self
+            }
+        }
+
         impl std::ops::Mul<bool> for $name {
             type Output = $name;
             fn mul(self, rhs: bool) -> Self::Output {

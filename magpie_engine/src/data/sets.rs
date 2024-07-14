@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 
 /// A 3 ascii characters set code for card and set
-#[allow(dead_code)] // idk why it yelling the thing is use in the new
 #[derive(Clone, Copy)]
 pub struct SetCode([u8; 3]);
 
@@ -37,7 +36,7 @@ impl Debug for SetCode {
 ///
 /// Sets are container for cards, they also carry a few other infomation like the sigils look up
 /// table and pools. Pools are pre-sorted cards into categories.
-pub struct Set {
+pub struct Set<C> {
     /// The set code for the deck.
     pub code: SetCode,
     /// The name of the set.
@@ -45,12 +44,12 @@ pub struct Set {
     /// The cards store in the set.
     ///
     /// These cards should be shared along with the card in the pools to save space on larger set.
-    pub cards: Vec<Ptr<Card>>,
+    pub cards: Vec<Ptr<Card<C>>>,
     /// The sigils description look up table for the set.
     pub sigils_description: HashMap<Ptr<String>, String>,
     /// The card pools for the set.
     ///
     /// These cards should be shared along with the card in the card list to save space on larger
     /// set.
-    pub pools: HashMap<String, Vec<Ptr<Card>>>,
+    pub pools: HashMap<String, Vec<Ptr<Card<C>>>>,
 }

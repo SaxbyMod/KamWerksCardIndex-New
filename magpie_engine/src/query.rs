@@ -11,14 +11,14 @@ use std::vec;
 /// The query object containing your results and infomation about the filter that give you
 /// the results.
 #[derive(Debug)]
-pub struct Query {
+pub struct Query<C> {
     /// The result of this query
-    pub cards: Vec<Ptr<Card>>,
+    pub cards: Vec<Ptr<Card<C>>>,
     /// The filter that produce this query
     pub filters: Vec<Filters>,
 }
 
-impl Display for Query {
+impl<C> Display for Query<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -33,23 +33,23 @@ impl Display for Query {
 }
 
 /// Type shorthand for a filter.
-pub type FilterFn = Box<dyn Fn(Ptr<Card>) -> bool>;
+pub type FilterFn<C> = Box<dyn Fn(Ptr<Card<C>>) -> bool>;
 
 /// Query builder, it contain the set and is the main way to query cards
 ///
 /// You must first build up your query then lastly call `.query()` to compile all the condition and
 /// start querying for cards
-pub struct QueryBuilder<'a> {
+pub struct QueryBuilder<'a, C> {
     /// All the set that is use for this query
-    pub sets: Vec<&'a Set>,
+    pub sets: Vec<&'a Set<C>>,
 
     filters: Vec<Filters>,
-    funcs: Vec<FilterFn>,
+    funcs: Vec<FilterFn<C>>,
 }
 
-impl<'a> QueryBuilder<'a> {
+impl<'a, C> QueryBuilder<'a, C> {
     /// Create a new [`QueryBuilder`] from a collection of set.
-    pub fn new(sets: Vec<&'a Set>) -> Self {
+    pub fn new(sets: Vec<&'a Set<C>>) -> Self {
         QueryBuilder {
             sets,
             filters: vec![],
@@ -64,8 +64,8 @@ impl<'a> QueryBuilder<'a> {
     }
 
     /// Compile all the query and give you the result.
-    pub fn query(self) -> Query {
-        let filter = move |c: Ptr<Card>| self.funcs.iter().all(move |f| f(c.clone()));
+    pub fn query(self) -> Query<C> {
+        let filter = move |c: Ptr<Card<C>>| self.funcs.iter().all(move |f| f(c.clone()));
 
         Query {
             filters: self.filters,
@@ -135,18 +135,22 @@ pub enum Filters {
 }
 
 /// Trait for a Filter.
-pub trait Filter: Clone + Eq {
+pub trait Filter<C>: Clone + Eq {
     /// Turn the value into a filter that take a card and return a bool
-    fn to_fn(self) -> FilterFn;
+    fn to_fn(self) -> FilterFn<C>;
 }
 
-impl Filter for Filters {
-    fn to_fn(self) -> FilterFn {
+impl<C> Filter<C> for Filters {
+    fn to_fn(self) -> FilterFn<C> {
         match self {
-            Filters::Name(name) => Box::new(move |c| c.name.to_lowercase().contains(name.as_str())),
-            Filters::Description(desc) => {
-                Box::new(move |c| c.description.to_lowercase().contains(desc.as_str()))
+            Filters::Name(name) => {
+                Box::new(move |c| c.name.to_lowercase().contains(name.to_lowercase().as_str()))
             }
+            Filters::Description(desc) => Box::new(move |c| {
+                c.description
+                    .to_lowercase()
+                    .contains(desc.to_lowercase().as_str())
+            }),
 
             Filters::Rarity(rarity) => Box::new(move |c| c.rarity == rarity),
             Filters::Temple(temple) => Box::new(move |c| c.temple == temple),
@@ -173,8 +177,8 @@ impl Filter for Filters {
     }
 }
 
-impl Filter for () {
-    fn to_fn(self) -> FilterFn {
+impl<C> Filter<C> for () {
+    fn to_fn(self) -> FilterFn<C> {
         unimplemented!()
     }
 }

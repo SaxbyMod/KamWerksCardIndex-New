@@ -8,20 +8,20 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
+use std::ops::Not;
 
 use super::{fetch_json, FetchError};
 
 /// Fetch a IMF Set from a url
-pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
+pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
     let set: ImfSetJson = fetch_json(url).map_err(|e| ImfError::FetchError(e))?;
 
-    // idk why i need explicit type here but rust want it there
-    let mut cards: Vec<Ptr<Card>> = Vec::with_capacity(set.cards.len() + 1);
+    let mut cards = Vec::with_capacity(set.cards.len() + 1);
 
     let pools = {
         let mut m = HashMap::with_capacity(7);
         for p in vec!["rare", "ban", "beast", "undead", "tech", "magick"] {
-            m.insert(p.to_string(), vec![]);
+            m.insert(p.to_string(), Vec::with_capacity(set.cards.len() / 4));
         }
         m
     };
@@ -32,7 +32,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
     let mut sigils_description = HashMap::with_capacity(set.sigils.len());
 
     for s in set.sigils {
-        // Convert the sigil to a rc
+        // Convert the sigil to a pointer
         let rc = Ptr::new(s.0.clone());
 
         sigil_rc.insert(s.0, rc.clone());
@@ -92,7 +92,8 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
                             "Green" => flags | Mox::R,
                             "Blue" => flags | Mox::R,
                             _ => unreachable!(),
-                        }),
+                        })
+                        .into(),
                     mox_count: None,
                 }),
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
@@ -104,6 +105,18 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set, ImfError> {
                     .set_if(TraitFlag::HARD, c.nohammer)
                     .into(),
             }),
+
+            related: Some({
+                let mut v = Vec::new();
+
+                c.evolution.is_empty().not().then(|| v.push(c.evolution));
+                c.left_half.is_empty().not().then(|| v.push(c.left_half));
+                c.right_half.is_empty().not().then(|| v.push(c.right_half));
+
+                v
+            }),
+
+            extra: (),
         });
 
         cards.push(card)
@@ -146,7 +159,6 @@ struct ImfSetJson {
 
 /// Json scheme for IMF card
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct ImfCardJson {
     pub name: String,
 

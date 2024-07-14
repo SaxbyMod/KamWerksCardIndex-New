@@ -8,7 +8,8 @@
 //! use magpie_engine::prelude::*
 //! ```
 
-pub use crate::*;
-
-pub use crate::fetch::{imf::fetch_imf_set, FetchError};
-pub use crate::query::{Filter, Filters, QueryBuilder};
+pub use crate::{
+    fetch::{aug::*, imf::*},
+    query::{Filter, Filters, QueryBuilder},
+    *,
+};
