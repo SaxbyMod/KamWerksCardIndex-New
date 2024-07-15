@@ -6,10 +6,12 @@ use std::fmt::Debug;
 /// Represent a card containing all the infomation on the cards.
 ///
 /// You can add extra infomation using the [`Card::extra`] field and the generic `E`
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Card<E> {
     /// The set code that the card belong to.
     pub set: SetCode,
+    /// The set name that this card belong to.
+    pub set_name: Ptr<String>,
 
     /// The card name.
     pub name: String,
@@ -75,16 +77,25 @@ impl Card<()> {
             extra: T::default(),
 
             set: self.set,
+            set_name: self.set_name,
+
             name: self.name,
             description: self.description,
+
             portrait: self.portrait,
+
             rarity: self.rarity,
             temple: self.temple,
+
             attack: self.attack,
             health: self.health,
+
             sigils: self.sigils,
+
             sp_atk: self.sp_atk,
+
             costs: self.costs,
+
             traits: self.traits,
             related: self.related,
         }

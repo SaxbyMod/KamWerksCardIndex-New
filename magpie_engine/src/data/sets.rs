@@ -51,11 +51,12 @@ impl Debug for SetCode {
 ///
 /// Sets are container for cards, they also carry a few other infomation like the sigils look up
 /// table and pools. Pools are pre-sorted cards into categories.
+#[derive(Clone)]
 pub struct Set<C> {
     /// The set code for the deck.
     pub code: SetCode,
     /// The name of the set.
-    pub name: String,
+    pub name: Ptr<String>,
     /// The cards store in the set.
     ///
     /// These cards should be shared along with the card in the pools to save space on larger set.
@@ -66,22 +67,15 @@ pub struct Set<C> {
 
 impl Set<()> {
     /// Convert a empty, no extension set into set with a extension
-    ///
-    /// This is quite expensive because it need to remake all the shared pointer and also you will lose
-    /// the pools. If you can build the set with the correct extension do it.
     #[must_use]
     pub fn upgrade<T>(self) -> Set<T>
     where
         T: Default,
     {
-        let mut cards = vec![];
-        for c in self.cards {
-            cards.push(c.upgrade());
-        }
         Set {
             code: self.code,
             name: self.name,
-            cards,
+            cards: self.cards.into_iter().map(Card::upgrade).collect(),
             sigils_description: self.sigils_description,
         }
     }

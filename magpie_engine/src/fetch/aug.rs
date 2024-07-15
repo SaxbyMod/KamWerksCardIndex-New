@@ -36,6 +36,8 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Sigils")
             .map_err(AugError::SigilFetchError)?;
 
+    let name = Ptr::new("Augmented".to_owned());
+
     let mut cards = Vec::with_capacity(raw_card.len());
 
     let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
@@ -142,7 +144,10 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
         let card = Card {
             portrait: format!("https://github.com/answearingmachine/card-printer/raw/main/dist/printer/assets/art/{}.png", c.name.replace(' ', "%20")),
+
             set: code,
+            set_name: name.clone(),
+
             name: c.name,
             description: c.description,
             rarity: match c.rarity.as_str() {
@@ -186,7 +191,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
     Ok(Set {
         code,
-        name: String::from("Augmented"),
+        name,
         cards,
         sigils_description,
     })

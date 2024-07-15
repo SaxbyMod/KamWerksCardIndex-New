@@ -16,6 +16,8 @@ use super::{fetch_json, FetchError};
 pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
     let set: ImfSetJson = fetch_json(url).map_err(ImfError::FetchError)?;
 
+    let name = Ptr::new(set.ruleset);
+
     let mut cards = Vec::with_capacity(set.cards.len() + 1);
 
     let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
@@ -34,6 +36,8 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
     for c in set.cards {
         let card = Card {
             set: code,
+            set_name: name.clone(),
+
             portrait: c
                 .pixport_url
                 .is_empty()
@@ -115,8 +119,8 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
     }
     Ok(Set {
         code,
+        name,
         cards,
-        name: set.ruleset,
         sigils_description,
     })
 }
