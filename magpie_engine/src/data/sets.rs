@@ -26,11 +26,24 @@ impl SetCode {
         let bytes = code.as_bytes();
         (bytes.len() == 3 && bytes.is_ascii()).then(|| SetCode(bytes.try_into().unwrap()))
     }
+
+    /// Return the code as str.
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
+    pub fn code(&self) -> &str {
+        std::str::from_utf8(&self.0).unwrap()
+    }
+
+    /// Return the bytes of the set code
+    #[must_use]
+    pub fn bytes(&self) -> [u8; 3] {
+        self.0
+    }
 }
 
 impl Debug for SetCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", std::str::from_utf8(&self.0).unwrap())
+        write!(f, "{}", self.code())
     }
 }
 
@@ -57,7 +70,7 @@ impl Set<()> {
     /// This is quite expensive because it need to remake all the shared pointer and also you will lose
     /// the pools. If you can build the set with the correct extension do it.
     #[must_use]
-    pub fn upcast<T>(self) -> Set<T>
+    pub fn upgrade<T>(self) -> Set<T>
     where
         T: Default,
     {
