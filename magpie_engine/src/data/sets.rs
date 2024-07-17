@@ -2,6 +2,7 @@ use crate::Card;
 use crate::Ptr;
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::fmt::Display;
 
 /// A 3 ascii characters set code for card and set
 #[derive(Clone, Copy)]
@@ -41,9 +42,21 @@ impl SetCode {
     }
 }
 
-impl Debug for SetCode {
+impl From<SetCode> for String {
+    fn from(val: SetCode) -> Self {
+        val.code().to_owned()
+    }
+}
+
+impl Display for SetCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.code())
+    }
+}
+
+impl Debug for SetCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.code())
     }
 }
 
