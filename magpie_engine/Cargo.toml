@@ -11,6 +11,7 @@ pedantic = "warn"
 todo = "warn"
 module_name_repetitions = "allow"
 missing_errors_doc = "allow"
+too_many_lines = {level = "allow", priority = 1}
 
 [dependencies]
 serde = {version = "1", features = ["derive"]}
