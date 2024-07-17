@@ -51,8 +51,8 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         sigils_description.insert(rc.clone(), s.text);
     }
 
-    for c in raw_card {
-        let traits = c
+    for card in raw_card {
+        let traits = card
             .traits
             .split(", ")
             .map(ToOwned::to_owned)
@@ -64,10 +64,10 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         let mut mox_count = MoxCount::default();
         let mut max = 0;
 
-        if c.cost != "free" && !c.cost.is_empty() {
+        if card.cost != "free" && !card.cost.is_empty() {
             let mut t = Costs::default();
 
-            for c in c
+            for c in card
                 .cost
                 .replace("bones", "bone")
                 .replace("rubies", "ruby")
@@ -80,14 +80,22 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     let s = c.to_lowercase().trim().to_string();
                     let mut t = s.split_whitespace().map(ToOwned::to_owned);
 
-                    let first = t.next().unwrap().parse::<isize>().unwrap();
+                    let first = t
+                        .next()
+                        .ok_or_else(|| AugError::InvalidCostFormat(card.cost.clone()))?
+                        .parse::<isize>()
+                        .map_err(|_| AugError::InvalidCostFormat(card.cost.clone()))?;
                     let mut rest = t.collect::<Vec<String>>();
 
                     rest.reverse();
                     (first, rest)
                 };
 
-                match cost.pop().unwrap().as_str() {
+                match cost
+                    .pop()
+                    .ok_or_else(|| AugError::InvalidCostFormat(card.cost.clone()))?
+                    .as_str()
+                {
                     "blood" => t.blood += count,
                     "bone" => t.bone += count,
                     "energy" => t.energy += count,
@@ -143,32 +151,32 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         }
 
         let card = Card {
-            portrait: format!("https://github.com/answearingmachine/card-printer/raw/main/dist/printer/assets/art/{}.png", c.name.replace(' ', "%20")),
+            portrait: format!("https://github.com/answearingmachine/card-printer/raw/main/dist/printer/assets/art/{}.png", card.name.replace(' ', "%20")),
 
             set: code,
             set_name: name.clone(),
 
-            name: c.name,
-            description: c.description,
-            rarity: match c.rarity.as_str() {
+            name: card.name,
+            description: card.description,
+            rarity: match card.rarity.as_str() {
                 "Common" | "" => Rarity::COMMON,
                 "Uncommon" => Rarity::UNCOMMON,
                 "Rare" => Rarity::RARE,
                 "Talking" => Rarity::UNIQUE,
                 "Side Deck" => Rarity::SIDE,
-                _ => return Err(AugError::UnknownRarity(c.rarity)),
+                _ => return Err(AugError::UnknownRarity(card.rarity)),
             },
-            temple:match c.temple.as_str() {
+            temple:match card.temple.as_str() {
                 "Beast" => Temple::BEAST,
                 "Undead" => Temple::UNDEAD,
                 "Tech" => Temple::TECH,
                 "Magick" => Temple::MAGICK,
                 "Fool" => Temple::FOOL,
-                _ => return Err(AugError::UnknownTemple(c.temple))
+                _ => return Err(AugError::UnknownTemple(card.temple))
             }.into(),
-            attack: c.attack.parse().unwrap_or(0),
-            health: c.health.parse().unwrap_or(0),
-            sigils: c.sigils.split(", ").map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone()).collect(),
+            attack: card.attack.parse().unwrap_or(0),
+            health: card.health.parse().unwrap_or(0),
+            sigils: card.sigils.split(", ").map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone()).collect(),
             // I don't pay enough attention to augmented to keep updating the code to accommodate
             // them so the value will just be parse as string
             sp_atk: None,
@@ -177,12 +185,12 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                 traits: Some(traits),
                 flags: 0
             }),
-            related: c.token.is_empty().not().then(||c.token.split(", ").map(ToOwned::to_owned).collect()),
+            related: card.token.is_empty().not().then(||card.token.split(", ").map(ToOwned::to_owned).collect()),
             extra: AugExt {
-                artist: c.artist,
+                artist: card.artist,
                 max,
                 shattered_count: if shattered_count.eq(&MoxCount::default()).not() { Some(shattered_count) } else { None },
-                tribes: c.tribes
+                tribes: card.tribes
             }
         };
 
