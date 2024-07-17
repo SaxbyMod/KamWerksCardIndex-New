@@ -3,12 +3,11 @@
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
 use crate::Ptr;
-use crate::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, TraitFlag, Traits};
+use crate::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
-use std::ops::Not;
 
 use super::{fetch_json, FetchError};
 
@@ -83,7 +82,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                 mox: c
                     .mox_cost
                     .iter()
-                    .fold(Mox(0), |flags, mox| match mox.as_str() {
+                    .fold(Mox::EMPTY, |flags, mox| match mox.as_str() {
                         "Orange" => flags | Mox::R,
                         "Green" => flags | Mox::G,
                         "Blue" => flags | Mox::B,
@@ -94,20 +93,28 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
             }),
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
                 traits: None,
-                flags: TraitFlag::EMPTY
-                    .set_if(TraitFlag::CONDUCTIVE, c.conduit)
-                    .set_if(TraitFlag::BAN, c.banned)
-                    .set_if(TraitFlag::TERRAIN, c.nosac)
-                    .set_if(TraitFlag::HARD, c.nohammer)
+                flags: TraitsFlag::EMPTY
+                    .set_if(TraitsFlag::CONDUCTIVE, c.conduit)
+                    .set_if(TraitsFlag::BAN, c.banned)
+                    .set_if(TraitsFlag::TERRAIN, c.nosac)
+                    .set_if(TraitsFlag::HARD, c.nohammer)
                     .into(),
             }),
 
             related: Some({
                 let mut v = Vec::new();
 
-                c.evolution.is_empty().not().then(|| v.push(c.evolution));
-                c.left_half.is_empty().not().then(|| v.push(c.left_half));
-                c.right_half.is_empty().not().then(|| v.push(c.right_half));
+                if !c.evolution.is_empty() {
+                    v.push(c.evolution);
+                }
+
+                if !c.left_half.is_empty() {
+                    v.push(c.left_half);
+                }
+
+                if !c.right_half.is_empty() {
+                    v.push(c.right_half);
+                }
 
                 v
             }),

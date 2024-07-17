@@ -14,7 +14,7 @@ macro_rules! bitsflag {
     ) => {
         #[derive(PartialEq, Eq, Clone, Debug)]
         $(#[$attr])*
-        $v struct $name(pub $t);
+        $v struct $name($t);
 
         impl $name {
             $(
@@ -32,8 +32,8 @@ macro_rules! bitsflag {
 
             /// Check if this bit flag contain a bit.
             #[must_use]
-            pub fn contains(&self, that: $t) -> bool {
-                self.0 & that == that
+            pub fn contains(&self, other: $t) -> bool {
+                self.0 & other == other
             }
 
             /// Turn a bit on if the `toggle` is true and do nothing otherwise
@@ -45,9 +45,11 @@ macro_rules! bitsflag {
             }
 
             /// Get the actual flag inside the struct
-            #[must_use]
-            pub fn flags(self) -> $t {
-                self.0
+            pub fn flags(&self) -> impl Iterator<Item = &'static $name> {
+                let flag = vec![$(self.contains($name::$flag.into()),)*];
+                [
+                    $($name::$flag,)*
+                ].iter().zip(flag).filter_map(|(v,f)| f.then(|| v))
             }
         }
 
