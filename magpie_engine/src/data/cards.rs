@@ -135,15 +135,15 @@ bitsflag! {
         /// The Beast or Leshy Temple.
         BEAST = 1;
         /// The Undead or Grimora Temple.
-        UNDEAD = 1 >> 1;
+        UNDEAD = 1 << 1;
         /// The Tech or PO3 Temple.
-        TECH = 1 >> 2;
+        TECH = 1 << 2;
         /// The Magick or Magnificus Temple.
-        MAGICK = 1 >> 3;
+        MAGICK = 1 << 3;
         /// The Fool Temple from Augmented.
-        FOOL = 1 >> 4;
+        FOOL = 1 << 4;
         /// The Artistry or Galliard Temple from Descryprion.
-        ARTISTRY = 1 >> 5;
+        ARTISTRY = 1 << 5;
     }
 }
 
@@ -151,8 +151,6 @@ bitsflag! {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum SpAtk {
-    /// No Card Special Attack.
-    NONE,
     /// Card that gain power from Mox.
     MOX,
     /// Card that gain power from Green Mox.
@@ -180,7 +178,7 @@ bitsflag! {
         /// Green or Emerald Mox
         B = 1 << 2;
         /// Gray or Prism Mox
-        Y = 1 << 2;
+        Y = 1 << 3;
     }
 }
 
@@ -217,15 +215,15 @@ pub struct Costs {
 
 bitsflag! {
     /// Bit flags for a card trait
-    pub struct TraitFlag: u16 {
+    pub struct TraitsFlag: u16 {
         /// If this card is conductive.
         CONDUCTIVE = 1;
         /// If this card is ban.
-        BAN = 1 >> 1;
+        BAN = 1 << 1;
         /// If this card is unsaccable or a terrain.
-        TERRAIN = 1 >> 2;
+        TERRAIN = 1 << 2;
         /// If this card is hard or unhammerable
-        HARD = 1 >> 3;
+        HARD = 1 << 3;
     }
 }
 
