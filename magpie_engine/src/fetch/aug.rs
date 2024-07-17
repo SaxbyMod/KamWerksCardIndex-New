@@ -154,7 +154,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
             portrait: format!("https://github.com/answearingmachine/card-printer/raw/main/dist/printer/assets/art/{}.png", card.name.replace(' ', "%20")),
 
             set: code,
-            set_name: name.clone(),
 
             name: card.name,
             description: card.description,

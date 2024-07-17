@@ -35,7 +35,6 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
     for c in set.cards {
         let card = Card {
             set: code,
-            set_name: name.clone(),
 
             portrait: c
                 .pixport_url

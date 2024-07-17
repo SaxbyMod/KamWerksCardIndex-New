@@ -10,8 +10,6 @@ use std::fmt::Debug;
 pub struct Card<E> {
     /// The set code that the card belong to.
     pub set: SetCode,
-    /// The set name that this card belong to.
-    pub set_name: Ptr<String>,
 
     /// The card name.
     pub name: String,
@@ -77,7 +75,6 @@ impl Card<()> {
             extra: T::default(),
 
             set: self.set,
-            set_name: self.set_name,
 
             name: self.name,
             description: self.description,
