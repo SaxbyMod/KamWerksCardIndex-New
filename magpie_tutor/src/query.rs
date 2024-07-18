@@ -1,5 +1,5 @@
-use crate::embed::gen_embed;
-use crate::fuzzy::{fuzzy_rank, FuzzyRes};
+use crate::embed::{gen_embed, missing_embed};
+use crate::fuzzy::{fuzzy_best, FuzzyRes};
 use crate::{get_portrait, hash_str, resize_img, CacheData, Card, Data, MessageCreateExt, Res};
 use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -21,7 +21,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         )
     }) {
         if !modifier.is_empty() {
-            return Ok(());
+            todo!()
         }
 
         let mut sets = vec![];
@@ -34,34 +34,30 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         sets.is_empty()
             .then(|| sets.push(data.sets.get("com").unwrap())); // put in a default set
 
-        let fuzzy_res = if card_name == "old_data" {
+        let FuzzyRes { rank, data: card } = if card_name == "old_data" {
             FuzzyRes {
                 rank: 4.2,
                 data: &data.debug_card,
             }
+        } else if let Some(best) = fuzzy_best(
+            card_name,
+            sets.iter().flat_map(|s| s.cards.iter()).collect(),
+            0.5,
+            |c: &Card| c.name.as_str(),
+        ) {
+            best
         } else {
-            fuzzy_rank(
-                card_name,
-                sets.iter().flat_map(|s| s.cards.iter()).collect(),
-                |c: &Card| c.name.as_str(),
-            )
-            .0
+            embeds.push(missing_embed(card_name));
+            continue;
         };
 
-        let mut embed = gen_embed(
-            &fuzzy_res,
-            data.sets.get(fuzzy_res.data.set.code()).unwrap(),
-        );
+        let mut embed = gen_embed(rank, card, data.sets.get(card.set.code()).unwrap());
 
-        let hash = hash_str(&fuzzy_res.data.name);
+        let hash = hash_str(&card.name);
 
-        match data
-            .portrait_cache
-            .lock()
-            .unwrap()
-            .get(&hash)
+        match data.portrait_cache.lock().unwrap().get(&hash)
         {
-            Some(CacheData {channel_id, attachment_id, expiry_date: expire_date})
+            Some(CacheData {channel_id, attachment_id, expire_date})
                 // check if the link have expire
                 if SystemTime::now()
                     .duration_since(UNIX_EPOCH)
@@ -77,7 +73,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                     data.remove_cache(hash);
                 }
                 attacment.push(CreateAttachment::bytes(
-                    resize_img(get_portrait(&fuzzy_res.data.portrait), 2),
+                    resize_img(get_portrait(&card.portrait), 2),
                     hash.to_string() + ".png",
                 ));
             }
@@ -119,7 +115,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                     attachment_id: t[1]
                         .parse()
                         .unwrap_or_else(|_| panic!("Cannot parse attachment id: {}", t[1])),
-                    expiry_date: u64::from_str_radix(t[3], 16)
+                    expire_date: u64::from_str_radix(t[3], 16)
                         .unwrap_or_else(|_| panic!("Cannot parse expriry date: {}", t[3])),
                 },
             )

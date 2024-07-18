@@ -1,5 +1,4 @@
 use crate::emojis::{imf, number, ToEmoji};
-use crate::fuzzy::FuzzyRes;
 use crate::{hash_str, Card, Set};
 use magpie_engine::prelude::*;
 use poise::serenity_prelude::CreateEmbedFooter;
@@ -17,7 +16,7 @@ type EmbedRes = (CreateEmbed, String);
 ///
 /// Sigils and other traits use the embed field because they are optional and not every card have
 /// them.
-pub fn gen_embed(FuzzyRes { rank, data: card }: &FuzzyRes<Card>, set: &Set) -> CreateEmbed {
+pub fn gen_embed(rank: f32, card: &Card, set: &Set) -> CreateEmbed {
     // The specific gen embed function should return the embed and the footer that they would like
     // to add.
 
@@ -88,6 +87,15 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
 
 fn gen_aug_embed(_: &Card, _: &Set) -> EmbedRes {
     (CreateEmbed::new(), String::new())
+}
+
+pub fn missing_embed(name: &str) -> CreateEmbed {
+    CreateEmbed::new()
+        .color(roles::RED)
+        .title(format!("Card \"{name}\" not found"))
+        .description(
+            "No card found with sufficient similarity with the search term in the selected set(s).",
+        )
 }
 
 fn cost_str(card: &Card) -> String {

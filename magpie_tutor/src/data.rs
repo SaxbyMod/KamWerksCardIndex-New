@@ -15,7 +15,7 @@ pub type Cache = HashMap<u64, CacheData>;
 pub struct CacheData {
     pub channel_id: u64,
     pub attachment_id: u64,
-    pub expiry_date: u64,
+    pub expire_date: u64,
 }
 
 pub const QUERY_REGEX: &str = r"(?:(.*?)(\w{3}(?:\|\w{3})*))?\[(.*?)\]";
@@ -39,7 +39,7 @@ impl Data {
                 .expect("Compiling cache regex fails"),
             sets: setup_set(),
             debug_card: debug_card(),
-            portrait_cache: Self::get_cache(),
+            portrait_cache: Self::load_cache(),
         }
     }
 
@@ -59,7 +59,7 @@ impl Data {
         .unwrap();
     }
 
-    fn get_cache() -> Mutex<Cache> {
+    fn load_cache() -> Mutex<Cache> {
         let bytes = {
             let mut f =
                 File::open("test.bin").unwrap_or_else(|_| File::create_new("test.bin").unwrap());
