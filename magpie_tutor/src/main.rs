@@ -18,7 +18,7 @@ async fn test(ctx: Context<'_>) -> Res {
 #[tokio::main]
 async fn main() {
     // your token need to be in the enviroment variable
-    let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
+    let token = std::env::var("TUTOR_TOKEN").expect("missing token in env var");
     let intents = GatewayIntents::privileged()
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;

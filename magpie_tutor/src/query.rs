@@ -58,7 +58,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         match data.portrait_cache.lock().unwrap().get(&hash)
         {
             Some(CacheData {channel_id, attachment_id, expire_date})
-                // check if the link have expire
+                // check if the link have expire if it is go make a new one
                 if SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .expect("Are you Marty McFly? Please return to the correct timeline")
@@ -93,10 +93,15 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         )
         .await?;
 
+    // Update the cache
+    //
+    // We always do this because.
+    // 1. It doesn't take too long and it doesn't affect other thing
+    // 2. The cache might have expire and we need to record that
     for url in msg
         .embeds
         .iter()
-        .map(|e| &e.thumbnail.as_ref().unwrap().url)
+        .filter_map(|e| e.thumbnail.as_ref().map(|e| &e.url))
     {
         let t: (u64, CacheData) = {
             let t: [&str; 4] = data
@@ -107,7 +112,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                 .1;
 
             (
-                t[2].parse().unwrap(),
+                t[2].parse().unwrap(), // the file name or the card name hash
                 CacheData {
                     channel_id: t[0]
                         .parse()
@@ -116,11 +121,12 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                         .parse()
                         .unwrap_or_else(|_| panic!("Cannot parse attachment id: {}", t[1])),
                     expire_date: u64::from_str_radix(t[3], 16)
-                        .unwrap_or_else(|_| panic!("Cannot parse expriry date: {}", t[3])),
+                        .unwrap_or_else(|_| panic!("Cannot parse expire date: {}", t[3])),
                 },
             )
         };
 
+        // Insert in the new cache replacing the old one
         data.insert_cache(t.0, t.1);
     }
 

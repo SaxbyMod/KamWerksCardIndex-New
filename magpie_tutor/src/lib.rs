@@ -4,9 +4,7 @@ use std::io::Cursor;
 use image::GenericImageView;
 use isahc::ReadResponseExt;
 use magpie_engine::prelude::AugExt;
-use poise::serenity_prelude::{
-    CreateAllowedMentions, CreateMessage, MessageReference, UserUpdateEvent,
-};
+use poise::serenity_prelude::{CreateAllowedMentions, CreateMessage, MessageReference};
 
 pub mod embed;
 pub mod emojis;
