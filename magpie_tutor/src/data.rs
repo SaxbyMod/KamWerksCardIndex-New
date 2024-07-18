@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{hashmap, Card, Set};
 
+const CACHE_FILE: &str = "./cache.bin";
+
 pub type Cache = HashMap<u64, CacheData>;
 
 /// The caches data
@@ -17,9 +19,6 @@ pub struct CacheData {
     pub attachment_id: u64,
     pub expire_date: u64,
 }
-
-pub const QUERY_REGEX: &str = r"(?:(.*?)(\w{3}(?:\|\w{3})*))?\[(.*?)\]";
-pub const CACHE_REGEX: &str = r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)";
 
 /// Custom data carry between function.
 pub struct Data {
@@ -33,7 +32,7 @@ pub struct Data {
 impl Data {
     pub fn new() -> Self {
         Data {
-            query_regex: Regex::new(r"(?:(.*?)(\w{3}(?:\|\w{3})*))?\[(.*?)\]")
+            query_regex: Regex::new(r"(?:(.*?)(\w{3}(?:\|\w{3})*))?\{\{(.*?)\}\}")
                 .expect("Compiling query regex fails"),
             cache_regex: Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)")
                 .expect("Compiling cache regex fails"),
@@ -53,7 +52,7 @@ impl Data {
 
     pub fn save_cache(&self) {
         bincode::serialize_into(
-            File::create("test.bin").expect("Cannot create cache file"),
+            File::create(CACHE_FILE).expect("Cannot create cache file"),
             &self.portrait_cache,
         )
         .unwrap();
@@ -62,23 +61,27 @@ impl Data {
     fn load_cache() -> Mutex<Cache> {
         let bytes = {
             let mut f =
-                File::open("test.bin").unwrap_or_else(|_| File::create_new("test.bin").unwrap());
+                File::open(CACHE_FILE).unwrap_or_else(|_| File::create_new(CACHE_FILE).unwrap());
 
-            // fails on 32 bits system in which case we will reserve less but it not critical so we
-            // will just allow it
-            #[allow(clippy::cast_possible_truncation)]
             let mut buf = vec![
                 0;
                 f.metadata()
                     .expect("Unable to get cache file metadata")
-                    .len() as usize
+                    .len()
+                    .try_into()
+                    .expect("File len data been truncated")
             ];
 
             f.read_exact(&mut buf).expect("Buffer overflow");
 
             buf
         };
-        deserialize(&bytes[..]).unwrap()
+
+        if bytes.is_empty() {
+            return Mutex::new(HashMap::new());
+        }
+
+        deserialize(&bytes).unwrap()
     }
 }
 
