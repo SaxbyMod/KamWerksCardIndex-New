@@ -12,6 +12,7 @@ todo = "warn"
 module_name_repetitions = "allow"
 missing_errors_doc = "allow"
 too_many_lines = {level = "allow", priority = 1}
+cast_sign_loss = "allow"
 
 [dependencies]
 serde = {version = "1", features = ["derive"]}

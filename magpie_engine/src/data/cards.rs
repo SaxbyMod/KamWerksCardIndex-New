@@ -180,16 +180,27 @@ bitsflag! {
 }
 
 /// Component for when card cost multiple of 1 Mox color.
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MoxCount {
     /// The Red, Orange or Ruby component
-    pub r: isize,
+    pub r: usize,
     /// The Green or Emerald component
-    pub g: isize,
+    pub g: usize,
     /// The Blue or Sapphire component
-    pub b: isize,
+    pub b: usize,
     /// The Gray, Prism component
-    pub y: isize,
+    pub y: usize,
+}
+
+impl Default for MoxCount {
+    fn default() -> Self {
+        MoxCount {
+            r: 1,
+            g: 1,
+            b: 1,
+            y: 1,
+        }
+    }
 }
 
 /// Contain all the cost info.

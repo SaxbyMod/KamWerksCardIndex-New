@@ -103,38 +103,38 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     "shattered" => match cost.pop().unwrap().as_str() {
                         "ruby" => {
                             t.mox |= Mox::R;
-                            shattered_count.r += count;
+                            shattered_count.r += count as usize;
                         }
                         "emerald" => {
                             t.mox |= Mox::G;
-                            shattered_count.g += count;
+                            shattered_count.g += count as usize;
                         }
                         "sapphire" => {
                             t.mox |= Mox::B;
-                            shattered_count.b += count;
+                            shattered_count.b += count as usize;
                         }
                         "prism" => {
                             t.mox |= Mox::Y;
-                            shattered_count.y += 1;
+                            shattered_count.y += count as usize;
                         }
                         m => return Err(AugError::UnknowMox(m.to_owned())),
                     },
                     m @ ("ruby" | "sapphire" | "emerald" | "prism") => match m {
                         "ruby" => {
                             t.mox |= Mox::R;
-                            mox_count.r += count;
+                            mox_count.r += count as usize;
                         }
                         "emerald" => {
                             t.mox |= Mox::G;
-                            mox_count.g += count;
+                            mox_count.g += count as usize;
                         }
                         "sapphire" => {
                             t.mox |= Mox::B;
-                            mox_count.b += count;
+                            mox_count.b += count as usize;
                         }
                         "prism" => {
                             t.mox |= Mox::Y;
-                            mox_count.y += count;
+                            mox_count.y += count as usize;
                         }
                         _ => unreachable!(),
                     },
