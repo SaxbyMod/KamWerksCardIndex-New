@@ -2,6 +2,8 @@ use crate::helper::bitsflag;
 use crate::Ptr;
 use crate::SetCode;
 use std::fmt::Debug;
+use std::hash::Hash;
+use std::hash::Hasher;
 
 /// Represent a card containing all the infomation on the cards.
 ///
@@ -62,6 +64,13 @@ pub struct Card<E> {
 
     /// Extra
     pub extra: E,
+}
+
+impl<T> Hash for Card<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+        self.set.hash(state);
+    }
 }
 
 impl Card<()> {

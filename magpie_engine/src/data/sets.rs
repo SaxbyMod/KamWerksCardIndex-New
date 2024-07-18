@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 
 /// A 3 ascii characters set code for card and set
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Hash)]
 pub struct SetCode([u8; 3]);
 
 impl SetCode {
