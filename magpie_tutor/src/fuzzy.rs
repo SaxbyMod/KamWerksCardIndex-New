@@ -2,6 +2,7 @@
 
 use core::f32;
 use std::cmp::{max, min};
+use std::fmt::Debug;
 
 pub struct FuzzyRes<'a, T> {
     pub rank: f32,
@@ -55,6 +56,7 @@ pub fn fuzzy_best<'a, T, F>(
 ) -> Option<FuzzyRes<'a, T>>
 where
     F: FnMut(&T) -> &str,
+    T: Debug,
 {
     let mut best = None;
 
@@ -65,8 +67,9 @@ where
             threshold,
         );
         best = match best {
-            Some(FuzzyRes { rank, .. }) if r >= rank => Some(FuzzyRes { rank, data: v }),
-            _ => best,
+            Some(FuzzyRes { rank, .. }) if r >= rank => Some(FuzzyRes { rank: r, data: v }),
+            Some(_) => best,
+            None => Some(FuzzyRes { rank: r, data: v }),
         }
     }
 

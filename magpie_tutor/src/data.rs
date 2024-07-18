@@ -121,8 +121,8 @@ fn debug_card() -> Card {
             energy: 100,
             mox: Mox::all(),
             mox_count: Some(MoxCount {
-                r: -6,
-                g: -9,
+                r: 6,
+                g: 9,
                 b: 4,
                 y: 2,
             }),

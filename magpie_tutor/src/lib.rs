@@ -4,7 +4,9 @@ use std::io::Cursor;
 use image::GenericImageView;
 use isahc::ReadResponseExt;
 use magpie_engine::prelude::AugExt;
-use poise::serenity_prelude::{CreateAllowedMentions, CreateMessage, MessageReference};
+use poise::serenity_prelude::{
+    CreateAllowedMentions, CreateMessage, MessageReference, UserUpdateEvent,
+};
 
 pub mod embed;
 pub mod emojis;
@@ -73,5 +75,22 @@ impl MessageCreateExt for CreateMessage {
     fn reply(self, reference: impl Into<MessageReference>) -> Self {
         self.reference_message(reference)
             .allowed_mentions(CreateAllowedMentions::new())
+    }
+}
+
+pub trait UnsignExt {
+    fn for_each<F>(self, f: F)
+    where
+        F: FnMut();
+}
+
+impl UnsignExt for usize {
+    fn for_each<F>(self, mut f: F)
+    where
+        F: FnMut(),
+    {
+        for _ in 0..self {
+            f();
+        }
     }
 }

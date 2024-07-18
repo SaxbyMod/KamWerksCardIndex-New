@@ -1,5 +1,5 @@
 use crate::emojis::{imf, number, ToEmoji};
-use crate::{hash_str, Card, Set};
+use crate::{hash_str, Card, Set, UnsignExt};
 use magpie_engine::prelude::*;
 use poise::serenity_prelude::CreateEmbedFooter;
 use poise::serenity_prelude::{colours::roles, CreateEmbed};
@@ -139,19 +139,35 @@ fn cost_str(card: &Card) -> String {
 
         if costs.mox != 0 {
             let mut mox_cost = String::from("**Mox cost:** ");
+            let count = costs.mox_count.clone().unwrap_or_default();
+
             for m in Mox::from(costs.mox).flags() {
                 match *m {
-                    Mox::R => mox_cost.push_str(imf::RED),
-                    Mox::G => mox_cost.push_str(imf::GREEN),
-                    Mox::B => mox_cost.push_str(imf::BLUE),
-                    Mox::Y => mox_cost.push_str(imf::GRAY),
+                    Mox::R => count.r.for_each(|| mox_cost.push_str(imf::RED)),
+                    Mox::G => count.g.for_each(|| mox_cost.push_str(imf::GREEN)),
+                    Mox::B => count.b.for_each(|| mox_cost.push_str(imf::BLUE)),
+                    Mox::Y => count.y.for_each(|| mox_cost.push_str(imf::GRAY)),
                     _ => unreachable!(),
                 }
             }
             out.push_str(&mox_cost);
             out.push('\n');
         }
-    } else {
+    }
+
+    if card.extra.max != 0 {
+        out.push_str(
+            format!(
+                "**Cell Cost:**{}{}{}\n",
+                imf::MAX,
+                number::X,
+                card.extra.max.to_emoji()
+            )
+            .as_str(),
+        );
+    }
+
+    if out.is_empty() {
         out.push_str("**Free**\n");
     }
 

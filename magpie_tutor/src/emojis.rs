@@ -33,6 +33,7 @@ emoji_table! {
         BLOOD = "<:imf_blood:1262601160121122837>";
         BONE = "<:imf_bone:1262601002180284437>";
         ENERGY = "<:imf_energy:1262601154479521835>";
+        MAX = "<:imf_energy:1262601154479521835>";
         SAP = "<:imf_sap:1262600998191501372>";
 
         // Mox color
