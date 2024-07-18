@@ -1,3 +1,4 @@
 target/
 */target/
 magpie_engine/src/main.rs
+*.bin

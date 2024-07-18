@@ -1,0 +1,30 @@
+[package]
+name = "magpie_tutor"
+version = "0.1.0"
+edition = "2021"
+
+[lints.clippy]
+pedantic = "warn"
+module_name_repetitions = "allow"
+unreadable_literal = { level = "allow", priority = 1 }
+missing_panics_doc = "allow"
+missing_errors_doc = "allow"
+doc_markdown = "allow"
+cast_precision_loss = "allow"
+must_use_candidate = "allow"
+return_self_not_must_use = { level = "allow", priority = 1 }
+too_many_lines = { level = "allow", priority = 1 }
+
+[dependencies]
+magpie_engine = {path = "../magpie_engine/", features = ["async"]}
+
+poise = "0.6" # poise is actually just use for the data stuff because I can't be bother to handle it
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+isahc = "1" # for getting potrait
+image = "0.25" # scaling and working with portrait
+regex = "1" # parse input and query
+
+bincode = "1" # use to save the cache table
+
+serde = { version = "1.0", features = ["derive"] }
