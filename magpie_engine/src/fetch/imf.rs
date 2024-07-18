@@ -40,7 +40,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                 .pixport_url
                 .is_empty()
                 .then_some(format!(
-                    "https://github.com/107zxz/inscr-onln/raw/main/gfx/pixport/{}.png",
+                    "https://raw.githubusercontent.com/107zxz/inscr-onln/main/gfx/pixport/{}.png",
                     c.name.replace(' ', "%20")
                 ))
                 .unwrap_or(c.pixport_url),
