@@ -66,11 +66,16 @@ where
             value.to_lowercase().as_str(),
             threshold,
         );
+
         best = match best {
+            // if the current rank is better change it
             Some(FuzzyRes { rank, .. }) if r >= rank => Some(FuzzyRes { rank: r, data: v }),
-            Some(_) => best,
-            None => Some(FuzzyRes { rank: r, data: v }),
-        }
+            // This case only trigger once and set the starting value
+            None if r > 0. => Some(FuzzyRes { rank: r, data: v }),
+
+            // Anythign else keep it as is
+            same => same,
+        };
     }
 
     best
