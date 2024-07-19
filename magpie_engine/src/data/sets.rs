@@ -64,7 +64,7 @@ impl Debug for SetCode {
 ///
 /// Sets are container for cards, they also carry a few other infomation like the sigils look up
 /// table and pools. Pools are pre-sorted cards into categories.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Set<C> {
     /// The set code for the deck.
     pub code: SetCode,
