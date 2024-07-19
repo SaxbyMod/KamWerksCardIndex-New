@@ -1,5 +1,7 @@
+use std::iter;
+
 use crate::emojis::{imf, number, ToEmoji};
-use crate::{hash_card_url, Card, Set, UnsignExt};
+use crate::{hash_card_url, Card, Set};
 use magpie_engine::prelude::*;
 use poise::serenity_prelude::CreateEmbedFooter;
 use poise::serenity_prelude::{colours::roles, CreateEmbed};
@@ -99,43 +101,23 @@ pub fn missing_embed(name: &str) -> CreateEmbed {
 }
 
 fn cost_str(card: &Card) -> String {
+    #[allow(clippy::inline_always)] // this is just a helper function so inline it
+    #[inline(always)]
+    fn append_cost(out: &mut String, count: isize, labe: &str, icon: &str) {
+        #[rustfmt::skip] // it look nicer like this
+        let t = format!( "**{} Cost:**{}{}{}\n", labe, icon, number::X, count.to_emoji());
+
+        if count != 0 {
+            out.push_str(&t);
+        }
+    }
+
     let mut out = String::new();
+
     if let Some(costs) = &card.costs {
-        if costs.blood != 0 {
-            out.push_str(
-                format!(
-                    "**Blood Cost:**{}{}{}\n",
-                    imf::BLOOD,
-                    number::X,
-                    costs.blood.to_emoji()
-                )
-                .as_str(),
-            );
-        }
-
-        if costs.bone != 0 {
-            out.push_str(
-                format!(
-                    "**Bone Cost:**{}{}{}\n",
-                    imf::BONE,
-                    number::X,
-                    costs.bone.to_emoji()
-                )
-                .as_str(),
-            );
-        }
-
-        if costs.energy != 0 {
-            out.push_str(
-                format!(
-                    "**Energy Cost:**{}{}{}\n",
-                    imf::ENERGY,
-                    number::X,
-                    costs.energy.to_emoji()
-                )
-                .as_str(),
-            );
-        }
+        append_cost(&mut out, costs.blood, "Blood", imf::BLOOD);
+        append_cost(&mut out, costs.bone, "Bone", imf::BONE);
+        append_cost(&mut out, costs.energy, "Energy", imf::ENERGY);
 
         if costs.mox != 0 {
             let mut mox_cost = String::from("**Mox cost:** ");
@@ -143,10 +125,10 @@ fn cost_str(card: &Card) -> String {
 
             for m in Mox::from(costs.mox).flags() {
                 match *m {
-                    Mox::R => count.r.for_each(|| mox_cost.push_str(imf::RED)),
-                    Mox::G => count.g.for_each(|| mox_cost.push_str(imf::GREEN)),
-                    Mox::B => count.b.for_each(|| mox_cost.push_str(imf::BLUE)),
-                    Mox::Y => count.y.for_each(|| mox_cost.push_str(imf::GRAY)),
+                    Mox::R => mox_cost.extend(iter::repeat(imf::RED).take(count.r)),
+                    Mox::G => mox_cost.extend(iter::repeat(imf::GREEN).take(count.g)),
+                    Mox::B => mox_cost.extend(iter::repeat(imf::BLUE).take(count.b)),
+                    Mox::Y => mox_cost.extend(iter::repeat(imf::GRAY).take(count.y)),
                     _ => unreachable!(),
                 }
             }
@@ -155,17 +137,7 @@ fn cost_str(card: &Card) -> String {
         }
     }
 
-    if card.extra.max != 0 {
-        out.push_str(
-            format!(
-                "**Cell Cost:**{}{}{}\n",
-                imf::MAX,
-                number::X,
-                card.extra.max.to_emoji()
-            )
-            .as_str(),
-        );
-    }
+    append_cost(&mut out, card.extra.max, "Max", imf::MAX);
 
     if out.is_empty() {
         out.push_str("**Free**\n");

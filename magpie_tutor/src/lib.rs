@@ -78,23 +78,8 @@ impl MessageCreateExt for CreateMessage {
     }
 }
 
-pub trait UnsignExt {
-    fn for_each<F>(self, f: F)
-    where
-        F: FnMut();
-}
-
-impl UnsignExt for usize {
-    fn for_each<F>(self, mut f: F)
-    where
-        F: FnMut(),
-    {
-        for _ in 0..self {
-            f();
-        }
-    }
-}
-
+/// Exrension for Option and Result where it is critical that they don't fails and if they do
+/// immedietly stop terminate.
 pub trait Death<T> {
     fn unwrap_or_die(self, message: &str) -> T;
 }
@@ -105,7 +90,7 @@ impl<T> Death<T> for Option<T> {
             return it;
         }
         println!("\x1b[1;31m{message}\x1b[0m");
-        println!("Death awaiting...");
+        println!("Critical Error awaiting death...");
         std::process::exit(0)
     }
 }
@@ -120,7 +105,7 @@ where
             Err(err) => {
                 println!("{message}");
                 println!("{err:?}");
-                println!("Death awaiting...");
+                println!("Critical Error awaiting death...");
                 std::process::exit(0)
             }
         }
