@@ -18,7 +18,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     );
     let start = std::time::Instant::now();
     let mut embeds = vec![];
-    let mut attacment = vec![];
+    let mut attachment: Vec<CreateAttachment> = vec![];
     for (modifier, set_code, card_name) in data.query_regex.captures_iter(&msg.content).map(|c| {
         (
             c.get(1).map_or("", |s| s.as_str()),
@@ -40,61 +40,67 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         sets.is_empty()
             .then(|| sets.push(data.sets.get("com").unwrap())); // put in a default set
 
-        let FuzzyRes { rank, data: card } = if card_name == "old_data" {
-            FuzzyRes {
-                rank: 4.2,
-                data: &data.debug_card,
-            }
-        } else if let Some(best) = fuzzy_best(
-            card_name,
-            sets.iter().flat_map(|s| s.cards.iter()).collect(),
-            0.5,
-            |c: &Card| c.name.as_str(),
-        ) {
-            best
-        } else {
-            embeds.push(missing_embed(card_name));
-            continue;
-        };
-
-        let mut embed = gen_embed(rank, card, data.sets.get(card.set.code()).unwrap());
-
-        let hash = hash_card_url(card);
-
-        match data.portrait_cache.lock().unwrap().get(&hash)
-        {
-            Some(CacheData {channel_id, attachment_id, expire_date})
-                // check if the link have expire if it is go make a new one
-                if SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("Are you Marty McFly? Please return to the correct timeline")
-                    .as_millis()
-                    >= *expire_date as u128 =>
-            {
-                embed = embed.thumbnail(format!("https://cdn.discordapp.com/attachments/{channel_id}/{attachment_id}/{hash}.png"));
-            }
-            option => {
-                // remove the cache when the thing expire
-                if option.is_some() {
-                    data.remove_cache(hash);
+        for set in sets {
+            let FuzzyRes { rank, data: card } = if card_name == "old_data" {
+                FuzzyRes {
+                    rank: 4.2,
+                    data: &data.debug_card,
                 }
-                attacment.push(CreateAttachment::bytes(
-                    resize_img(get_portrait(&card.portrait), 2),
-                    hash.to_string() + ".png",
-                ));
-            }
-        }
+            } else if let Some(best) =
+                fuzzy_best(card_name, set.cards.iter().collect(), 0.5, |c: &Card| {
+                    c.name.as_str()
+                })
+            {
+                best
+            } else {
+                embeds.push(missing_embed(card_name));
+                continue;
+            };
 
-        embeds.push(embed);
+            let mut embed = gen_embed(rank, card, data.sets.get(card.set.code()).unwrap());
+
+            let hash = hash_card_url(card);
+
+            match data.portrait_cache.lock().unwrap().get(&hash) {
+                Some(CacheData {channel_id, attachment_id, expire_date})
+                    // check if the link have expire if it is go make a new one
+                    if SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Are you Marty McFly? Please return to the correct timeline")
+                        .as_millis()
+                        >= *expire_date as u128 =>
+                {
+                    embed = embed.thumbnail(format!("https://cdn.discordapp.com/attachments/{channel_id}/{attachment_id}/{hash}.png"));
+                }
+                option => {
+                    // remove the cache when the thing expire
+                    if option.is_some() {
+                        data.remove_cache(hash);
+                    }
+
+                    let filename = hash.to_string() + ".png"; 
+
+                    if !attachment.iter().any(|a| a.filename == filename){
+                        attachment.push(CreateAttachment::bytes(
+                            resize_img(get_portrait(&card.portrait), 2),
+                            filename
+                        ));
+                    }
+                }
+            }
+
+            embeds.push(embed);
+        }
     }
+
     let msg = msg
         .channel_id
-        .send_message(
+        .send_files(
             &ctx.http,
+            attachment,
             CreateMessage::new()
                 .content(format!("Search completed in {:.1?}", start.elapsed()))
                 .embeds(embeds)
-                .files(attacment)
                 .reply(msg),
         )
         .await?;
@@ -133,10 +139,17 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         };
 
         // Insert in the new cache replacing the old one
-        data.insert_cache(t.0, t.1);
+        match data.insert_cache(t.0, t.1) {
+            Some(_) => {
+                info!("{} cache for card hash {}", "Update".yellow(), t.0.blue());
+            }
+            None => {
+                info!("{} cache for card hash {}", "Create".green(), t.0.blue());
+            }
+        };
     }
 
-    data.save_cache(); // save the updated cache
+    //data.save_cache(); // save the updated cache
 
     Ok(())
 }

@@ -29,6 +29,29 @@ macro_rules! done {
 }
 
 #[macro_export]
+macro_rules! debug {
+    ($string:literal) => {
+        println!(
+            "[ {} ] [ {}:{} ] {}",
+            $crate::Color::magenta("debug"),
+            file!(),
+            line!(),
+            $string
+        )
+    };
+    ($expr:expr) => {
+        println!(
+            "[ {} ] [ {}:{} ] {} = {:?}",
+            $crate::Color::magenta("debug"),
+            $crate::Color::magenta(file!()),
+            $crate::Color::green(&line!()),
+            stringify!($expr),
+            $expr,
+        )
+    };
+}
+
+#[macro_export]
 macro_rules! hashmap {
     ($($key:expr => $value:expr,)+) => {
         {

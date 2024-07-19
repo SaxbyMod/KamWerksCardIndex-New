@@ -90,8 +90,8 @@ impl<T> Death<T> for Option<T> {
         if let Some(it) = self {
             return it;
         }
-        println!("\x1b[1;31m{message}\x1b[0m");
-        println!("Critical Error awaiting death...");
+        error!("{message}");
+        error!("Critical Error awaiting death...");
         std::process::exit(0)
     }
 }
@@ -135,5 +135,14 @@ pub trait Color {
     color_fn!(white, "1;37");
 }
 
-impl Color for String {}
-impl Color for str {}
+macro_rules! impl_color {
+    ($($type:ty)*) => {
+        $(impl Color for $type {})*
+    };
+}
+
+impl_color!(
+    String str
+    u8 u16 u32 u64 u128 usize
+    i8 i16 i32 i64 i128 isize
+);

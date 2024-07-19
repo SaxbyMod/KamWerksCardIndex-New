@@ -41,11 +41,11 @@ impl Data {
         }
     }
 
-    pub fn insert_cache(&self, key: u64, data: CacheData) {
+    pub fn insert_cache(&self, key: u64, data: CacheData) -> Option<CacheData> {
         self.portrait_cache
             .lock()
             .unwrap_or_die("Can't lock cache")
-            .insert(key, data);
+            .insert(key, data)
     }
 
     pub fn remove_cache(&self, key: u64) {

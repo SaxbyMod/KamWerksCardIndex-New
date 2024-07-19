@@ -38,7 +38,7 @@ async fn main() {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 done!(
                     "Finish registering {} commands",
-                    framework.options().commands.len().to_string().green()
+                    framework.options().commands.len().green()
                 );
 
                 Ok(Data::new())

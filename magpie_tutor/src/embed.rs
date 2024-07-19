@@ -72,7 +72,7 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
         let mut desc = String::with_capacity(card.sigils.iter().map(|s| s.len()).sum());
 
         for s in &card.sigils {
-            let text = set.sigils_description.get(dbg!(s)).unwrap();
+            let text = set.sigils_description.get(s).unwrap();
             desc.push_str(&format!("**{s}:** {text}\n"));
         }
 
