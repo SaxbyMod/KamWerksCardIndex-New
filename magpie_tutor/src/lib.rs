@@ -1,5 +1,5 @@
 use core::panic;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::Cursor;
 
@@ -11,6 +11,7 @@ use poise::serenity_prelude::{CreateAllowedMentions, CreateMessage, MessageRefer
 pub mod embed;
 pub mod emojis;
 pub mod fuzzy;
+#[macro_use]
 pub mod helper;
 pub mod magpie;
 pub mod query;
@@ -23,7 +24,7 @@ pub use data::*;
 /// Discord bot error type alias.
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 /// Poise context type alias.
-pub type Context<'a> = poise::Context<'a, Data, Error>;
+pub type CmdCtx<'a> = poise::Context<'a, Data, Error>;
 
 /// Discord bot function return type.
 pub type Res = Result<(), Error>;
@@ -103,11 +104,36 @@ where
         match self {
             Ok(it) => it,
             Err(err) => {
-                println!("{message}");
-                println!("{err:?}");
-                println!("Critical Error awaiting death...");
+                error!("{message}");
+                error!("{err:?}");
+                error!("Critical Error awaiting death...");
                 std::process::exit(0)
             }
         }
     }
 }
+
+macro_rules! color_fn {
+    ($color:ident, $ansi:literal) => {
+        fn $color(&self) -> String
+        where
+            Self: Display,
+        {
+            format!("\x1b[{}m{}\x1b[0m", $ansi, self)
+        }
+    };
+}
+
+pub trait Color {
+    color_fn!(black, "1;30");
+    color_fn!(red, "1;31");
+    color_fn!(green, "1;32");
+    color_fn!(yellow, "1;33");
+    color_fn!(blue, "1;34");
+    color_fn!(magenta, "1;35");
+    color_fn!(cyan, "1;36");
+    color_fn!(white, "1;37");
+}
+
+impl Color for String {}
+impl Color for str {}

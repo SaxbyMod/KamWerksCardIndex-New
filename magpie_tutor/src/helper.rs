@@ -1,4 +1,34 @@
 #[macro_export]
+macro_rules! info {
+    ($string:literal) => {
+        println!("[ {} ] {}",$crate::Color::blue("info"),format!($string))
+    };
+    ($string:literal,$($args:expr),*) => {
+        println!("[ {} ] {}",$crate::Color::blue("info"),format!($string, $($args,)*))
+    };
+}
+#[macro_export]
+macro_rules! error {
+    ($string:literal) => {
+        println!("[ {} ] {}",$crate::Color::red("error"),format!($string))
+    }
+    ;
+    ($string:literal,$($args:expr),*) => {
+        println!("[ {} ] {}",$crate::Color::red("error"),format!($string, $($args,)*))
+    };
+}
+#[macro_export]
+macro_rules! done {
+    ($string:literal) => {
+        println!("[ {} ] {}",$crate::Color::green("done"),format!($string))
+    }
+    ;
+    ($string:literal,$($args:expr),*) => {
+        println!("[ {} ] {}",$crate::Color::green("done"),format!($string, $($args,)*))
+    };
+}
+
+#[macro_export]
 macro_rules! hashmap {
     ($($key:expr => $value:expr,)+) => {
         {
@@ -10,6 +40,7 @@ macro_rules! hashmap {
         }
     };
 }
+
 #[macro_export]
 macro_rules! set_map {
     ($($name:ident ($code:ident) => $link:literal),+) => {
@@ -23,7 +54,7 @@ macro_rules! set_map {
                     .unwrap_or_die(&format!("Cannot process {} set", stringify!($name)))
                     .upgrade();
 
-                    println!("Finish fetching {} set with code {}", stringify!($name), stringify!($code));
+                    done!("Finish fetching {} set with code {}", stringify!($name), stringify!($code));
 
                     t
                 },

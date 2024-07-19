@@ -1,7 +1,7 @@
 use crate::embed::{gen_embed, missing_embed};
 use crate::fuzzy::{fuzzy_best, FuzzyRes};
 use crate::{
-    get_portrait, hash_card_url, resize_img, CacheData, Card, Data, MessageCreateExt, Res,
+    get_portrait, hash_card_url, resize_img, CacheData, Card, Color, Data, MessageCreateExt, Res,
 };
 use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -11,7 +11,11 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     if !data.query_regex.is_match(&msg.content) {
         return Ok(());
     }
-    println!("CARD TIME :3333");
+    info!(
+        "Message with {} by {} querying time",
+        msg.content.red(),
+        msg.author.name.magenta()
+    );
     let start = std::time::Instant::now();
     let mut embeds = vec![];
     let mut attacment = vec![];

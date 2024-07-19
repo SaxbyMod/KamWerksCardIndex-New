@@ -1,12 +1,11 @@
-use magpie_tutor::{query::query_message, Context, Data, Error, Res};
-use poise::serenity_prelude::{self as serenity, FullEvent::*, GatewayIntents, GuildId};
+use magpie_tutor::{done, info, Color};
+use magpie_tutor::{query::query_message, CmdCtx, Data, Error, Res};
+use poise::serenity_prelude::{self as serenity, Context as EvtCtx, FullEvent::*, GatewayIntents};
 use poise::FrameworkContext;
-
-const CLIENT_ID: u64 = 1255931136044171285;
 
 /// Test command
 #[poise::command(slash_command)]
-async fn test(ctx: Context<'_>) -> Res {
+async fn test(ctx: CmdCtx<'_>) -> Res {
     ctx.say("This is a test command").await?;
 
     ctx.data().save_cache();
@@ -26,18 +25,21 @@ async fn main() {
     // poise framework
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![test()],
             event_handler: |ctx, event, fw, data| Box::pin(handler(ctx, event, fw, data)),
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
-                poise::builtins::register_in_guild(
-                    ctx,
-                    &framework.options().commands,
-                    GuildId::new(1199457939333849118),
-                )
-                .await?;
+                info!("Refreshing commands...");
+                // Clear all command
+                poise::builtins::register_globally::<Data, Error>(ctx, &[]).await?;
+
+                // Register all the normal command
+                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+                done!(
+                    "Finish registering {} commands",
+                    framework.options().commands.len().to_string().green()
+                );
 
                 Ok(Data::new())
             })
@@ -48,26 +50,27 @@ async fn main() {
     let client = serenity::ClientBuilder::new(token, intents)
         .framework(framework)
         .await;
+
     client.unwrap().start().await.unwrap();
 }
 
 async fn handler(
-    ctx: &serenity::Context,
+    ctx: &EvtCtx,
     event: &serenity::FullEvent,
     _: FrameworkContext<'_, Data, Error>,
     data: &Data,
 ) -> Res {
     match event {
-        Message { new_message: msg } if msg.author.id.get() != CLIENT_ID => {
+        Message { new_message: msg } if msg.author.id != ctx.cache.current_user().id => {
             query_message(ctx, msg, data).await
         }
         Ready {
-            data_about_bot: data,
+            data_about_bot: serenity::Ready { user, .. },
         } => {
-            println!(
-                "Bot is ready. Login as {}#{}",
-                data.user.name,
-                data.user.discriminator.unwrap()
+            done!(
+                "Bot is ready. Login as `{}#{}`",
+                user.name,
+                user.discriminator.unwrap()
             );
             Ok(())
         }
