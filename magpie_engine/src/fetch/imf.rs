@@ -32,6 +32,11 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
         sigils_description.insert(rc.clone(), s.1);
     }
 
+    sigils_description.insert(
+        undefined_sigil.clone(),
+        "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
+    );
+
     for c in set.cards {
         let card = Card {
             set: code,

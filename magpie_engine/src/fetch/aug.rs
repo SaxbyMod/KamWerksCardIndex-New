@@ -51,6 +51,11 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         sigils_description.insert(rc.clone(), s.text);
     }
 
+    sigils_description.insert(
+        undefined_sigil.clone(),
+        "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
+    );
+
     for card in raw_card {
         let traits = card
             .traits

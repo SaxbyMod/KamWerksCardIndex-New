@@ -75,6 +75,9 @@ pub struct Set<C> {
     /// These cards should be shared along with the card in the pools to save space on larger set.
     pub cards: Vec<Card<C>>,
     /// The sigils description look up table for the set.
+    ///
+    /// Set are require to include **every** sigil in this look up table. So you can safely get
+    /// value from this table without worrying about [`None`]
     pub sigils_description: HashMap<Ptr<String>, String>,
 }
 
