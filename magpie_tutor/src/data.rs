@@ -1,12 +1,11 @@
 use std::io::Read;
 use std::{collections::HashMap, fs::File, sync::Mutex};
 
-use bincode::deserialize;
 use magpie_engine::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use crate::{hashmap, Card, Set};
+use crate::{hashmap, set_map, Card, Death, Set};
 
 const CACHE_FILE: &str = "./cache.bin";
 
@@ -43,11 +42,17 @@ impl Data {
     }
 
     pub fn insert_cache(&self, key: u64, data: CacheData) {
-        self.portrait_cache.lock().unwrap().insert(key, data);
+        self.portrait_cache
+            .lock()
+            .unwrap_or_die("Can't lock cache")
+            .insert(key, data);
     }
 
     pub fn remove_cache(&self, key: u64) {
-        self.portrait_cache.lock().unwrap().remove(&key);
+        self.portrait_cache
+            .lock()
+            .unwrap_or_die("Can't lock cache")
+            .remove(&key);
     }
 
     pub fn save_cache(&self) {
@@ -81,7 +86,7 @@ impl Data {
             return Mutex::new(HashMap::new());
         }
 
-        deserialize(&bytes).unwrap()
+        bincode::deserialize(&bytes).unwrap()
     }
 }
 
@@ -93,15 +98,10 @@ impl Default for Data {
 
 /// set up all the set for magpie
 fn setup_set() -> HashMap<String, Set> {
-    let competitive = fetch_imf_set(
-        "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/competitive.json",
-        SetCode::new("com").unwrap(),
-    )
-    .expect("Cannot process Competitive's set")
-    .upgrade();
-
-    hashmap! {
-        "com".to_owned() => competitive
+    set_map! {
+        competitve (com) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/competitive.json",
+        eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
+        egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json"
     }
 }
 

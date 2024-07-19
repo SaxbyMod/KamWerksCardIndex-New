@@ -61,6 +61,16 @@ async fn handler(
         Message { new_message: msg } if msg.author.id.get() != CLIENT_ID => {
             query_message(ctx, msg, data).await
         }
+        Ready {
+            data_about_bot: data,
+        } => {
+            println!(
+                "Bot is ready. Login as {}#{}",
+                data.user.name,
+                data.user.discriminator.unwrap()
+            );
+            Ok(())
+        }
         _ => Ok(()),
     }
 }

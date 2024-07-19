@@ -1,3 +1,5 @@
+use core::panic;
+use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::Cursor;
 
@@ -31,10 +33,10 @@ pub type Card = magpie_engine::Card<AugExt>;
 /// Set type alias.
 pub type Set = magpie_engine::Set<AugExt>;
 
-/// Hash a str to u64. Just a wrapper around DefaultHasher
-fn hash_str(name: &str) -> u64 {
+/// Hash a card url. Just a wrapper around DefaultHasher
+fn hash_card_url(card: &Card) -> u64 {
     let mut hasher = DefaultHasher::new();
-    name.hash(&mut hasher);
+    card.portrait.hash(&mut hasher);
     hasher.finish()
 }
 
@@ -89,6 +91,38 @@ impl UnsignExt for usize {
     {
         for _ in 0..self {
             f();
+        }
+    }
+}
+
+pub trait Death<T> {
+    fn unwrap_or_die(self, message: &str) -> T;
+}
+
+impl<T> Death<T> for Option<T> {
+    fn unwrap_or_die(self, message: &str) -> T {
+        if let Some(it) = self {
+            return it;
+        }
+        println!("\x1b[1;31m{message}\x1b[0m");
+        println!("Death awaiting...");
+        std::process::exit(0)
+    }
+}
+
+impl<T, E> Death<T> for Result<T, E>
+where
+    E: Debug,
+{
+    fn unwrap_or_die(self, message: &str) -> T {
+        match self {
+            Ok(it) => it,
+            Err(err) => {
+                println!("{message}");
+                println!("{err:?}");
+                println!("Death awaiting...");
+                std::process::exit(0)
+            }
         }
     }
 }

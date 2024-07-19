@@ -1,6 +1,8 @@
 use crate::embed::{gen_embed, missing_embed};
 use crate::fuzzy::{fuzzy_best, FuzzyRes};
-use crate::{get_portrait, hash_str, resize_img, CacheData, Card, Data, MessageCreateExt, Res};
+use crate::{
+    get_portrait, hash_card_url, resize_img, CacheData, Card, Data, MessageCreateExt, Res,
+};
 use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -53,7 +55,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
 
         let mut embed = gen_embed(rank, card, data.sets.get(card.set.code()).unwrap());
 
-        let hash = hash_str(&card.name);
+        let hash = hash_card_url(card);
 
         match data.portrait_cache.lock().unwrap().get(&hash)
         {

@@ -27,4 +27,4 @@ regex = "1" # parse input and query
 
 bincode = "1" # use to save the cache table
 
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] } # simply serde what else to say

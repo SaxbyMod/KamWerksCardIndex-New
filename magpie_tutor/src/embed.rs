@@ -1,5 +1,5 @@
 use crate::emojis::{imf, number, ToEmoji};
-use crate::{hash_str, Card, Set, UnsignExt};
+use crate::{hash_card_url, Card, Set, UnsignExt};
 use magpie_engine::prelude::*;
 use poise::serenity_prelude::CreateEmbedFooter;
 use poise::serenity_prelude::{colours::roles, CreateEmbed};
@@ -70,7 +70,7 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
         let mut desc = String::with_capacity(card.sigils.iter().map(|s| s.len()).sum());
 
         for s in &card.sigils {
-            let text = set.sigils_description.get(s).unwrap();
+            let text = set.sigils_description.get(dbg!(s)).unwrap();
             desc.push_str(&format!("**{s}:** {text}\n"));
         }
 
@@ -80,7 +80,7 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
     (
         embed
             .description(desc)
-            .thumbnail(format!("attachment://{}.png", hash_str(&card.name))),
+            .thumbnail(format!("attachment://{}.png", hash_card_url(card))),
         String::new(), // empty footer
     )
 }
