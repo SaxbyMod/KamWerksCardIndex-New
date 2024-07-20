@@ -135,6 +135,8 @@ pub enum Filters {
 }
 
 /// Trait for a Filter.
+///
+/// The generic is for the cards extension
 pub trait Filter<C>: Clone + Eq {
     /// Turn the value into a filter that take a card and return a bool
     fn to_fn(self) -> FilterFn<C>;

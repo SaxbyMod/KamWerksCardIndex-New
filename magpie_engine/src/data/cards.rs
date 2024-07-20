@@ -1,4 +1,4 @@
-use crate::helper::bitsflag;
+use crate::bitsflag;
 use crate::Ptr;
 use crate::SetCode;
 use std::fmt::Debug;

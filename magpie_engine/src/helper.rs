@@ -1,6 +1,7 @@
 //! Collection of helper for this crate
 
 /// Tiny implmentation of bits flag to be a bit more flexiable and allow for extension.
+#[macro_export]
 macro_rules! bitsflag {
     (
         $(#[$attr:meta])*
@@ -32,7 +33,8 @@ macro_rules! bitsflag {
 
             /// Check if this bit flag contain a bit.
             #[must_use]
-            pub fn contains(&self, other: $t) -> bool {
+            pub fn contains(&self, other: impl Into<$t>) -> bool {
+                let other = other.into();
                 self.0 & other == other
             }
 
@@ -46,7 +48,7 @@ macro_rules! bitsflag {
 
             /// Get the actual flag inside the struct
             pub fn flags(&self) -> impl Iterator<Item = &'static $name> {
-                let flag = vec![$(self.contains($name::$flag.into()),)*];
+                let flag = vec![$(self.contains($name::$flag),)*];
                 [
                     $($name::$flag,)*
                 ].iter().zip(flag).filter_map(|(v,f)| f.then(|| v))
@@ -80,6 +82,12 @@ macro_rules! bitsflag {
             }
         }
 
+        impl std::ops::BitOrAssign<$name> for $name {
+            fn bitor_assign(&mut self, rhs: $name) {
+                self.0 = self.0 | rhs.0;
+            }
+        }
+
         impl std::ops::Mul<bool> for $name {
             type Output = $name;
             fn mul(self, rhs: bool) -> Self::Output {
@@ -103,4 +111,3 @@ macro_rules! bitsflag {
         }
     };
 }
-pub(crate) use bitsflag;
