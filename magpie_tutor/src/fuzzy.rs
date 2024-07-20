@@ -88,7 +88,7 @@ where
 /// Normalize levenshtein distance.
 ///
 /// https://github.com/TheAlgorithms/Rust/blob/master/src/string/levenshtein_distance.rs
-fn lev(string1: &str, string2: &str, threshold: f32) -> f32 {
+pub fn lev(string1: &str, string2: &str, threshold: f32) -> f32 {
     if string1.is_empty() {
         return string2.len() as f32;
     }
