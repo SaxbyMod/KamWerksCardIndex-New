@@ -5,7 +5,7 @@ use magpie_engine::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use crate::{hashmap, set_map, Card, Death, Set};
+use crate::{hashmap, set_map, Card, Color, Death, Set};
 
 const CACHE_FILE: &str = "./cache.bin";
 
@@ -41,7 +41,7 @@ impl Data {
     /// Create a new instant of data
     pub fn new() -> Self {
         Data {
-            query_regex: Regex::new(r"(?:(.*?)(\w{3}(?:\|\w{3})*))?\{\{(.*?)\}\}")
+            query_regex: Regex::new(r"(?:([^\s{}]+?)(\w{3}(?:\|\w{3})*)?)?\{\{(.*?)\}\}")
                 .expect("Compiling query regex fails"),
             cache_regex: Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)")
                 .expect("Compiling cache regex fails"),
@@ -74,9 +74,11 @@ impl Data {
             &self.cache,
         )
         .unwrap();
+        done!("Caches save successfully to {}", CACHE_FILE.green());
     }
 
     fn load_cache() -> Mutex<Cache> {
+        let start = std::time::Instant::now();
         let bytes = {
             let mut f =
                 File::open(CACHE_FILE).unwrap_or_else(|_| File::create_new(CACHE_FILE).unwrap());
@@ -99,7 +101,15 @@ impl Data {
             return Mutex::new(HashMap::new());
         }
 
-        bincode::deserialize(&bytes).unwrap()
+        let t: Mutex<Cache> = bincode::deserialize(&bytes).unwrap();
+
+        done!(
+            "Loaded {} caches in {:.2?}",
+            t.lock().unwrap().len().green(),
+            start.elapsed()
+        );
+
+        t
     }
 }
 
