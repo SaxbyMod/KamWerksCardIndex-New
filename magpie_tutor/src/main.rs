@@ -10,6 +10,7 @@ use poise::{CreateReply, FrameworkContext};
 /// Test command
 #[poise::command(slash_command)]
 async fn test(ctx: CmdCtx<'_>) -> Res {
+    panic!("Oh no");
     let mut msg = CreateReply::default();
 
     for _ in (0..15) {
@@ -54,6 +55,20 @@ async fn main() {
             })
         })
         .build();
+
+    std::panic::set_hook(Box::new(move |info| {
+        error!("Something wrong happen...");
+        if let Some(loc) = info.location() {
+            error!(
+                "Panic in file {} at line {}",
+                loc.file().red(),
+                loc.line().red()
+            );
+        }
+        if let Some(s) = info.payload().downcast_ref::<&str>() {
+            error!("Panic message: {s:?}");
+        }
+    }));
 
     // client time
     let client = serenity::ClientBuilder::new(token, intents)

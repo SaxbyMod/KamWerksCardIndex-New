@@ -4,10 +4,20 @@
 #[macro_export]
 macro_rules! info {
     ($string:literal) => {
-        println!("[ {} ] {}",$crate::Color::blue("info"),format!($string))
+        println!(
+            "[ {} | {} ] {}",
+            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
+            $crate::Color::blue("info"),
+            format!($string)
+        )
     };
     ($string:literal,$($args:expr),*) => {
-        println!("[ {} ] {}",$crate::Color::blue("info"),format!($string, $($args,)*))
+        println!(
+            "[ {} | {} ] {}",
+            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
+            $crate::Color::blue("info"),
+            format!($string, $($args,)*)
+        )
     };
 }
 
@@ -15,11 +25,20 @@ macro_rules! info {
 #[macro_export]
 macro_rules! error {
     ($string:literal) => {
-        println!("[ {} ] {}",$crate::Color::red("error"),format!($string))
-    }
-    ;
+        println!(
+            "[ {} | {} ] {}",
+            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
+            $crate::Color::red("error"),
+            format!($string)
+        )
+    };
     ($string:literal,$($args:expr),*) => {
-        println!("[ {} ] {}",$crate::Color::red("error"),format!($string, $($args,)*))
+        println!(
+            "[ {} | {} ] {}",
+            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
+            $crate::Color::red("error"),
+            format!($string, $($args,)*)
+        )
     };
 }
 
@@ -27,11 +46,19 @@ macro_rules! error {
 #[macro_export]
 macro_rules! done {
     ($string:literal) => {
-        println!("[ {} ] {}",$crate::Color::green("done"),format!($string))
-    }
-    ;
+        println!(
+            "[ {} | {} ] {}",
+            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
+            $crate::Color::blue("info"),
+            format!($string)
+        )
+    };
     ($string:literal,$($args:expr),*) => {
-        println!("[ {} ] {}",$crate::Color::green("done"),format!($string, $($args,)*))
+        println!(
+            "[ {} | {} ] {}",
+            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
+            $crate::Color::blue("info"), format!($string, $($args,)*)
+        )
     };
 }
 
@@ -40,16 +67,18 @@ macro_rules! done {
 macro_rules! debug {
     ($string:literal) => {
         println!(
-            "[ {} ] [ {}:{} ] {}",
+            "[ {} | {} ] [ {}:{} ] {}",
+            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
             $crate::Color::magenta("debug"),
-            file!(),
-            line!(),
+            $crate::Color::magenta(file!()),
+            $crate::Color::green(&line!()),
             $string
         )
     };
     ($expr:expr) => {
         println!(
-            "[ {} ] [ {}:{} ] {} = {:?}",
+            "[ {} | {} ] [ {}:{} ] {} = {:?}",
+            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
             $crate::Color::magenta("debug"),
             $crate::Color::magenta(file!()),
             $crate::Color::green(&line!()),

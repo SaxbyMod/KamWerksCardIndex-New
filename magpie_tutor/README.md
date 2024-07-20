@@ -9,7 +9,7 @@
     [ ] `\`, Skip match
     [ ] `q`, specifically select query
     [ ] `j`, print raw version of the card instead of embed
-    [ ] `*`, select all set
+    [*] `*`, select all set
 [ ] General query
 [ ] Cache button
 ```
