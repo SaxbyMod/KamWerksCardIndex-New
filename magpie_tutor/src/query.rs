@@ -1,3 +1,4 @@
+//! Contain the main query function and implementation.
 use crate::embed::{gen_embed, missing_embed};
 use crate::fuzzy::{fuzzy_best, FuzzyRes};
 use crate::{
@@ -6,7 +7,7 @@ use crate::{
 use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-// main querying function
+/// main querying function.
 pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     if !data.query_regex.is_match(&msg.content) {
         return Ok(());
@@ -61,7 +62,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
 
             let hash = hash_card_url(card);
 
-            match data.portrait_cache.lock().unwrap().get(&hash) {
+            match data.cache.lock().unwrap().get(&hash) {
                 Some(CacheData {channel_id, attachment_id, expire_date})
                     // check if the link have expire if it is go make a new one
                     if SystemTime::now()

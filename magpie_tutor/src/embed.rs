@@ -1,3 +1,4 @@
+//! Contain implementation for generate card embed from card and a few other info
 use std::iter;
 
 use crate::emojis::{imf, number, ToEmoji};
@@ -91,6 +92,7 @@ fn gen_aug_embed(_: &Card, _: &Set) -> EmbedRes {
     (CreateEmbed::new(), String::new())
 }
 
+/// Missing embed when the card is not found
 pub fn missing_embed(name: &str) -> CreateEmbed {
     CreateEmbed::new()
         .color(roles::RED)

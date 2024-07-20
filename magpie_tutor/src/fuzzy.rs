@@ -1,11 +1,14 @@
-//! Simple implementation for simple fuzzy sorting
+//! Simple implementation for simple fuzzy sorting.
 
 use core::f32;
 use std::cmp::{max, min};
 use std::fmt::Debug;
 
+/// Result for fuzzy
 pub struct FuzzyRes<'a, T> {
+    /// The rank of this result
     pub rank: f32,
+    /// The item of this result
     pub data: &'a T,
 }
 
@@ -48,6 +51,7 @@ pub struct FuzzyRes<'a, T> {
 //    Some((out.next().unwrap(), out.collect()))
 //}
 
+/// Fuzzy match and return the best item.
 pub fn fuzzy_best<'a, T, F>(
     value: &str,
     vec: Vec<&'a T>,
@@ -81,7 +85,7 @@ where
     best
 }
 
-/// Normalize levenshtein distance
+/// Normalize levenshtein distance.
 ///
 /// https://github.com/TheAlgorithms/Rust/blob/master/src/string/levenshtein_distance.rs
 fn lev(string1: &str, string2: &str, threshold: f32) -> f32 {

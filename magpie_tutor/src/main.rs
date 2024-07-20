@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use magpie_tutor::{done, info, Color};
 use magpie_tutor::{query::query_message, CmdCtx, Data, Error, Res};
 use poise::serenity_prelude::{self as serenity, Context as EvtCtx, FullEvent::*, GatewayIntents};

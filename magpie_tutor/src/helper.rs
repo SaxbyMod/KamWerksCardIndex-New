@@ -1,3 +1,6 @@
+//! Some helper
+
+/// Info print.
 #[macro_export]
 macro_rules! info {
     ($string:literal) => {
@@ -7,6 +10,8 @@ macro_rules! info {
         println!("[ {} ] {}",$crate::Color::blue("info"),format!($string, $($args,)*))
     };
 }
+
+/// Error print.
 #[macro_export]
 macro_rules! error {
     ($string:literal) => {
@@ -17,6 +22,8 @@ macro_rules! error {
         println!("[ {} ] {}",$crate::Color::red("error"),format!($string, $($args,)*))
     };
 }
+
+/// Done print.
 #[macro_export]
 macro_rules! done {
     ($string:literal) => {
@@ -28,6 +35,7 @@ macro_rules! done {
     };
 }
 
+/// Debug print.
 #[macro_export]
 macro_rules! debug {
     ($string:literal) => {
@@ -51,6 +59,7 @@ macro_rules! debug {
     };
 }
 
+/// Helper to create hashmap.
 #[macro_export]
 macro_rules! hashmap {
     ($($key:expr => $value:expr,)+) => {
@@ -64,6 +73,7 @@ macro_rules! hashmap {
     };
 }
 
+/// Helper to create set map.
 #[macro_export]
 macro_rules! set_map {
     ($($name:ident ($code:ident) => $link:literal),+) => {

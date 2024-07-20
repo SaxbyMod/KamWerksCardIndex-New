@@ -9,26 +9,36 @@ use crate::{hashmap, set_map, Card, Death, Set};
 
 const CACHE_FILE: &str = "./cache.bin";
 
+/// Type alias for caches
 pub type Cache = HashMap<u64, CacheData>;
 
-/// The caches data
+/// The caches data.
 #[derive(Serialize, Deserialize)]
 pub struct CacheData {
+    /// The channel id of the portrait cache.
     pub channel_id: u64,
+    /// The attachment id of the potrait cache.
     pub attachment_id: u64,
+    /// The expire date of the portrait cache.
     pub expire_date: u64,
 }
 
 /// Custom data carry between function.
 pub struct Data {
+    /// The regex use to match for query.
     pub query_regex: Regex,
+    /// The regex use to match cache attachment link.
     pub cache_regex: Regex,
+    /// Collect of set that magpie support.
     pub sets: HashMap<String, Set>,
+    /// Debug card use for test rendering.
     pub debug_card: Card,
-    pub portrait_cache: Mutex<HashMap<u64, CacheData>>,
+    /// Cache for portrait.
+    pub cache: Mutex<HashMap<u64, CacheData>>,
 }
 
 impl Data {
+    /// Create a new instant of data
     pub fn new() -> Self {
         Data {
             query_regex: Regex::new(r"(?:(.*?)(\w{3}(?:\|\w{3})*))?\{\{(.*?)\}\}")
@@ -37,28 +47,31 @@ impl Data {
                 .expect("Compiling cache regex fails"),
             sets: setup_set(),
             debug_card: debug_card(),
-            portrait_cache: Self::load_cache(),
+            cache: Self::load_cache(),
         }
     }
 
+    /// Insert a cache.
     pub fn insert_cache(&self, key: u64, data: CacheData) -> Option<CacheData> {
-        self.portrait_cache
+        self.cache
             .lock()
             .unwrap_or_die("Can't lock cache")
             .insert(key, data)
     }
 
+    /// Remove a cache
     pub fn remove_cache(&self, key: u64) {
-        self.portrait_cache
+        self.cache
             .lock()
             .unwrap_or_die("Can't lock cache")
             .remove(&key);
     }
 
+    /// Save the cache to a file
     pub fn save_cache(&self) {
         bincode::serialize_into(
             File::create(CACHE_FILE).expect("Cannot create cache file"),
-            &self.portrait_cache,
+            &self.cache,
         )
         .unwrap();
     }
@@ -96,7 +109,7 @@ impl Default for Data {
     }
 }
 
-/// set up all the set for magpie
+/// set up all the set for magpie.
 fn setup_set() -> HashMap<String, Set> {
     set_map! {
         competitve (com) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/competitive.json",
@@ -105,7 +118,7 @@ fn setup_set() -> HashMap<String, Set> {
     }
 }
 
-/// The default Debug card
+/// The default Debug card.
 fn debug_card() -> Card {
     Card {
         set: SetCode::new("com").unwrap(),

@@ -1,8 +1,11 @@
+//! Emoji constant for the bot.
+
 use magpie_engine::{SpAtk, TraitsFlag};
 
 macro_rules! emoji_table {
     (pub mod $mod:ident {$($name:ident = $value:literal;)*}) => {
         pub mod $mod {
+            #![allow(missing_docs)]
             $(pub const $name: &'static str = $value;)*
         }
     };
@@ -60,7 +63,9 @@ emoji_table! {
     }
 }
 
+/// Allow value to turn into emoji(s).
 pub trait ToEmoji {
+    /// Turn a value to emoji(s).
     fn to_emoji(&self) -> String;
 }
 

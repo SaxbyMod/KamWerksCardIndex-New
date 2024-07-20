@@ -1,3 +1,5 @@
+//! Just the lib for tutor.
+
 use core::panic;
 use std::fmt::{Debug, Display};
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -34,7 +36,7 @@ pub type Card = magpie_engine::Card<AugExt>;
 /// Set type alias.
 pub type Set = magpie_engine::Set<AugExt>;
 
-/// Hash a card url. Just a wrapper around DefaultHasher
+/// Hash a card url. Just a wrapper around DefaultHasher.
 fn hash_card_url(card: &Card) -> u64 {
     let mut hasher = DefaultHasher::new();
     card.portrait.hash(&mut hasher);
@@ -69,6 +71,7 @@ pub trait MessageCreateExt
 where
     Self: Sized,
 {
+    /// Set this message to reply and not ping the author
     fn reply(self, reference: impl Into<MessageReference>) -> Self;
 }
 
@@ -80,8 +83,9 @@ impl MessageCreateExt for CreateMessage {
 }
 
 /// Exrension for Option and Result where it is critical that they don't fails and if they do
-/// immedietly stop terminate.
+/// immediately stop terminate.
 pub trait Death<T> {
+    /// Unwrap the data inside or terminate the program.
     fn unwrap_or_die(self, message: &str) -> T;
 }
 
@@ -114,31 +118,46 @@ where
 }
 
 macro_rules! color_fn {
-    ($color:ident, $ansi:literal) => {
+    (
+        $(
+            $(#[$attr:meta])*
+            fn $color:ident -> $ansi:literal;
+        )*
+    ) => {$(
+        $(#[$attr])*
         fn $color(&self) -> String
         where
             Self: Display,
         {
-            format!("\x1b[{}m{}\x1b[0m", $ansi, self)
+            format!("\x1b[1;{}m{}\x1b[0m", $ansi, self)
         }
-    };
+    )*};
 }
 
+/// Allow value to be convert to a string with ansi color code.
 pub trait Color {
-    color_fn!(black, "1;30");
-    color_fn!(red, "1;31");
-    color_fn!(green, "1;32");
-    color_fn!(yellow, "1;33");
-    color_fn!(blue, "1;34");
-    color_fn!(magenta, "1;35");
-    color_fn!(cyan, "1;36");
-    color_fn!(white, "1;37");
+    color_fn! {
+        /// Convert value to black text.
+        fn black -> 30;
+        /// Convert value to red text.
+        fn red -> 31;
+        /// Convert value to green text.
+        fn green -> 32;
+        /// Convert value to yellow text.
+        fn yellow -> 33;
+        /// Convert value to blue text.
+        fn blue -> 34;
+        /// Convert value to magenta text.
+        fn magenta -> 35;
+        /// Convert value to cyan text.
+        fn cyan -> 36;
+        /// Convert value to white text.
+        fn white -> 37;
+    }
 }
 
 macro_rules! impl_color {
-    ($($type:ty)*) => {
-        $(impl Color for $type {})*
-    };
+    ($($type:ty)*) => { $(impl Color for $type {})* };
 }
 
 impl_color!(
