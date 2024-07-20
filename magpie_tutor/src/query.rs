@@ -4,8 +4,16 @@ use crate::fuzzy::{fuzzy_best, FuzzyRes};
 use crate::{
     get_portrait, hash_card_url, resize_img, CacheData, Card, Color, Data, MessageCreateExt, Res,
 };
+use magpie_engine::bitsflag;
 use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+bitsflag! {
+    struct Modifier: u8 {
+        QUERY = 1;
+        ALL_SET = 1 << 1;
+    }
+}
 
 /// main querying function.
 pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
@@ -27,14 +35,26 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
             c.get(3).map_or("", |s| s.as_str()),
         )
     }) {
-        if !modifier.is_empty() {
-            todo!()
-        }
+        let modifier = {
+            let mut t = Modifier::EMPTY;
+            for m in modifier.chars() {
+                match m {
+                    'q' => t |= Modifier::QUERY,
+                    '*' => t |= Modifier::ALL_SET,
+                    _ => (),
+                }
+            }
+            t
+        };
 
         let mut sets = vec![];
-        for set in set_code.split('|') {
-            if let Some(set) = data.sets.get(set) {
-                sets.push(set);
+        if modifier.contains(Modifier::ALL_SET) {
+            sets.extend(data.sets.values());
+        } else {
+            for set in set_code.split('|') {
+                if let Some(set) = data.sets.get(set) {
+                    sets.push(set);
+                }
             }
         }
 
@@ -150,7 +170,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         };
     }
 
-    //data.save_cache(); // save the updated cache
+    data.save_cache(); // save the updated cache
 
     Ok(())
 }
