@@ -156,9 +156,5 @@ pub trait Color {
     }
 }
 
-macro_rules! impl_color {
-    ($($type:ty)*) => { $(impl Color for $type {})* };
-}
-
 impl<T: Display> Color for T {}
 impl Color for str {}

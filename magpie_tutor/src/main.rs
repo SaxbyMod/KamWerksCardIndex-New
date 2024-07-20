@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use magpie_tutor::{debug, done, error, info, Color};
+use magpie_tutor::{done, error, info, Color};
 use magpie_tutor::{query::query_message, CmdCtx, Data, Error, Res};
 use poise::serenity_prelude::{
     self as serenity, Context as EvtCtx, CreateEmbed, FullEvent::*, GatewayIntents,
@@ -10,13 +10,11 @@ use poise::{CreateReply, FrameworkContext};
 /// Test command
 #[poise::command(slash_command)]
 async fn test(ctx: CmdCtx<'_>) -> Res {
-    panic!("Oh no");
     let mut msg = CreateReply::default();
 
-    for _ in (0..15) {
+    for _ in 0..15 {
         msg = msg.embed(CreateEmbed::new().title("Embed"));
     }
-
     ctx.send(msg).await?;
 
     Ok(())
@@ -103,8 +101,10 @@ async fn handler(
     match res {
         Ok(()) => Ok(()),
         Err(err) => {
-            error!("Cannot handle {} event due to:", event.snake_case_name());
-            error!("{err}");
+            error!(
+                "Cannot handle {} event due to: {err}",
+                event.snake_case_name()
+            );
             Err(err)
         }
     }

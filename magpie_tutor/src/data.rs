@@ -62,7 +62,8 @@ impl Data {
     }
 
     fn load_cache() -> Mutex<Cache> {
-        let start = std::time::Instant::now();
+        info!("Loading caches from {}...", CACHE_FILE.green());
+        let now = std::time::Instant::now();
         let bytes = {
             let mut f =
                 File::open(CACHE_FILE).unwrap_or_else(|_| File::create_new(CACHE_FILE).unwrap());
@@ -88,9 +89,9 @@ impl Data {
         let t: Mutex<Cache> = bincode::deserialize(&bytes).unwrap();
 
         done!(
-            "Loaded {} caches in {:.2?}",
+            "Loaded {} caches in {}",
             t.lock().unwrap().len().green(),
-            start.elapsed()
+            format!("{:.2?}", now.elapsed()).green()
         );
 
         t
@@ -105,11 +106,14 @@ impl Default for Data {
 
 /// set up all the set for magpie.
 fn setup_set() -> HashMap<String, Set> {
-    set_map! {
+    info!("Fetching set...");
+    let sets = set_map! {
         competitve (com) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/competitive.json",
         eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
         egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json"
-    }
+    };
+    done!("Finish fetching {} sets", sets.len().green());
+    sets
 }
 
 /// The default Debug card.

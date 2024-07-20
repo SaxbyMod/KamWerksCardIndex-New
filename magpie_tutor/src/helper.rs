@@ -49,7 +49,7 @@ macro_rules! done {
         println!(
             "[ {} | {} ] {}",
             $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
-            $crate::Color::blue("info"),
+            $crate::Color::green("done"),
             format!($string)
         )
     };
@@ -57,7 +57,7 @@ macro_rules! done {
         println!(
             "[ {} | {} ] {}",
             $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
-            $crate::Color::blue("info"), format!($string, $($args,)*)
+            $crate::Color::green("done"), format!($string, $($args,)*)
         )
     };
 }

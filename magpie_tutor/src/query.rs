@@ -168,7 +168,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         };
 
         if cache.get(&t.0).is_some() {
-            info!("Duplicate for cache {} found skip updating...", t.0.blue());
+            info!("Cache for {} found skipping...", t.0.blue());
             continue;
         }
 
@@ -188,7 +188,7 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         // save the updated cache
         data.save_cache();
     } else {
-        done!("No new cache found! Nothing to update :3");
+        done!("No new caches found! Nothing to update :3");
     }
     Ok(())
 }
