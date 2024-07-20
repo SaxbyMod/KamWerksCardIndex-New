@@ -13,7 +13,7 @@ const CACHE_FILE: &str = "./cache.bin";
 pub type Cache = HashMap<u64, CacheData>;
 
 /// The caches data.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CacheData {
     /// The channel id of the portrait cache.
     pub channel_id: u64,
@@ -49,22 +49,6 @@ impl Data {
             debug_card: debug_card(),
             cache: Self::load_cache(),
         }
-    }
-
-    /// Insert a cache.
-    pub fn insert_cache(&self, key: u64, data: CacheData) -> Option<CacheData> {
-        self.cache
-            .lock()
-            .unwrap_or_die("Can't lock cache")
-            .insert(key, data)
-    }
-
-    /// Remove a cache
-    pub fn remove_cache(&self, key: u64) {
-        self.cache
-            .lock()
-            .unwrap_or_die("Can't lock cache")
-            .remove(&key);
     }
 
     /// Save the cache to a file

@@ -2,7 +2,8 @@
 use crate::embed::{gen_embed, missing_embed};
 use crate::fuzzy::{fuzzy_best, FuzzyRes};
 use crate::{
-    get_portrait, hash_card_url, resize_img, CacheData, Card, Color, Data, MessageCreateExt, Res,
+    get_portrait, hash_card_url, resize_img, CacheData, Card, Color, Data, Death, MessageCreateExt,
+    Res,
 };
 use magpie_engine::bitsflag;
 use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
@@ -82,7 +83,9 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
 
             let hash = hash_card_url(card);
 
-            match data.cache.lock().unwrap().get(&hash) {
+            let mut cache = data.cache.lock().unwrap_or_die("Cannot lock cache");
+
+            match cache.get(&hash) {
                 Some(CacheData {channel_id, attachment_id, expire_date})
                     // check if the link have expire if it is go make a new one
                     if SystemTime::now()
@@ -96,15 +99,17 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                 option => {
                     // remove the cache when the thing expire
                     if option.is_some() {
-                        data.remove_cache(hash);
+                        info!("Cache for {} have expire removing...", hash.blue());
+                        cache.remove(&hash);
+                        done!("{} cache for card hash {}", "Remove".red(), hash.blue());
                     }
 
-                    let filename = hash.to_string() + ".png"; 
+                    let filename = hash.to_string() + ".png";
 
-                    if !attachment.iter().any(|a| a.filename == filename){
+                    if !attachment.iter().any(|a| a.filename == filename) {
                         attachment.push(CreateAttachment::bytes(
                             resize_img(get_portrait(&card.portrait), 2),
-                            filename
+                            filename,
                         ));
                     }
                 }
@@ -131,6 +136,9 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     // We always do this because.
     // 1. It doesn't take too long and it doesn't affect other thing
     // 2. The cache might have expire and we need to record that
+    info!("Updating caches...");
+    let mut new_cache = 0;
+    let mut cache = data.cache.lock().unwrap_or_die("Cannot lock cache");
     for url in msg
         .embeds
         .iter()
@@ -159,18 +167,28 @@ pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
             )
         };
 
+        if cache.get(&t.0).is_some() {
+            info!("Duplicate for cache {} found skip updating...", t.0.blue());
+            continue;
+        }
+
         // Insert in the new cache replacing the old one
-        match data.insert_cache(t.0, t.1) {
-            Some(_) => {
-                info!("{} cache for card hash {}", "Update".yellow(), t.0.blue());
-            }
-            None => {
-                info!("{} cache for card hash {}", "Create".green(), t.0.blue());
-            }
+        if cache.insert(t.0, t.1).is_none() {
+            done!("{} cache for card hash {}", "Create".green(), t.0.blue());
+            new_cache += 1;
         };
     }
 
-    data.save_cache(); // save the updated cache
+    if new_cache > 0 {
+        done!("{} new cache(s) found", new_cache.green());
+        info!("Saving caches...");
+        // unlock the cache so we can save
+        drop(cache);
 
+        // save the updated cache
+        data.save_cache();
+    } else {
+        done!("No new cache found! Nothing to update :3");
+    }
     Ok(())
 }
