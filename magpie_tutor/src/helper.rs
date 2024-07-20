@@ -88,7 +88,12 @@ macro_rules! set_map {
                     .unwrap_or_die(&format!("Cannot process {} set", stringify!($name)))
                     .upgrade();
 
-                    done!("Finish fetching {} set with code {} in {:?}", $crate::Color::blue(stringify!($name)), $crate::Color::yellow(stringify!($code)), now.elapsed());
+                    done!(
+                        "Finish fetching {} set with code {} in {}",
+                        $crate::Color::blue(stringify!($name)),
+                        $crate::Color::yellow(stringify!($code)),
+                        $crate::Color::green(&format!("{:.2?}", now.elapsed()))
+                    );
 
                     t
                 },

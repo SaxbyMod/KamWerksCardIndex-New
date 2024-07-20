@@ -78,7 +78,7 @@ async fn handler(
         } => {
             done!(
                 "Bot is ready. Login as {}",
-                format!("{}#{}", user.name, user.discriminator.unwrap()).red()
+                format!("{}#{}", user.name, user.discriminator.unwrap()).green()
             );
             Ok(())
         }

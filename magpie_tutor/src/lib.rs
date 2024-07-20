@@ -129,7 +129,7 @@ macro_rules! color_fn {
         where
             Self: Display,
         {
-            format!("\x1b[1;{}m{}\x1b[0m", $ansi, self)
+            format!("\x1b[0;{}m{}\x1b[0m", $ansi, self)
         }
     )*};
 }
