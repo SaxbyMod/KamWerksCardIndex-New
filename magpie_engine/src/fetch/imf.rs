@@ -49,8 +49,10 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                     c.name.replace(' ', "%20")
                 ))
                 .unwrap_or(c.pixport_url),
+
             name: c.name,
             description: c.description,
+
             rarity: if c.rare { Rarity::RARE } else { Rarity::COMMON },
             temple: Temple::EMPTY
                 .set_if(Temple::BEAST, c.blood_cost != 0)
@@ -58,6 +60,8 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                 .set_if(Temple::TECH, c.energy_cost != 0)
                 .set_if(Temple::MAGICK, !c.mox_cost.is_empty())
                 .into(),
+            tribes: None,
+
             attack: c.attack,
             health: c.health,
             sigils: c
@@ -65,6 +69,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                 .iter()
                 .map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone())
                 .collect(),
+
             sp_atk: match c.atkspecial.as_str() {
                 "" => None,
                 atk => Some(match atk {
@@ -75,6 +80,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                     _ => return Err(ImfError::InvalidSpAtk(c.atkspecial)),
                 }),
             },
+
             costs: ((c.blood_cost > 0)
                 | (c.bone_cost > 0)
                 | (c.energy_cost > 0)
@@ -95,6 +101,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                     .into(),
                 mox_count: None,
             }),
+
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
                 traits: None,
                 flags: TraitsFlag::EMPTY

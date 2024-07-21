@@ -17,8 +17,6 @@ pub struct AugExt {
     pub shattered_count: Option<MoxCount>,
     /// Max energy cell cost.
     pub max: isize,
-    /// The card tribes.
-    pub tribes: String,
     /// Artist credit.
     pub artist: String,
 }
@@ -162,6 +160,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
             name: card.name,
             description: card.description,
+
             rarity: match card.rarity.as_str() {
                 "Common" | "" => Rarity::COMMON,
                 "Uncommon" => Rarity::UNCOMMON,
@@ -178,23 +177,27 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                 "Fool" => Temple::FOOL,
                 _ => return Err(AugError::UnknownTemple(card.temple))
             }.into(),
+            tribes: (!card.tribes.is_empty()).then_some(card.tribes),
+
             attack: card.attack.parse().unwrap_or(0),
             health: card.health.parse().unwrap_or(0),
             sigils: card.sigils.split(", ").map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone()).collect(),
             // I don't pay enough attention to augmented to keep updating the code to accommodate
             // them so the value will just be parse as string
             sp_atk: None,
+
             costs,
+
             traits: traits.is_empty().then_some(Traits {
                 traits: Some(traits),
                 flags: 0
             }),
             related: card.token.is_empty().not().then(||card.token.split(", ").map(ToOwned::to_owned).collect()),
+
             extra: AugExt {
                 artist: card.artist,
                 max,
                 shattered_count: if shattered_count.eq(&MoxCount::default()).not() { Some(shattered_count) } else { None },
-                tribes: card.tribes
             }
         };
 

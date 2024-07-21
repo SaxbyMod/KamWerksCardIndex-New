@@ -29,6 +29,8 @@ pub struct Card<E> {
     /// [`Bitflags`](https://docs.rs/bitflags/) so we can support more temple and make it easier to
     /// extend, if you need more than 16 temples, may god help you.
     pub temple: u16,
+    /// The card tribes.
+    pub tribes: Option<String>,
 
     /// The card attack or power.
     pub attack: isize,
@@ -92,6 +94,7 @@ impl Card<()> {
 
             rarity: self.rarity,
             temple: self.temple,
+            tribes: self.tribes,
 
             attack: self.attack,
             health: self.health,

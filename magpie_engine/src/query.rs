@@ -102,6 +102,10 @@ pub enum Filters {
     ///
     /// The value in this variant is bit flags to match against.
     Temple(u16),
+    /// Filter for card tribes
+    ///
+    /// The value is the tribe or tribes to match against.
+    Tribes(Option<String>),
 
     /// Filter for the card attack
     ///
@@ -146,16 +150,20 @@ impl<C> Filter<C> for Filters {
     fn to_fn(self) -> FilterFn<C> {
         match self {
             Filters::Name(name) => {
-                Box::new(move |c| c.name.to_lowercase().contains(name.to_lowercase().as_str()))
+                Box::new(move |c| c.name.to_lowercase().contains(&name.to_lowercase()))
             }
-            Filters::Description(desc) => Box::new(move |c| {
-                c.description
-                    .to_lowercase()
-                    .contains(desc.to_lowercase().as_str())
-            }),
+            Filters::Description(desc) => {
+                Box::new(move |c| c.description.to_lowercase().contains(&desc.to_lowercase()))
+            }
 
             Filters::Rarity(rarity) => Box::new(move |c| c.rarity == rarity),
             Filters::Temple(temple) => Box::new(move |c| c.temple == temple),
+            Filters::Tribes(tribes) => Box::new(move |c| match &c.tribes {
+                Some(tr) if tribes.is_some() => tr
+                    .to_lowercase()
+                    .contains(&tribes.as_ref().unwrap().to_lowercase()),
+                _ => c.tribes == tribes,
+            }),
             Filters::Attack(ord, eq, attack) => {
                 Box::new(move |c| (eq && c.attack == attack) || c.attack.cmp(&attack) == ord)
             }
