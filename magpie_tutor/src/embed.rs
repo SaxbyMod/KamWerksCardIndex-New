@@ -80,6 +80,14 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
         embed = embed.field("== SIGILS ==", desc, false);
     }
 
+    if let Some(related) = &card.related {
+        embed = embed.field(
+            "== EXTRA INFO ==",
+            format!("**Related:** {}", related.join(", ")),
+            false,
+        );
+    }
+
     (
         embed
             .description(desc)

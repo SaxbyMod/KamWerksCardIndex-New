@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 
 use magpie_tutor::{done, error, info, Color};
-use magpie_tutor::{query::query_message, CmdCtx, Data, Error, Res};
+use magpie_tutor::{query::search_message, CmdCtx, Data, Error, Res};
 use poise::serenity_prelude::{
     self as serenity, Context as EvtCtx, CreateEmbed, FullEvent::*, GatewayIntents,
 };
@@ -84,7 +84,7 @@ async fn handler(
 ) -> Res {
     let res: Res = match event {
         Message { new_message: msg } if msg.author.id != ctx.cache.current_user().id => {
-            query_message(ctx, msg, data).await
+            search_message(ctx, msg, data).await
         }
         Ready {
             data_about_bot: serenity::Ready { user, .. },

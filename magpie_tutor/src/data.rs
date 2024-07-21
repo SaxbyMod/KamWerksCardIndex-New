@@ -25,8 +25,8 @@ pub struct CacheData {
 
 /// Custom data carry between function.
 pub struct Data {
-    /// The regex use to match for query.
-    pub query_regex: Regex,
+    /// The regex use to match for general search.
+    pub search_regex: Regex,
     /// The regex use to match cache attachment link.
     pub cache_regex: Regex,
     /// Collect of set that magpie support.
@@ -41,7 +41,7 @@ impl Data {
     /// Create a new instant of data
     pub fn new() -> Self {
         Data {
-            query_regex: Regex::new(r"(?:([^\s{}]+?)(\w{3}(?:\|\w{3})*)?)?\{\{(.*?)\}\}")
+            search_regex: Regex::new(r"(?:([^\s{}]+?)(\w{3}(?:\|\w{3})*)?)?\{\{(.*?)\}\}")
                 .expect("Compiling query regex fails"),
             cache_regex: Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)")
                 .expect("Compiling cache regex fails"),
@@ -145,7 +145,11 @@ fn debug_card() -> Card {
             traits: None,
             flags: TraitsFlag::all(),
         }),
-        related: Some(vec![]),
+        related: Some(vec![
+            "Phi".to_owned(),
+            "NEW_DATA".to_owned(),
+            "ANCIENT_DATA".to_owned(),
+        ]),
         extra: AugExt {
             shattered_count: Some(MoxCount {
                 r: 1,

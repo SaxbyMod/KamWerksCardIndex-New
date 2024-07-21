@@ -16,20 +16,20 @@ bitsflag! {
     }
 }
 
-/// main querying function.
-pub async fn query_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
-    if !data.query_regex.is_match(&msg.content) {
+/// main searching function.
+pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
+    if !data.search_regex.is_match(&msg.content) {
         return Ok(());
     }
     info!(
-        "Message with {} by {} querying time",
+        "Message with {} by {} seaching time",
         msg.content.red(),
         msg.author.name.magenta()
     );
     let start = std::time::Instant::now();
     let mut embeds = vec![];
     let mut attachment: Vec<CreateAttachment> = vec![];
-    for (modifier, set_code, card_name) in data.query_regex.captures_iter(&msg.content).map(|c| {
+    for (modifier, set_code, card_name) in data.search_regex.captures_iter(&msg.content).map(|c| {
         (
             c.get(1).map_or("", |s| s.as_str()),
             c.get(2).map_or("", |s| s.as_str()),
