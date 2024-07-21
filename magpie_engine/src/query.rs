@@ -2,7 +2,7 @@
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
-use crate::{Card, Costs, Rarity, Set, SpAtk, Traits};
+use crate::{helper, Card, Costs, Rarity, Set, SpAtk, Traits};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 use std::vec;
@@ -82,8 +82,23 @@ impl<'a, C> QueryBuilder<'a, C> {
     }
 }
 
+/// [`Ordering`] extension for more ordering
+#[derive(Debug, Clone)]
+pub enum QueryOrder {
+    /// Greater than another
+    Greater,
+    /// Greater than or equal to another
+    GreaterEqual,
+    /// Equal to another
+    Equal,
+    /// Less than or equal to another
+    LessEqual,
+    /// Less than another
+    Less,
+}
+
 /// Enum for When query stuff
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum Filters {
     /// Filter for card name.
     ///
@@ -111,12 +126,12 @@ pub enum Filters {
     ///
     /// The first value is what what qualifier or comparasion to compare the attack against, the
     /// second is for equality (mainly for >=, <=) and lastly is the value to compare against
-    Attack(Ordering, bool, isize),
+    Attack(QueryOrder, isize),
     /// Filter for the card attack
     ///
     /// The first value is what what qualifier or comparasion to compare the health against, the
     /// second is for equality (mainly for >=, <=) and lastly is the value to compare against
-    Health(Ordering, bool, isize),
+    Health(QueryOrder, isize),
 
     /// Filter for card sigils
     ///
@@ -141,9 +156,23 @@ pub enum Filters {
 /// Trait for a Filter.
 ///
 /// The generic is for the cards extension
-pub trait Filter<C>: Clone + Eq {
+pub trait Filter<C>: Clone {
     /// Turn the value into a filter that take a card and return a bool
     fn to_fn(self) -> FilterFn<C>;
+}
+
+/// Generate code to help with matching [`QueryOrder`]
+#[macro_export]
+macro_rules! query_order {
+    ($ord:expr, $a:expr, $b:expr) => {
+        match $ord {
+            QueryOrder::Greater => $a > $b,
+            QueryOrder::GreaterEqual => $a >= $b,
+            QueryOrder::Equal => $a == $b,
+            QueryOrder::LessEqual => $a <= $b,
+            QueryOrder::Less => $a < $b,
+        }
+    };
 }
 
 impl<C> Filter<C> for Filters {
@@ -164,12 +193,8 @@ impl<C> Filter<C> for Filters {
                     .contains(&tribes.as_ref().unwrap().to_lowercase()),
                 _ => c.tribes == tribes,
             }),
-            Filters::Attack(ord, eq, attack) => {
-                Box::new(move |c| (eq && c.attack == attack) || c.attack.cmp(&attack) == ord)
-            }
-            Filters::Health(ord, eq, heath) => {
-                Box::new(move |c| (eq && c.health == heath) || c.health.cmp(&heath) == ord)
-            }
+            Filters::Attack(ord, attack) => Box::new(move |c| query_order!(ord, c.attack, attack)),
+            Filters::Health(ord, health) => Box::new(move |c| query_order!(ord, c.health, health)),
             Filters::Sigils(s) => {
                 let lower = s.to_lowercase();
                 Box::new(move |c| {
