@@ -9,7 +9,7 @@ use std::hash::Hasher;
 ///
 /// You can add extra infomation using the [`Card::extra`] field and the generic `E`
 #[derive(Debug, Clone)]
-pub struct Card<E> {
+pub struct Card<C> {
     /// The set code that the card belong to.
     pub set: SetCode,
 
@@ -65,7 +65,7 @@ pub struct Card<E> {
     pub related: Option<Vec<String>>,
 
     /// Extra
-    pub extra: E,
+    pub extra: C,
 }
 
 impl<T> Hash for Card<T> {

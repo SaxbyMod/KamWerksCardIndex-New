@@ -2,22 +2,31 @@
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
-use crate::{helper, Card, Costs, Rarity, Set, SpAtk, Traits};
-use std::cmp::Ordering;
+use crate::{Card, Costs, Rarity, Set, SpAtk, Traits};
+use std::convert::Infallible;
 use std::fmt::{Debug, Display};
+use std::marker::PhantomData;
 use std::vec;
 
 /// The query object containing your results and infomation about the filter that give you
 /// the results.
 #[derive(Debug)]
-pub struct Query<'a, C> {
+pub struct Query<'a, C, F>
+where
+    C: Clone,
+    F: Filter<C>,
+{
     /// The result of this query
     pub cards: Vec<&'a Card<C>>,
     /// The filter that produce this query
-    pub filters: Vec<Filters>,
+    pub filters: Vec<Filters<C, F>>,
 }
 
-impl<C> Display for Query<'_, C> {
+impl<C, F> Display for Query<'_, C, F>
+where
+    C: Clone,
+    F: Filter<C>,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -38,15 +47,23 @@ pub type FilterFn<C> = Box<dyn Fn(&Card<C>) -> bool>;
 ///
 /// You must first build up your query then lastly call `.query()` to compile all the condition and
 /// start querying for cards
-pub struct QueryBuilder<'a, C> {
+pub struct QueryBuilder<'a, C, F>
+where
+    C: Clone,
+    F: Filter<C>,
+{
     /// All the set that is use for this query
     pub sets: Vec<&'a Set<C>>,
 
-    filters: Vec<Filters>,
+    filters: Vec<Filters<C, F>>,
     funcs: Vec<FilterFn<C>>,
 }
 
-impl<'a, C> QueryBuilder<'a, C> {
+impl<'a, C, F> QueryBuilder<'a, C, F>
+where
+    C: Clone,
+    F: Filter<C>,
+{
     /// Create a new [`QueryBuilder`] from a collection of set.
     #[must_use]
     pub fn new(sets: Vec<&'a Set<C>>) -> Self {
@@ -58,7 +75,7 @@ impl<'a, C> QueryBuilder<'a, C> {
     }
     /// Add a new filter to this query.
     #[must_use]
-    pub fn add_filter(mut self, filter: Filters) -> Self {
+    pub fn add_filter(mut self, filter: Filters<C, F>) -> Self {
         self.filters.push(filter.clone());
         self.funcs.push(filter.to_fn());
         self
@@ -66,7 +83,7 @@ impl<'a, C> QueryBuilder<'a, C> {
 
     /// Compile all the query and give you the result.
     #[must_use]
-    pub fn query(self) -> Query<'a, C> {
+    pub fn query(self) -> Query<'a, C, F> {
         let filter = move |c: &Card<C>| self.funcs.iter().all(move |f| f(c));
 
         Query {
@@ -76,7 +93,6 @@ impl<'a, C> QueryBuilder<'a, C> {
                 .iter()
                 .flat_map(|s| &s.cards)
                 .filter(|&c| filter(c))
-                .map(|c| c.to_owned())
                 .collect(),
         }
     }
@@ -99,7 +115,10 @@ pub enum QueryOrder {
 
 /// Enum for When query stuff
 #[derive(Debug, Clone)]
-pub enum Filters {
+pub enum Filters<C, F>
+where
+    F: Filter<C>,
+{
     /// Filter for card name.
     ///
     /// The value in this variant is the name to filter for.
@@ -151,6 +170,12 @@ pub enum Filters {
     ///
     /// The value in this variant is trait table to filter for
     Traits(Option<Traits>),
+
+    /// Extra filter you can add.
+    Extra(F),
+
+    #[doc(hidden)]
+    McGuffin(Infallible, PhantomData<C>),
 }
 
 /// Trait for a Filter.
@@ -175,7 +200,11 @@ macro_rules! query_order {
     };
 }
 
-impl<C> Filter<C> for Filters {
+impl<C, F> Filter<C> for Filters<C, F>
+where
+    C: Clone,
+    F: Filter<C>,
+{
     fn to_fn(self) -> FilterFn<C> {
         match self {
             Filters::Name(name) => {
@@ -207,6 +236,10 @@ impl<C> Filter<C> for Filters {
             Filters::SpAtk(a) => Box::new(move |c| c.sp_atk == a),
             Filters::Costs(cost) => Box::new(move |c| c.costs == cost),
             Filters::Traits(traits) => Box::new(move |c| c.traits == traits),
+
+            Filters::Extra(filter) => filter.to_fn(),
+
+            Filters::McGuffin(..) => unreachable!(),
         }
     }
 }
