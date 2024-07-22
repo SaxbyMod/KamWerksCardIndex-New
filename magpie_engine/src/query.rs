@@ -61,8 +61,8 @@ where
 
 impl<'a, C, F> QueryBuilder<'a, C, F>
 where
-    C: Clone,
-    F: Filter<C>,
+    C: Clone + 'static,
+    F: Filter<C> + 'static,
 {
     /// Create a new [`QueryBuilder`] from a collection of set.
     #[must_use]
@@ -171,6 +171,11 @@ where
     /// The value in this variant is trait table to filter for
     Traits(Option<Traits>),
 
+    /// Logical `or` between 2 filters instead of the default and.
+    Or(Box<Filters<C, F>>, Box<Filters<C, F>>),
+    /// Logical `not` for a filter.
+    Not(Box<Filters<C, F>>),
+
     /// Extra filter you can add.
     Extra(F),
 
@@ -202,8 +207,8 @@ macro_rules! query_order {
 
 impl<C, F> Filter<C> for Filters<C, F>
 where
-    C: Clone,
-    F: Filter<C>,
+    C: Clone + 'static,
+    F: Filter<C> + 'static,
 {
     fn to_fn(self) -> FilterFn<C> {
         match self {
@@ -236,6 +241,17 @@ where
             Filters::SpAtk(a) => Box::new(move |c| c.sp_atk == a),
             Filters::Costs(cost) => Box::new(move |c| c.costs == cost),
             Filters::Traits(traits) => Box::new(move |c| c.traits == traits),
+
+            Filters::Or(a, b) => {
+                let a = a.to_fn();
+                let b = b.to_fn();
+                Box::new(move |c| a(c) || b(c))
+            }
+
+            Filters::Not(f) => {
+                let f = f.to_fn();
+                Box::new(move |c| !f(c))
+            }
 
             Filters::Extra(filter) => filter.to_fn(),
 
