@@ -1,13 +1,16 @@
 //! Contain the main query function and implementation.
 use crate::embed::{gen_embed, missing_embed};
 use crate::fuzzy::{fuzzy_best, FuzzyRes};
+use crate::helper::current_epoch;
 use crate::{
     get_portrait, hash_card_url, resize_img, CacheData, Card, Color, Data, Death, MessageCreateExt,
-    Res,
+    Res, Set,
 };
 use magpie_engine::bitsflag;
-use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
-use std::time::{SystemTime, UNIX_EPOCH};
+use poise::serenity_prelude::colours::roles;
+use poise::serenity_prelude::{Context, CreateAttachment, CreateEmbed, CreateMessage, Message};
+use regex::Regex;
+use std::vec;
 
 bitsflag! {
     struct Modifier: u8 {
@@ -29,13 +32,15 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     let start = std::time::Instant::now();
     let mut embeds = vec![];
     let mut attachment: Vec<CreateAttachment> = vec![];
-    for (modifier, set_code, card_name) in data.search_regex.captures_iter(&msg.content).map(|c| {
-        (
-            c.get(1).map_or("", |s| s.as_str()),
-            c.get(2).map_or("", |s| s.as_str()),
-            c.get(3).map_or("", |s| s.as_str()),
-        )
-    }) {
+    for (modifier, set_code, search_term) in
+        data.search_regex.captures_iter(&msg.content).map(|c| {
+            (
+                c.get(1).map_or("", |s| s.as_str()),
+                c.get(2).map_or("", |s| s.as_str()),
+                c.get(3).map_or("", |s| s.as_str()),
+            )
+        })
+    {
         let modifier = {
             let mut t = Modifier::EMPTY;
             for m in modifier.chars() {
@@ -45,6 +50,11 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                     _ => (),
                 }
             }
+
+            if msg.content.contains(':') {
+                t |= Modifier::QUERY;
+            }
+
             t
         };
 
@@ -62,45 +72,52 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         sets.is_empty()
             .then(|| sets.push(data.sets.get("com").unwrap())); // put in a default set
 
+        if modifier.contains(Modifier::QUERY) {
+            embeds.push(
+                query_message(sets, search_term, &data.query_regex).unwrap_or_else(|| {
+                    CreateEmbed::new()
+                        .color(roles::RED)
+                        .title("Invalid query")
+                        .description("Cannot process query. Maybe you made some typo?")
+                }),
+            );
+            continue;
+        }
+
         for set in sets {
-            let FuzzyRes { rank, data: card } = if card_name == "old_data" {
+            let FuzzyRes { rank, data: card } = if search_term == "old_data" {
                 FuzzyRes {
                     rank: 4.2,
                     data: &data.debug_card,
                 }
             } else if let Some(best) =
-                fuzzy_best(card_name, set.cards.iter().collect(), 0.5, |c: &Card| {
+                fuzzy_best(search_term, set.cards.iter().collect(), 0.5, |c: &Card| {
                     c.name.as_str()
                 })
             {
                 best
             } else {
-                embeds.push(missing_embed(card_name));
+                embeds.push(missing_embed(search_term));
                 continue;
             };
 
             let mut embed = gen_embed(rank, card, data.sets.get(card.set.code()).unwrap());
-
             let hash = hash_card_url(card);
+            let mut cache_guard = data.cache.lock().unwrap_or_die("Cannot lock cache");
 
-            let mut cache = data.cache.lock().unwrap_or_die("Cannot lock cache");
-
-            match cache.get(&hash) {
-                Some(CacheData {channel_id, attachment_id, expire_date})
-                    // check if the link have expire if it is go make a new one
-                    if SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .expect("Are you Marty McFly? Please return to the correct timeline")
-                        .as_millis()
-                        >= *expire_date as u128 =>
-                {
+            match cache_guard.get(&hash) {
+                Some(CacheData {
+                    channel_id,
+                    attachment_id,
+                    expire_date,
+                }) if current_epoch() >= *expire_date as u128 => {
                     embed = embed.thumbnail(format!("https://cdn.discordapp.com/attachments/{channel_id}/{attachment_id}/{hash}.png"));
                 }
                 option => {
                     // remove the cache when the thing expire
                     if option.is_some() {
                         info!("Cache for {} have expire removing...", hash.blue());
-                        cache.remove(&hash);
+                        cache_guard.remove(&hash);
                         done!("{} cache for card hash {}", "Remove".red(), hash.blue());
                     }
 
@@ -138,52 +155,52 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     // 2. The cache might have expire and we need to record that
     info!("Updating caches...");
     let mut new_cache = 0;
-    let mut cache = data.cache.lock().unwrap_or_die("Cannot lock cache");
+    let mut cache_guard = data.cache.lock().unwrap_or_die("Cannot lock cache");
     for url in msg
         .embeds
         .iter()
         .filter_map(|e| e.thumbnail.as_ref().map(|e| &e.url))
     {
-        let t: (u64, CacheData) = {
-            let t: [&str; 4] = data
-                .cache_regex
-                .captures(url)
-                .unwrap_or_else(|| panic!("Cannot find a match in url: {url}"))
-                .extract()
-                .1;
+        let capture: [&str; 4] = data
+            .cache_regex
+            .captures(url)
+            .unwrap_or_else(|| panic!("Cannot find a match in url: {url}"))
+            .extract()
+            .1;
 
-            (
-                t[2].parse().unwrap(), // the file name or the card name hash
-                CacheData {
-                    channel_id: t[0]
-                        .parse()
-                        .unwrap_or_else(|_| panic!("Cannot parse channel id: {}", t[0])),
-                    attachment_id: t[1]
-                        .parse()
-                        .unwrap_or_else(|_| panic!("Cannot parse attachment id: {}", t[1])),
-                    expire_date: u64::from_str_radix(t[3], 16)
-                        .unwrap_or_else(|_| panic!("Cannot parse expire date: {}", t[3])),
-                },
-            )
+        let filename = capture[2].parse().unwrap();
+        let cache_data = CacheData {
+            channel_id: capture[0]
+                .parse()
+                .unwrap_or_else(|_| panic!("Cannot parse channel id: {}", capture[0])),
+            attachment_id: capture[1]
+                .parse()
+                .unwrap_or_else(|_| panic!("Cannot parse attachment id: {}", capture[1])),
+            expire_date: u64::from_str_radix(capture[3], 16)
+                .unwrap_or_else(|_| panic!("Cannot parse expire date: {}", capture[3])),
         };
 
-        if cache.get(&t.0).is_some() {
-            info!("Cache for {} found skipping...", t.0.blue());
+        if cache_guard.get(&filename).is_some() {
+            info!("Cache for {} found skipping...", filename.blue());
             continue;
         }
 
         // Insert in the new cache replacing the old one
-        if cache.insert(t.0, t.1).is_none() {
-            done!("{} cache for card hash {}", "Create".green(), t.0.blue());
+        if cache_guard.insert(filename, cache_data).is_none() {
+            done!(
+                "{} cache for card hash {}",
+                "Create".green(),
+                filename.blue()
+            );
             new_cache += 1;
         };
     }
+    drop(cache_guard);
 
     if new_cache > 0 {
         done!("{} new cache(s) found", new_cache.green());
         info!("Saving caches...");
         // unlock the cache so we can save
-        drop(cache);
 
         // save the updated cache
         data.save_cache();

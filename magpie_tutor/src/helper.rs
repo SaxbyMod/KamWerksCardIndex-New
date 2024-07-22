@@ -130,3 +130,11 @@ macro_rules! set_map {
         }
     };
 }
+
+/// Return the current epoch
+pub fn current_epoch() -> u128 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("Are you Marty McFly? Return to the correct timeline")
+        .as_millis()
+}

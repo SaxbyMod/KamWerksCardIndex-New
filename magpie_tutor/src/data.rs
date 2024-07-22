@@ -42,9 +42,9 @@ impl Data {
     pub fn new() -> Self {
         Data {
             search_regex: Regex::new(r"(?:([^\s{}]+?)(\w{3}(?:\|\w{3})*)?)?\{\{(.*?)\}\}")
-                .expect("Compiling query regex fails"),
+                .expect("Cannot compiling search regex fails"),
             cache_regex: Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)")
-                .expect("Compiling cache regex fails"),
+                .expect("Cannot compiling cache regex fails"),
             sets: setup_set(),
             debug_card: debug_card(),
             cache: Self::load_cache(),
@@ -123,8 +123,11 @@ fn debug_card() -> Card {
         name: "OLD_DATA".to_owned(),
         description: "If you gaze long into an abyss, the abyss also gazes into you.".to_owned(),
         portrait: "https://pbs.twimg.com/media/DUgfSnpU0AAA5Ky.jpg".to_owned(),
+
         rarity: Rarity::RARE,
         temple: Temple::TECH.into(),
+        tribes: Some("Big Green Mother".to_string()),
+
         attack: 0,
         health: 10,
         sigils: Vec::new(),
@@ -158,7 +161,6 @@ fn debug_card() -> Card {
                 y: 4,
             }),
             max: 451,
-            tribes: "Big Green Mother".to_owned(),
             artist: "art".to_owned(),
         },
     }
