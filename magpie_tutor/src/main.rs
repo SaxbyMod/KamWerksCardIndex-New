@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use magpie_tutor::{done, error, info, Color};
+use magpie_tutor::{debug, done, error, info, Color};
 use magpie_tutor::{query::search_message, CmdCtx, Data, Error, Res};
 use poise::serenity_prelude::{
     self as serenity, Context as EvtCtx, CreateEmbed, FullEvent::*, GatewayIntents,
@@ -63,8 +63,8 @@ async fn main() {
                 loc.line().red()
             );
         }
-        if let Some(s) = info.payload().downcast_ref::<&str>() {
-            error!("Panic message: {s:?}");
+        if let Some(s) = info.payload().downcast_ref::<String>() {
+            error!("Panic message: {}", s.red());
         }
     }));
 
