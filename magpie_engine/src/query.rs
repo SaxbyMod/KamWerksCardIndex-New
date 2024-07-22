@@ -98,7 +98,7 @@ where
     }
 }
 
-/// [`Ordering`] extension for more ordering
+/// [`Ordering`](std::cmp::Ordering) extension for more ordering
 #[derive(Debug, Clone)]
 pub enum QueryOrder {
     /// Greater than another
@@ -164,7 +164,7 @@ where
 
     /// Filter for card cost
     ///
-    /// The value in this variant is cost table to filter for
+    /// The value in this variant is cost table to filterfor
     Costs(Option<Costs>),
     /// Filter for card trait
     ///
