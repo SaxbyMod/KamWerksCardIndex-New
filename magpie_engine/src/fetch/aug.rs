@@ -11,7 +11,7 @@ use std::fmt::Display;
 use std::ops::Not;
 
 /// Augmented's [`Card`] extensions
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct AugExt {
     /// Shattered mox cost count.
     pub shattered_count: Option<MoxCount>,
@@ -189,7 +189,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
             costs,
 
             traits: traits.is_empty().then_some(Traits {
-                traits: Some(traits),
+                string: Some(traits),
                 flags: 0
             }),
             related: card.token.is_empty().not().then(||card.token.split(", ").map(ToOwned::to_owned).collect()),
@@ -212,7 +212,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
     })
 }
 
-/// Error that happen when calling [`fetch_aug`].
+/// Error that happen when calling [`fetch_aug_set`].
 #[derive(Debug)]
 pub enum AugError {
     /// Error when trying to [`fetch_json`] cards.

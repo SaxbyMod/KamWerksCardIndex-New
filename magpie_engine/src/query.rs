@@ -14,7 +14,7 @@ use std::vec;
 pub struct Query<'a, C, F>
 where
     C: Clone,
-    F: Filter<C>,
+    F: ToFilter<C>,
 {
     /// The result of this query
     pub cards: Vec<&'a Card<C>>,
@@ -25,7 +25,7 @@ where
 impl<C, F> Display for Query<'_, C, F>
 where
     C: Clone,
-    F: Filter<C>,
+    F: ToFilter<C>,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -50,7 +50,7 @@ pub type FilterFn<C> = Box<dyn Fn(&Card<C>) -> bool>;
 pub struct QueryBuilder<'a, C, F>
 where
     C: Clone,
-    F: Filter<C>,
+    F: ToFilter<C>,
 {
     /// All the set that is use for this query
     pub sets: Vec<&'a Set<C>>,
@@ -62,7 +62,7 @@ where
 impl<'a, C, F> QueryBuilder<'a, C, F>
 where
     C: Clone + 'static,
-    F: Filter<C> + 'static,
+    F: ToFilter<C> + 'static,
 {
     /// Create a new [`QueryBuilder`] from a collection of set.
     #[must_use]
@@ -73,6 +73,17 @@ where
             funcs: vec![],
         }
     }
+
+    /// Create a new [`QueryBuilder`] from some sets and filters.
+    #[must_use]
+    pub fn with_filters(sets: Vec<&'a Set<C>>, filters: Vec<Filters<C, F>>) -> Self {
+        QueryBuilder {
+            funcs: filters.clone().into_iter().map(|f| f.to_fn()).collect(),
+            sets,
+            filters,
+        }
+    }
+
     /// Add a new filter to this query.
     #[must_use]
     pub fn add_filter(mut self, filter: Filters<C, F>) -> Self {
@@ -117,7 +128,7 @@ pub enum QueryOrder {
 #[derive(Debug, Clone)]
 pub enum Filters<C, F>
 where
-    F: Filter<C>,
+    F: ToFilter<C>,
 {
     /// Filter for card name.
     ///
@@ -136,10 +147,10 @@ where
     ///
     /// The value in this variant is bit flags to match against.
     Temple(u16),
-    /// Filter for card tribes
+    /// Filter for card tribe
     ///
     /// The value is the tribe or tribes to match against.
-    Tribes(Option<String>),
+    Tribe(Option<String>),
 
     /// Filter for the card attack
     ///
@@ -152,10 +163,10 @@ where
     /// second is for equality (mainly for >=, <=) and lastly is the value to compare against
     Health(QueryOrder, isize),
 
-    /// Filter for card sigils
+    /// Filter for card sigil
     ///
     /// The value in this variant is the sigil name to filter for in the card sigils.
-    Sigils(String),
+    Sigil(String),
 
     /// filter for card special attack.
     ///
@@ -183,17 +194,17 @@ where
     McGuffin(Infallible, PhantomData<C>),
 }
 
-/// Trait for a Filter.
+/// Convert a type to a [`FilterFn`].
 ///
-/// The generic is for the cards extension
-pub trait Filter<C>: Clone {
+/// The generic is for the cards extension.
+pub trait ToFilter<C>: Clone {
     /// Turn the value into a filter that take a card and return a bool
     fn to_fn(self) -> FilterFn<C>;
 }
 
 /// Generate code to help with matching [`QueryOrder`]
 #[macro_export]
-macro_rules! query_order {
+macro_rules! match_query_order {
     ($ord:expr, $a:expr, $b:expr) => {
         match $ord {
             QueryOrder::Greater => $a > $b,
@@ -205,10 +216,10 @@ macro_rules! query_order {
     };
 }
 
-impl<C, F> Filter<C> for Filters<C, F>
+impl<C, F> ToFilter<C> for Filters<C, F>
 where
     C: Clone + 'static,
-    F: Filter<C> + 'static,
+    F: ToFilter<C> + 'static,
 {
     fn to_fn(self) -> FilterFn<C> {
         match self {
@@ -221,15 +232,19 @@ where
 
             Filters::Rarity(rarity) => Box::new(move |c| c.rarity == rarity),
             Filters::Temple(temple) => Box::new(move |c| c.temple == temple),
-            Filters::Tribes(tribes) => Box::new(move |c| match &c.tribes {
+            Filters::Tribe(tribes) => Box::new(move |c| match &c.tribes {
                 Some(tr) if tribes.is_some() => tr
                     .to_lowercase()
                     .contains(&tribes.as_ref().unwrap().to_lowercase()),
                 _ => c.tribes == tribes,
             }),
-            Filters::Attack(ord, attack) => Box::new(move |c| query_order!(ord, c.attack, attack)),
-            Filters::Health(ord, health) => Box::new(move |c| query_order!(ord, c.health, health)),
-            Filters::Sigils(s) => {
+            Filters::Attack(ord, attack) => {
+                Box::new(move |c| match_query_order!(ord, c.attack, attack))
+            }
+            Filters::Health(ord, health) => {
+                Box::new(move |c| match_query_order!(ord, c.health, health))
+            }
+            Filters::Sigil(s) => {
                 let lower = s.to_lowercase();
                 Box::new(move |c| {
                     c.sigils
@@ -260,7 +275,7 @@ where
     }
 }
 
-impl<C> Filter<C> for () {
+impl<C> ToFilter<C> for () {
     fn to_fn(self) -> FilterFn<C> {
         unimplemented!()
     }

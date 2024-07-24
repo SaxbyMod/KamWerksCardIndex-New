@@ -103,7 +103,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
             }),
 
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
-                traits: None,
+                string: None,
                 flags: TraitsFlag::EMPTY
                     .set_if(TraitsFlag::CONDUCTIVE, c.conduit)
                     .set_if(TraitsFlag::BAN, c.banned)

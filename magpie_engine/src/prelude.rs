@@ -10,6 +10,6 @@
 
 pub use crate::{
     fetch::{aug::*, imf::*},
-    query::{Filter, Filters, QueryBuilder},
+    query::{Filters, QueryBuilder, QueryOrder, ToFilter},
     *,
 };
