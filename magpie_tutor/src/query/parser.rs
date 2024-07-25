@@ -20,8 +20,8 @@
 //! not = [ "!" ] keyword
 //! keyword = str_keyword | cmp_keyword
 //!
-//! str_keyword = STR_KEYWORD ":" ( num | str )
-//! cmp_keyword = CMP_KEYWORD ( ":" | "=" | ">" | "<" | ">=" | "<=" ) num
+//! str_keyword = STR_KEYWORD ":" ( NUM | STR )
+//! cmp_keyword = CMP_KEYWORD ( ":" | "=" | ">" | "<" | ">=" | "<=" ) NUM
 //! ```
 
 use std::{fmt::Display, vec};
@@ -87,6 +87,12 @@ impl Display for ParseErr {
                 write!(f, "Expected {expects:?} by found {tk:?}")
             }
         }
+    }
+}
+
+impl From<ParseErr> for String {
+    fn from(val: ParseErr) -> Self {
+        val.to_string()
     }
 }
 
