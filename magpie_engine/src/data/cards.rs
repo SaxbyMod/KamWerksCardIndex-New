@@ -263,16 +263,16 @@ pub struct Traits {
 impl Traits {
     /// Create a new Traits with flags and empty [`Traits::string`]
     #[must_use]
-    pub fn with_flags(flags: u16) -> Self {
+    pub fn with_flags(flags: impl Into<u16>) -> Self {
         Traits {
             string: None,
-            flags,
+            flags: flags.into(),
         }
     }
 
     /// Create a new Traits with string component and empty [`Traits::flags`]
     #[must_use]
-    pub fn with_traits(traits: Vec<String>) -> Self {
+    pub fn with_str(traits: Vec<String>) -> Self {
         Traits {
             string: Some(traits),
             flags: 0,
