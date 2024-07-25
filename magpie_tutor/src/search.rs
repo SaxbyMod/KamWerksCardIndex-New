@@ -2,9 +2,7 @@
 use std::vec;
 
 use magpie_engine::bitsflag;
-use poise::serenity_prelude::{
-    colours::roles, Context, CreateAttachment, CreateEmbed, CreateMessage, Message,
-};
+use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
 
 use crate::{
     done, get_portrait, hash_card_url,
@@ -76,9 +74,7 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         sets.is_empty().then(|| sets.push(SETS.get("com").unwrap())); // put in a default set
 
         if modifier.contains(Modifier::QUERY) {
-            embeds.push(match query_message(sets, search_term) {
-                Ok(v) | Err(v) => v,
-            });
+            embeds.push(query_message(sets, search_term));
             continue;
         }
 

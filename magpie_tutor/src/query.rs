@@ -3,6 +3,7 @@
 //! The query take in a input pass it into a simple lexer and then into a simple parser to get a
 //! list of keywords. These keywords then get converted into a set of filters to then be use for
 //! [`QueryBuilder`]
+
 use std::vec;
 
 use magpie_engine::prelude::*;
@@ -17,20 +18,34 @@ use lexer::tokenize_query;
 
 use self::parser::QueryParser;
 
+macro_rules! unwrap {
+    ($expr:expr) => {
+        match $expr {
+            Ok(it) => it,
+            Err(err) => {
+                return CreateEmbed::new()
+                    .color(roles::RED)
+                    .title("Query Error")
+                    .description(err)
+            }
+        }
+    };
+}
+
 /// Query a message
-pub fn query_message(sets: Vec<&Set>, query: &str) -> Result<CreateEmbed, CreateEmbed> {
-    let tokens = tokenize_query(query).map_err(error_embed)?;
-    let keywords = QueryParser::gen_ast_with(tokens).map_err(error_embed)?;
+pub fn query_message(sets: Vec<&Set>, query: &str) -> CreateEmbed {
+    let tokens = unwrap!(tokenize_query(query));
+    let keywords = unwrap!(QueryParser::gen_ast_with(tokens));
 
     let mut filters: Vec<Filters> = vec![];
 
     for kw in keywords {
-        filters.push(kw.try_into().map_err(|e| error_embed(e))?);
+        filters.push(unwrap!(kw.try_into()));
     }
 
     let query = QueryBuilder::with_filters(sets, filters).query();
 
-    Ok(CreateEmbed::new()
+    CreateEmbed::new()
         .color(roles::PURPLE)
         .title(format!(
             "Result: {} cards in selected sets",
@@ -45,12 +60,5 @@ pub fn query_message(sets: Vec<&Set>, query: &str) -> Result<CreateEmbed, Create
                 .map(|c| c.name.as_str())
                 .collect::<Vec<_>>()
                 .join(", ")
-        }))
-}
-
-fn error_embed(desc: impl ToString) -> CreateEmbed {
-    CreateEmbed::new()
-        .color(roles::RED)
-        .title("Query Error")
-        .description(desc.to_string())
+        })
 }
