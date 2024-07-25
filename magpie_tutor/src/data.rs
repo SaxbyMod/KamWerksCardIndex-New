@@ -1,11 +1,8 @@
-use std::io::Read;
-use std::{collections::HashMap, fs::File, sync::Mutex};
+use std::{collections::HashMap, fs::File, io::Read, sync::Mutex};
 
-use magpie_engine::prelude::*;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use crate::{hashmap, set_map, Card, Color, Death, Set};
+use crate::{done, info, Color};
 
 const CACHE_FILE: &str = "./cache.bin";
 
@@ -25,14 +22,6 @@ pub struct CacheData {
 
 /// Custom data carry between function.
 pub struct Data {
-    /// The regex use to match for general search.
-    pub search_regex: Regex,
-    /// The regex use to match cache attachment link.
-    pub cache_regex: Regex,
-    /// Collect of set that magpie support.
-    pub sets: HashMap<String, Set>,
-    /// Debug card use for test rendering.
-    pub debug_card: Card,
     /// Cache for portrait.
     pub cache: Mutex<HashMap<u64, CacheData>>,
 }
@@ -41,12 +30,6 @@ impl Data {
     /// Create a new instant of data
     pub fn new() -> Self {
         Data {
-            search_regex: Regex::new(r"(?:([^\s{}]+?)(\w{3}(?:\|\w{3})*)?)?\{\{(.*?)\}\}")
-                .expect("Cannot compiling search regex fails"),
-            cache_regex: Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)")
-                .expect("Cannot compiling cache regex fails"),
-            sets: setup_set(),
-            debug_card: debug_card(),
             cache: Self::load_cache(),
         }
     }
@@ -101,67 +84,5 @@ impl Data {
 impl Default for Data {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-/// set up all the set for magpie.
-fn setup_set() -> HashMap<String, Set> {
-    info!("Fetching set...");
-    let sets = set_map! {
-        competitve (com) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/competitive.json",
-        eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
-        egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json"
-    };
-    done!("Finish fetching {} sets", sets.len().green());
-    sets
-}
-
-/// The default Debug card.
-fn debug_card() -> Card {
-    Card {
-        set: SetCode::new("com").unwrap(),
-        name: "OLD_DATA".to_owned(),
-        description: "If you gaze long into an abyss, the abyss also gazes into you.".to_owned(),
-        portrait: "https://pbs.twimg.com/media/DUgfSnpU0AAA5Ky.jpg".to_owned(),
-
-        rarity: Rarity::RARE,
-        temple: Temple::TECH.into(),
-        tribes: Some("Big Green Mother".to_string()),
-
-        attack: 0,
-        health: 10,
-        sigils: Vec::new(),
-        sp_atk: Some(SpAtk::CARD),
-        costs: Some(Costs {
-            blood: isize::MAX,
-            bone: isize::MIN,
-            energy: 100,
-            mox: Mox::all(),
-            mox_count: Some(MoxCount {
-                r: 6,
-                g: 9,
-                b: 4,
-                y: 2,
-            }),
-        }),
-        traits: Some(Traits {
-            traits: None,
-            flags: TraitsFlag::all(),
-        }),
-        related: Some(vec![
-            "Phi".to_owned(),
-            "NEW_DATA".to_owned(),
-            "ANCIENT_DATA".to_owned(),
-        ]),
-        extra: AugExt {
-            shattered_count: Some(MoxCount {
-                r: 1,
-                g: 9,
-                b: 8,
-                y: 4,
-            }),
-            max: 451,
-            artist: "art".to_owned(),
-        },
     }
 }

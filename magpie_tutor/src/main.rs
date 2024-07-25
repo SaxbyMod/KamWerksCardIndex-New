@@ -1,11 +1,16 @@
 #![allow(missing_docs)]
 
-use magpie_tutor::{debug, done, error, info, Color};
-use magpie_tutor::{query::search_message, CmdCtx, Data, Error, Res};
-use poise::serenity_prelude::{
-    self as serenity, Context as EvtCtx, CreateEmbed, FullEvent::*, GatewayIntents,
+use std::panic::PanicInfo;
+
+use magpie_tutor::{
+    done, error, info, search::search_message, CmdCtx, Color, Data, Error, Res, SETS,
 };
-use poise::{CreateReply, FrameworkContext};
+use poise::{
+    serenity_prelude::{
+        self as serenity, Context as EvtCtx, CreateEmbed, FullEvent::*, GatewayIntents,
+    },
+    CreateReply, Framework, FrameworkContext,
+};
 
 /// Test command
 #[poise::command(slash_command)]
@@ -30,7 +35,53 @@ async fn main() {
         | GatewayIntents::MESSAGE_CONTENT;
 
     // poise framework
-    let framework = poise::Framework::builder()
+    let framework = build_framework();
+
+    info!("Fetching set...");
+    done!("Finish fetching {} sets", SETS.len().green());
+
+    std::panic::set_hook(Box::new(panic_hook));
+
+    // client time
+    let client = serenity::ClientBuilder::new(token, intents)
+        .framework(framework)
+        .await;
+
+    client.unwrap().start().await.unwrap();
+}
+
+fn panic_hook(info: &PanicInfo) {
+    if let Some(loc) = info.location() {
+        error!(
+            "Panic in file {} at line {}",
+            loc.file().magenta(),
+            loc.line().blue()
+        );
+    }
+    let s = info
+        .payload()
+        .downcast_ref::<String>()
+        .map(ToOwned::to_owned)
+        .or_else(|| {
+            info.payload()
+                .downcast_ref::<&str>()
+                .map(ToString::to_string)
+        })
+        .unwrap_or(String::new());
+
+    let lines: Vec<_> = s.lines().collect();
+    if lines.len() > 1 {
+        error!("Panic message:");
+        for l in lines {
+            error!("{}", l.red());
+        }
+    } else {
+        error!("Panic message: {}", s.red());
+    }
+}
+
+fn build_framework() -> Framework<Data, Error> {
+    poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![test()],
             event_handler: |ctx, event, fw, data| Box::pin(handler(ctx, event, fw, data)),
@@ -52,28 +103,7 @@ async fn main() {
                 Ok(Data::new())
             })
         })
-        .build();
-
-    std::panic::set_hook(Box::new(move |info| {
-        error!("Something wrong happen...");
-        if let Some(loc) = info.location() {
-            error!(
-                "Panic in file {} at line {}",
-                loc.file().red(),
-                loc.line().red()
-            );
-        }
-        if let Some(s) = info.payload().downcast_ref::<String>() {
-            error!("Panic message: {}", s.red());
-        }
-    }));
-
-    // client time
-    let client = serenity::ClientBuilder::new(token, intents)
-        .framework(framework)
-        .await;
-
-    client.unwrap().start().await.unwrap();
+        .build()
 }
 
 async fn handler(

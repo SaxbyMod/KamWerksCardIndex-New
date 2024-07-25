@@ -1,11 +1,13 @@
 //! Contain implementation for generate card embed from card and a few other info
 use std::iter;
 
-use crate::emojis::{imf, number, ToEmoji};
-use crate::{hash_card_url, Card, Set};
 use magpie_engine::prelude::*;
-use poise::serenity_prelude::CreateEmbedFooter;
-use poise::serenity_prelude::{colours::roles, CreateEmbed};
+use poise::serenity_prelude::{colours::roles, CreateEmbed, CreateEmbedFooter};
+
+use crate::{
+    emojis::{imf, number, ToEmoji},
+    hash_card_url, Card, Set,
+};
 
 type EmbedRes = (CreateEmbed, String);
 

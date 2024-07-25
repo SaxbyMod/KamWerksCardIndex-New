@@ -1,25 +1,31 @@
 //! Just the lib for tutor.
 
-use core::panic;
-use std::fmt::{Debug, Display};
-use std::hash::{DefaultHasher, Hash, Hasher};
-use std::io::Cursor;
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display},
+    hash::{DefaultHasher, Hash, Hasher},
+    io::Cursor,
+};
 
 use image::GenericImageView;
 use isahc::ReadResponseExt;
-use magpie_engine::prelude::AugExt;
+use lazy_static::lazy_static;
+use magpie_engine::prelude::*;
 use poise::serenity_prelude::{CreateAllowedMentions, CreateMessage, MessageReference};
+use regex::Regex;
 
-pub mod embed;
 pub mod emojis;
-pub mod fuzzy;
-#[macro_use]
-pub mod helper;
 pub mod magpie;
 pub mod query;
+pub mod search;
 
 mod data;
 pub use data::*;
+
+#[macro_use]
+pub mod helper;
+
+use self::magpie::FilterExt;
 
 // Type definition for stuff
 
@@ -35,6 +41,76 @@ pub type Res = Result<(), Error>;
 pub type Card = magpie_engine::Card<AugExt>;
 /// Set type alias.
 pub type Set = magpie_engine::Set<AugExt>;
+/// Filters type alias
+pub type Filters = magpie_engine::prelude::Filters<AugExt, FilterExt>;
+
+lazy_static! {
+    /// The regex use to match for general search.
+    pub static ref SEARCH_REGEX: Regex = Regex::new(r"(?:([^\s{}]+?)(\w{3}(?:\|\w{3})*)?)?\{\{(.*?)\}\}") .unwrap_or_die("Cannot compiling search regex fails");
+    /// The regex use to match cache attachment link.
+    pub static ref CACHE_REGEX: Regex = Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)") .unwrap_or_die("Cannot compiling cache regex fails");
+    /// The regex use to match message and tokenize them
+    pub static ref QUERY_REGEX: Regex = Regex::new(r#"(?:"(.+)")|([-\w]+)|([^\s\w"-]*)"#) .unwrap_or_die("Cannot compile query regex");
+    /// The regex use to match cost value in query
+    pub static ref COST_REGEX: Regex = Regex::new(r"(-?\d+)?([a-zA-Z])").unwrap_or_die("Cannot compile query regex");
+
+    /// Collection of all set magpie use
+    pub static ref SETS: HashMap<&'static str, Set> = {
+        set_map! {
+            competitve (com) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/competitive.json",
+            eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
+            egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json"
+        }
+    };
+
+    /// Debug card use to test rendering
+    pub static ref DEBUG_CARD: Card = Card {
+        set: SetCode::new("com").unwrap(),
+        name: "OLD_DATA".to_owned(),
+        description: "If you gaze long into an abyss, the abyss also gazes into you.".to_owned(),
+        portrait: "https://pbs.twimg.com/media/DUgfSnpU0AAA5Ky.jpg".to_owned(),
+
+        rarity: Rarity::RARE,
+        temple: Temple::TECH.into(),
+        tribes: Some("Big Green Mother".to_string()),
+
+        attack: 0,
+        health: 10,
+        sigils: Vec::new(),
+        sp_atk: Some(SpAtk::CARD),
+        costs: Some(Costs {
+            blood: isize::MAX,
+            bone: isize::MIN,
+            energy: 100,
+            mox: Mox::all(),
+            mox_count: Some(MoxCount {
+                r: 6,
+                g: 9,
+                b: 4,
+                y: 2,
+            }),
+        }),
+        traits: Some(Traits {
+            string: None,
+            flags: TraitsFlag::all(),
+        }),
+        related: Some(vec![
+            "Phi".to_owned(),
+            "NEW_DATA".to_owned(),
+            "ANCIENT_DATA".to_owned(),
+        ]),
+        extra: AugExt {
+            shattered_count: Some(MoxCount {
+                r: 1,
+                g: 9,
+                b: 8,
+                y: 4,
+            }),
+            max: 451,
+            artist: "art".to_owned(),
+        },
+    };
+}
 
 /// Hash a card url. Just a wrapper around DefaultHasher.
 fn hash_card_url(card: &Card) -> u64 {
@@ -94,7 +170,7 @@ impl<T> Death<T> for Option<T> {
         if let Some(it) = self {
             return it;
         }
-        error!("{message}");
+        error!("{}", message.red());
         error!("Critical Error awaiting death...");
         std::process::exit(0)
     }
@@ -108,9 +184,9 @@ where
         match self {
             Ok(it) => it,
             Err(err) => {
-                error!("{message}");
-                error!("{err:?}");
-                error!("Critical Error awaiting death...");
+                error!("{}", message.red());
+                error!("{}", format!("{err:?}").red());
+                error!("{}", "Critical Error awaiting death...".red());
                 std::process::exit(0)
             }
         }

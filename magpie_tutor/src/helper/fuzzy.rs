@@ -1,8 +1,10 @@
 //! Simple implementation for simple fuzzy sorting.
 
 use core::f32;
-use std::cmp::{max, min};
-use std::fmt::Debug;
+use std::{
+    cmp::{max, min},
+    fmt::Debug,
+};
 
 /// Result for fuzzy
 pub struct FuzzyRes<'a, T> {
@@ -11,45 +13,6 @@ pub struct FuzzyRes<'a, T> {
     /// The item of this result
     pub data: &'a T,
 }
-
-///// Return `(best, rest)`, `rest` won't contain `best`
-//pub fn fuzzy_rank<'a, T, F>(
-//    value: &str,
-//    vec: Vec<&'a T>,
-//    threshold: f32,
-//    mut f: F,
-//) -> Option<(FuzzyRes<'a, T>, Vec<FuzzyRes<'a, T>>)>
-//where
-//    F: FnMut(&T) -> &str,
-//{
-//    let mut out: Vec<FuzzyRes<T>> = Vec::with_capacity(vec.len());
-//
-//    for v in vec {
-//        let rank = lev(
-//            f(v).to_lowercase().as_str(),
-//            value.to_lowercase().as_str(),
-//            threshold,
-//        );
-//        if rank <= 0. {
-//            continue;
-//        }
-//        let res = FuzzyRes { rank, data: v };
-//
-//        let index = out
-//            .binary_search_by(|x: &FuzzyRes<T>| (x.rank.total_cmp(&res.rank).reverse()))
-//            .unwrap_or_else(|e| e);
-//
-//        out.insert(index, res);
-//    }
-//
-//    if out.is_empty() {
-//        return None;
-//    }
-//
-//    let mut out = out.into_iter();
-//
-//    Some((out.next().unwrap(), out.collect()))
-//}
 
 /// Fuzzy match and return the best item.
 pub fn fuzzy_best<'a, T, F>(
@@ -87,7 +50,7 @@ where
 
 /// Normalize levenshtein distance.
 ///
-/// https://github.com/TheAlgorithms/Rust/blob/master/src/string/levenshtein_distance.rs
+/// <https://github.com/TheAlgorithms/Rust/blob/master/src/string/levenshtein_distance.rs>
 pub fn lev(string1: &str, string2: &str, threshold: f32) -> f32 {
     if string1.is_empty() {
         return string2.len() as f32;

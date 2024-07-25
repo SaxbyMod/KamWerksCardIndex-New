@@ -1,4 +1,7 @@
 //! Some helper
+mod fuzzy;
+
+pub use fuzzy::*;
 
 /// Info print.
 #[macro_export]
@@ -51,14 +54,16 @@ macro_rules! done {
             $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
             $crate::Color::green("done"),
             format!($string)
-        )
+        );
     };
     ($string:literal,$($args:expr),*) => {
-        println!(
-            "[ {} | {} ] {}",
-            $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
-            $crate::Color::green("done"), format!($string, $($args,)*)
-        )
+        {
+            println!(
+                "[ {} | {} ] {}",
+                $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
+                $crate::Color::green("done"), format!($string, $($args,)*)
+            );
+        }
     };
 }
 
@@ -72,18 +77,18 @@ macro_rules! debug {
             $crate::Color::magenta("debug"),
             $crate::Color::magenta(file!()),
             $crate::Color::green(&line!()),
-            $string
+            $crate::Color::magenta($string)
         )
     };
     ($expr:expr) => {
         println!(
-            "[ {} | {} ] [ {}:{} ] {} = {:?}",
+            "[ {} | {} ] [ {}:{} ] {} = {}",
             $crate::Color::yellow(&chrono::Local::now().format("%H:%M:%S")),
             $crate::Color::magenta("debug"),
             $crate::Color::magenta(file!()),
             $crate::Color::green(&line!()),
-            stringify!($expr),
-            $expr,
+            $crate::Color::red(&stringify!($expr)),
+            $crate::Color::magenta(&format!("{:?}", $expr)),
         )
     };
 }
@@ -108,7 +113,7 @@ macro_rules! set_map {
     ($($name:ident ($code:ident) => $link:literal),+) => {
         hashmap! {
             $(
-                stringify!($code).to_owned() => {
+                stringify!($code) => {
                     let now = std::time::Instant::now();
                     let t = fetch_imf_set(
                         $link,
