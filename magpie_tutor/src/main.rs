@@ -50,36 +50,6 @@ async fn main() {
     client.unwrap().start().await.unwrap();
 }
 
-fn panic_hook(info: &PanicInfo) {
-    if let Some(loc) = info.location() {
-        error!(
-            "Panic in file {} at line {}",
-            loc.file().magenta(),
-            loc.line().blue()
-        );
-    }
-    let s = info
-        .payload()
-        .downcast_ref::<String>()
-        .map(ToOwned::to_owned)
-        .or_else(|| {
-            info.payload()
-                .downcast_ref::<&str>()
-                .map(ToString::to_string)
-        })
-        .unwrap_or(String::new());
-
-    let lines: Vec<_> = s.lines().collect();
-    if lines.len() > 1 {
-        error!("Panic message:");
-        for l in lines {
-            error!("{}", l.red());
-        }
-    } else {
-        error!("Panic message: {}", s.red());
-    }
-}
-
 fn build_framework() -> Framework<Data, Error> {
     poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -137,5 +107,35 @@ async fn handler(
             );
             Err(err)
         }
+    }
+}
+
+fn panic_hook(info: &PanicInfo) {
+    if let Some(loc) = info.location() {
+        error!(
+            "Panic in file {} at line {}",
+            loc.file().magenta(),
+            loc.line().blue()
+        );
+    }
+    let s = info
+        .payload()
+        .downcast_ref::<String>()
+        .map(ToOwned::to_owned)
+        .or_else(|| {
+            info.payload()
+                .downcast_ref::<&str>()
+                .map(ToString::to_string)
+        })
+        .unwrap_or(String::new());
+
+    let lines: Vec<_> = s.lines().collect();
+    if lines.len() > 1 {
+        error!("Panic message:");
+        for l in lines {
+            error!("{}", l.red());
+        }
+    } else {
+        error!("Panic message: {}", s.red());
     }
 }
