@@ -5,11 +5,10 @@
 [ ] Modifier support
     [ ] `s`, search for sigils
     [ ] `c`, compact embed
-    [ ] `p`, remove portrait
-    [ ] `\`, Skip match
-    [ ] `q`, specifically select query
-    [ ] `j`, print raw version of the card instead of embed
+    [ ] `\``, Skip match
+    [*] `q`, specifically select query
+    [*] `d`, print raw version of the card instead of embed for debug
     [*] `*`, select all set
-[ ] General query
+[*] General query
 [ ] Cache button
 ```

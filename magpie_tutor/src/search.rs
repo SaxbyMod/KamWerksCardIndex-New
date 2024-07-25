@@ -2,7 +2,9 @@
 use std::vec;
 
 use magpie_engine::bitsflag;
-use poise::serenity_prelude::{Context, CreateAttachment, CreateMessage, Message};
+use poise::serenity_prelude::{
+    colours::roles, Context, CreateAttachment, CreateEmbed, CreateMessage, Message,
+};
 
 use crate::{
     done, get_portrait, hash_card_url,
@@ -20,6 +22,7 @@ bitsflag! {
     struct Modifier: u8 {
         QUERY = 1;
         ALL_SET = 1 << 1;
+        DEBUG = 1 << 2;
     }
 }
 
@@ -49,6 +52,7 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                 match m {
                     'q' => t |= Modifier::QUERY,
                     '*' => t |= Modifier::ALL_SET,
+                    'd' => t |= Modifier::DEBUG,
                     _ => (),
                 }
             }
@@ -94,6 +98,15 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                 embeds.push(missing_embed(search_term));
                 continue;
             };
+
+            if modifier.contains(Modifier::DEBUG) {
+                embeds.push(
+                    CreateEmbed::new()
+                        .color(roles::BLUE)
+                        .description(format!("```\n{card:#?}\n```")),
+                );
+                continue;
+            }
 
             let mut embed = gen_embed(rank, card, SETS.get(card.set.code()).unwrap());
             let hash = hash_card_url(card);
