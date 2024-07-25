@@ -3,7 +3,11 @@ use std::vec;
 
 use magpie_engine::bitsflag;
 use poise::serenity_prelude::{
-    colours::roles, Context, CreateAttachment, CreateEmbed, CreateMessage, Message,
+    colours::roles,
+    ButtonStyle::{Danger, Primary},
+    Context,
+    CreateActionRow::Buttons,
+    CreateAttachment, CreateButton, CreateEmbed, CreateMessage, Message,
 };
 
 use crate::{
@@ -151,6 +155,12 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
             CreateMessage::new()
                 .content(format!("Search completed in {:.1?}", start.elapsed()))
                 .embeds(embeds)
+                .components(vec![Buttons(vec![
+                    CreateButton::new("remove_cache")
+                        .style(Danger)
+                        .label("Remove Cache"),
+                    CreateButton::new("retry").style(Primary).label("Retry"),
+                ])])
                 .reply(msg),
         )
         .await?;
@@ -205,7 +215,9 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     if new_cache > 0 {
         done!("{} new cache(s) found", new_cache.green());
         info!("Saving caches...");
-        // unlock the cache so we can save
+
+        // unlock the cache to avoid deadlock
+        drop(cache_guard);
 
         // save the updated cache
         data.save_cache();

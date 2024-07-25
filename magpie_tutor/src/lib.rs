@@ -22,6 +22,9 @@ pub mod search;
 mod data;
 pub use data::*;
 
+mod handler;
+pub use handler::*;
+
 #[macro_use]
 pub mod helper;
 

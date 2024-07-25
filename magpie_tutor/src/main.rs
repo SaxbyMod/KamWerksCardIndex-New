@@ -2,14 +2,10 @@
 
 use std::panic::PanicInfo;
 
-use magpie_tutor::{
-    done, error, info, search::search_message, CmdCtx, Color, Data, Error, Res, SETS,
-};
+use magpie_tutor::{done, error, handler, info, CmdCtx, Color, Data, Error, Res, SETS};
 use poise::{
-    serenity_prelude::{
-        self as serenity, Context as EvtCtx, CreateEmbed, FullEvent::*, GatewayIntents,
-    },
-    CreateReply, Framework, FrameworkContext,
+    serenity_prelude::{ClientBuilder, CreateEmbed, GatewayIntents},
+    CreateReply, Framework,
 };
 
 /// Test command
@@ -43,7 +39,7 @@ async fn main() {
     std::panic::set_hook(Box::new(panic_hook));
 
     // client time
-    let client = serenity::ClientBuilder::new(token, intents)
+    let client = ClientBuilder::new(token, intents)
         .framework(framework)
         .await;
 
@@ -74,40 +70,6 @@ fn build_framework() -> Framework<Data, Error> {
             })
         })
         .build()
-}
-
-async fn handler(
-    ctx: &EvtCtx,
-    event: &serenity::FullEvent,
-    _: FrameworkContext<'_, Data, Error>,
-    data: &Data,
-) -> Res {
-    let res: Res = match event {
-        Message { new_message: msg } if msg.author.id != ctx.cache.current_user().id => {
-            search_message(ctx, msg, data).await
-        }
-        Ready {
-            data_about_bot: serenity::Ready { user, .. },
-        } => {
-            done!(
-                "Bot is ready. Login as {}",
-                format!("{}#{}", user.name, user.discriminator.unwrap()).green()
-            );
-            Ok(())
-        }
-        _ => Ok(()),
-    };
-
-    match res {
-        Ok(()) => Ok(()),
-        Err(err) => {
-            error!(
-                "Cannot handle {} event due to: {err}",
-                event.snake_case_name()
-            );
-            Err(err)
-        }
-    }
 }
 
 fn panic_hook(info: &PanicInfo) {
