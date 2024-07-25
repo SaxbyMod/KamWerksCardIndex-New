@@ -2,6 +2,7 @@
 
 ````
 [ ] Augmented support
+[ ] Descryption support
 [ ] Modifier support
     [ ] `s`, search for sigils
     [ ] `c`, compact embed
