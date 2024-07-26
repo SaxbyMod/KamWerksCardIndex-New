@@ -174,7 +174,7 @@ impl<T> Death<T> for Option<T> {
             return it;
         }
         error!("{}", message.red());
-        error!("Critical Error awaiting death...");
+        error!("Critical error awaiting death...");
         std::process::exit(0)
     }
 }
@@ -189,7 +189,7 @@ where
             Err(err) => {
                 error!("{}", message.red());
                 error!("{}", format!("{err:?}").red());
-                error!("{}", "Critical Error awaiting death...".red());
+                error!("{}", "Critical error awaiting death...".red());
                 std::process::exit(0)
             }
         }
