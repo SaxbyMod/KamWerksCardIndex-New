@@ -194,11 +194,11 @@ where
     McGuffin(Infallible, PhantomData<C>),
 }
 
-/// Convert a type to a [`FilterFn`].
+/// Traits for converting a type to a [`FilterFn`].
 ///
 /// The generic is for the cards extension.
 pub trait ToFilter<C>: Clone {
-    /// Turn the value into a filter that take a card and return a bool
+    /// Convert the value into a [`FilterFn`]
     fn to_fn(self) -> FilterFn<C>;
 }
 
