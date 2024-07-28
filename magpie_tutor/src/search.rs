@@ -43,7 +43,7 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     let start = std::time::Instant::now();
     let mut embeds = vec![];
     let mut attachment: Vec<CreateAttachment> = vec![];
-    for (modifier, set_code, search_term) in SEARCH_REGEX.captures_iter(&msg.content).map(|c| {
+    'a: for (modifier, set_code, search_term) in SEARCH_REGEX.captures_iter(&msg.content).map(|c| {
         (
             c.get(1).map_or("", |s| s.as_str()),
             c.get(2).map_or("", |s| s.as_str()),
@@ -53,11 +53,13 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         let modifier = {
             let mut t = Modifier::EMPTY;
             for m in modifier.chars() {
-                match m {
-                    'q' => t |= Modifier::QUERY,
-                    '*' => t |= Modifier::ALL_SET,
-                    'd' => t |= Modifier::DEBUG,
-                    _ => (),
+                t |= match m {
+                    'q' => Modifier::QUERY,
+                    '*' => Modifier::ALL_SET,
+                    'd' => Modifier::DEBUG,
+                    '`' => continue 'a, // exit this search term
+
+                    _ => continue,
                 }
             }
 

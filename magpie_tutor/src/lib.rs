@@ -161,6 +161,17 @@ impl MessageCreateExt for CreateMessage {
     }
 }
 
+/// Trait for converting value to it debug string representation
+pub trait ToDebugString {
+    /// Convert a value to debug string representation
+    fn to_debug_string(&self) -> String
+    where
+        Self: Debug,
+    {
+        format!("{self:?}")
+    }
+}
+
 /// Exrension for Option and Result where it is critical that they don't fails and if they do
 /// immediately stop terminate.
 pub trait Death<T> {
@@ -208,7 +219,7 @@ macro_rules! color_fn {
         where
             Self: Display,
         {
-            format!("\x1b[0;{}m{}\x1b[0m", $ansi, self)
+            format!(concat!("\x1b[0;", stringify!($ansi), "m{}\x1b[0m"), self)
         }
     )*};
 }
