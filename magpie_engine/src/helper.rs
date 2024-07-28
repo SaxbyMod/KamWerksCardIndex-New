@@ -109,5 +109,11 @@ macro_rules! bitsflag {
                 value.0
             }
         }
+
+        impl Default for $name {
+            fn default() -> Self {
+                $name::EMPTY
+            }
+        }
     };
 }
