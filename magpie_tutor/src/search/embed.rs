@@ -137,10 +137,10 @@ fn cost_str(card: &Card) -> String {
 
             for m in Mox::from(costs.mox).flags() {
                 match *m {
-                    Mox::R => mox_cost.extend(iter::repeat(imf::RED).take(count.r)),
-                    Mox::G => mox_cost.extend(iter::repeat(imf::GREEN).take(count.g)),
-                    Mox::B => mox_cost.extend(iter::repeat(imf::BLUE).take(count.b)),
-                    Mox::Y => mox_cost.extend(iter::repeat(imf::GRAY).take(count.y)),
+                    Mox::R => mox_cost.extend(vec![imf::RED; count.r]),
+                    Mox::G => mox_cost.extend(vec![imf::GREEN; count.g]),
+                    Mox::B => mox_cost.extend(vec![imf::BLUE; count.b]),
+                    Mox::Y => mox_cost.extend(vec![imf::GRAY; count.y]),
                     _ => unreachable!(),
                 }
             }
