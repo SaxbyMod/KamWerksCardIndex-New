@@ -1,6 +1,4 @@
 //! Contain implementation for generate card embed from card and a few other info
-use std::iter;
-
 use magpie_engine::prelude::*;
 use poise::serenity_prelude::{colours::roles, CreateEmbed, CreateEmbedFooter};
 

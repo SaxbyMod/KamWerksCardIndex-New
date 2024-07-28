@@ -2,7 +2,9 @@
 
 use std::panic::PanicInfo;
 
-use magpie_tutor::{done, error, handler, info, CmdCtx, Color, Data, Error, Res, SETS};
+use magpie_tutor::{
+    done, error, handler, info, CmdCtx, Color, Data, Error, Res, CACHE, CACHE_FILE, SETS,
+};
 use poise::{
     serenity_prelude::{ClientBuilder, CreateEmbed, GatewayIntents},
     CreateReply, Framework,
@@ -35,6 +37,12 @@ async fn main() {
 
     info!("Fetching set...");
     done!("Finish fetching {} sets", SETS.len().green());
+
+    info!("Loading caches from {}...", CACHE_FILE.green());
+    done!(
+        "Finish loading {} caches",
+        CACHE.lock().unwrap().len().green()
+    );
 
     std::panic::set_hook(Box::new(panic_hook));
 

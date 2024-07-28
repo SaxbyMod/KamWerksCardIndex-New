@@ -1,5 +1,5 @@
 //! Contain the main search function and implementations.
-use std::vec;
+use std::{time::Instant, vec};
 
 use magpie_engine::bitsflag;
 use poise::serenity_prelude::{
@@ -15,8 +15,8 @@ use crate::{
     helper::{current_epoch, fuzzy_best, FuzzyRes},
     info,
     query::query_message,
-    resize_img, CacheData, Card, Color, Data, Death, MessageCreateExt, Res, CACHE_REGEX,
-    DEBUG_CARD, SEARCH_REGEX, SETS,
+    resize_img, save_cache, CacheData, Card, Color, Death, Res, CACHE, CACHE_REGEX, DEBUG_CARD,
+    SEARCH_REGEX, SETS,
 };
 
 mod embed;
@@ -31,7 +31,7 @@ bitsflag! {
 }
 
 /// Main searching function.
-pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
+pub async fn search_message(ctx: &Context, msg: &Message) -> Res {
     if !SEARCH_REGEX.is_match(&msg.content) {
         return Ok(());
     }
@@ -40,9 +40,23 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         msg.content.red(),
         msg.author.name.magenta()
     );
-    let start = std::time::Instant::now();
+
+    let msg = msg
+        .channel_id
+        .send_message(&ctx.http, process_search(msg))
+        .await?;
+
+    update_cache(&msg);
+
+    Ok(())
+}
+
+fn process_search(msg: &Message) -> CreateMessage {
+    let start = Instant::now();
+
     let mut embeds = vec![];
-    let mut attachment: Vec<CreateAttachment> = vec![];
+    let mut attachments: Vec<CreateAttachment> = vec![];
+
     'a: for (modifier, set_code, search_term) in SEARCH_REGEX.captures_iter(&msg.content).map(|c| {
         (
             c.get(1).map_or("", |s| s.as_str()),
@@ -63,7 +77,7 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
                 }
             }
 
-            if msg.content.contains(':') {
+            if search_term.contains(':') {
                 t |= Modifier::QUERY;
             }
 
@@ -116,7 +130,7 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
 
             let mut embed = gen_embed(rank, card, SETS.get(card.set.code()).unwrap());
             let hash = hash_card_url(card);
-            let mut cache_guard = data.cache.lock().unwrap_or_die("Cannot lock cache");
+            let mut cache_guard = CACHE.lock().unwrap_or_die("Cannot lock cache");
 
             match cache_guard.get(&hash) {
                 Some(CacheData {
@@ -136,8 +150,8 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
 
                     let filename = hash.to_string() + ".png";
 
-                    if !attachment.iter().any(|a| a.filename == filename) {
-                        attachment.push(CreateAttachment::bytes(
+                    if !attachments.iter().any(|a| a.filename == filename) {
+                        attachments.push(CreateAttachment::bytes(
                             resize_img(get_portrait(&card.portrait), 2),
                             filename,
                         ));
@@ -149,24 +163,20 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         }
     }
 
-    let msg = msg
-        .channel_id
-        .send_files(
-            &ctx.http,
-            attachment,
-            CreateMessage::new()
-                .content(format!("Search completed in {:.1?}", start.elapsed()))
-                .embeds(embeds)
-                .components(vec![Buttons(vec![
-                    CreateButton::new("remove_cache")
-                        .style(Danger)
-                        .label("Remove Cache"),
-                    CreateButton::new("retry").style(Primary).label("Retry"),
-                ])])
-                .reply(msg),
-        )
-        .await?;
+    CreateMessage::new()
+        .content(format!("Search completed in {:.1?}", start.elapsed()))
+        .embeds(embeds)
+        .files(attachments)
+        .components(vec![Buttons(vec![
+            CreateButton::new("remove_cache")
+                .style(Danger)
+                .label("Remove Cache"),
+            CreateButton::new("retry").style(Primary).label("Retry"),
+        ])])
+}
 
+/// Uodate the cache with the messagge attachment
+fn update_cache(msg: &Message) {
     // Update the cache
     //
     // We always do this because.
@@ -174,7 +184,7 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
     // 2. The cache might have expire and we need to record that
     info!("Updating caches...");
     let mut new_cache = 0;
-    let mut cache_guard = data.cache.lock().unwrap_or_die("Cannot lock cache");
+    let mut cache_guard = CACHE.lock().unwrap_or_die("Cannot lock cache");
     for url in msg
         .embeds
         .iter()
@@ -222,9 +232,8 @@ pub async fn search_message(ctx: &Context, msg: &Message, data: &Data) -> Res {
         drop(cache_guard);
 
         // save the updated cache
-        data.save_cache();
+        save_cache();
     } else {
         done!("No new caches found! Nothing to update :3");
     }
-    Ok(())
 }

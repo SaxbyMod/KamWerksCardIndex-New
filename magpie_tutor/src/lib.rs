@@ -3,8 +3,10 @@
 use std::{
     collections::HashMap,
     fmt::{Debug, Display},
+    fs::File,
     hash::{DefaultHasher, Hash, Hasher},
-    io::Cursor,
+    io::{Cursor, Read},
+    sync::Mutex,
 };
 
 use image::GenericImageView;
@@ -19,11 +21,9 @@ pub mod magpie;
 pub mod query;
 pub mod search;
 
-mod data;
-pub use data::*;
-
 mod handler;
 pub use handler::*;
+use serde::{Deserialize, Serialize};
 
 #[macro_use]
 pub mod helper;
@@ -31,6 +31,22 @@ pub mod helper;
 use self::magpie::FilterExt;
 
 // Type definition for stuff
+
+/// Custom data carry between commands.
+pub struct Data {}
+
+impl Data {
+    /// Make a new instance of [`Data`]
+    pub fn new() -> Self {
+        Data {}
+    }
+}
+
+impl Default for Data {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 /// Discord bot error type alias.
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -46,6 +62,23 @@ pub type Card = magpie_engine::Card<AugExt>;
 pub type Set = magpie_engine::Set<AugExt>;
 /// Filters type alias
 pub type Filters = magpie_engine::prelude::Filters<AugExt, FilterExt>;
+
+/// Type alias for caches
+pub type Cache = HashMap<u64, CacheData>;
+
+/// The caches data.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CacheData {
+    /// The channel id of the portrait cache.
+    pub channel_id: u64,
+    /// The attachment id of the potrait cache.
+    pub attachment_id: u64,
+    /// The expire date of the portrait cache.
+    pub expire_date: u64,
+}
+
+/// Location of the cache file.
+pub const CACHE_FILE: &str = "./cache.bin";
 
 lazy_static! {
     /// The regex use to match for general search.
@@ -113,6 +146,46 @@ lazy_static! {
             artist: "art".to_owned(),
         },
     };
+
+    /// Portrait Caches to save times on image processing
+    pub static ref CACHE: Mutex<HashMap<u64, CacheData>> = load_cache();
+}
+
+fn load_cache() -> Mutex<HashMap<u64, CacheData>> {
+    let bytes = {
+        let mut f =
+            File::open(CACHE_FILE).unwrap_or_else(|_| File::create_new(CACHE_FILE).unwrap());
+
+        let mut buf = vec![
+            0;
+            f.metadata()
+                .expect("Unable to get cache file metadata")
+                .len()
+                .try_into()
+                .expect("File len data been truncated")
+        ];
+
+        f.read_exact(&mut buf).expect("Buffer overflow");
+
+        buf
+    };
+
+    if bytes.is_empty() {
+        return Mutex::new(HashMap::new());
+    }
+
+    let t: Mutex<Cache> = bincode::deserialize(&bytes).unwrap();
+    t
+}
+
+/// Save the cache to the cache file.
+pub fn save_cache() {
+    bincode::serialize_into(
+        File::create(CACHE_FILE).expect("Cannot create cache file"),
+        &*CACHE,
+    )
+    .unwrap();
+    done!("Caches save successfully to {}", CACHE_FILE.green());
 }
 
 /// Hash a card url. Just a wrapper around DefaultHasher.
