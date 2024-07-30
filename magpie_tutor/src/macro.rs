@@ -1,7 +1,4 @@
-//! Some helper
-mod fuzzy;
-
-pub use fuzzy::*;
+//! Some helper macro
 
 /// Info print.
 #[macro_export]
@@ -136,16 +133,45 @@ macro_rules! set_map {
     };
 }
 
+/// Helper to generate builder pattern struct
+#[macro_export]
 macro_rules! builder {
     (
-        $(#[$s_attr:meta])*
+        $(#[$attr:meta])*
         $vis:vis struct $name:ident {
-            $($f_vis:vis $field:ident: $f_type:ty),*
+            $(
+                $(#[$f_attr:meta])*
+                $f_vis:vis $field:ident: $f_type:ty,
+            )*
         }
 
+        $(
+            impl into $ty:ty $body:block
+        )*
+
     ) => {
-        $vis struct $name {
-            $($vis $field: $f_type,)*
+        $(#[$attr])*
+        #[derive(Default)]
+        $vis struct $name {$(
+            $(#[$f_attr])*
+            $f_vis $field: $f_type,
+        )*}
+
+        impl $name {
+
+            #[doc = concat!("Create a new [`", stringify!($name), "`] builder")]
+            pub fn new() -> Self {
+                Self::default()
+            }
+
+
+            $(
+                $(#[$f_attr])*
+                pub fn $field(mut self, $field: $f_type) -> Self {
+                    self.$field = $field;
+                    self
+                }
+            )*
         }
     };
 }

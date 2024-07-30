@@ -6,7 +6,7 @@ use magpie_engine::{
     query::{FilterFn, ToFilter},
 };
 
-use crate::helper::lev;
+use crate::lev;
 
 bitsflag! {
     /// Cost type value for filter

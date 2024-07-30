@@ -7,16 +7,13 @@ use poise::serenity_prelude::{
     ButtonStyle::{Danger, Primary},
     Context,
     CreateActionRow::Buttons,
-    CreateAttachment, CreateButton, CreateEmbed, CreateMessage, Message,
+    CreateAttachment, CreateButton, CreateEmbed, Message,
 };
 
 use crate::{
-    done, get_portrait, hash_card_url,
-    helper::{current_epoch, fuzzy_best, FuzzyRes},
-    info,
-    query::query_message,
-    resize_img, save_cache, CacheData, Card, Color, Death, Res, CACHE, CACHE_REGEX, DEBUG_CARD,
-    SEARCH_REGEX, SETS,
+    current_epoch, debug, done, fuzzy_best, get_portrait, hash_card_url, info,
+    query::query_message, resize_img, save_cache, CacheData, Card, Color, Death, FuzzyRes,
+    MessageAdapter, Res, CACHE, CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };
 
 mod embed;
@@ -43,7 +40,7 @@ pub async fn search_message(ctx: &Context, msg: &Message) -> Res {
 
     let msg = msg
         .channel_id
-        .send_message(&ctx.http, process_search(msg))
+        .send_message(&ctx.http, process_search(&msg.content).into())
         .await?;
 
     update_cache(&msg);
@@ -51,13 +48,13 @@ pub async fn search_message(ctx: &Context, msg: &Message) -> Res {
     Ok(())
 }
 
-fn process_search(msg: &Message) -> CreateMessage {
+pub fn process_search(content: &str) -> MessageAdapter {
     let start = Instant::now();
 
     let mut embeds = vec![];
     let mut attachments: Vec<CreateAttachment> = vec![];
 
-    'a: for (modifier, set_code, search_term) in SEARCH_REGEX.captures_iter(&msg.content).map(|c| {
+    'a: for (modifier, set_code, search_term) in SEARCH_REGEX.captures_iter(&content).map(|c| {
         (
             c.get(1).map_or("", |s| s.as_str()),
             c.get(2).map_or("", |s| s.as_str()),
@@ -163,10 +160,10 @@ fn process_search(msg: &Message) -> CreateMessage {
         }
     }
 
-    CreateMessage::new()
+    MessageAdapter::new()
         .content(format!("Search completed in {:.1?}", start.elapsed()))
         .embeds(embeds)
-        .files(attachments)
+        .attachments(attachments)
         .components(vec![Buttons(vec![
             CreateButton::new("remove_cache")
                 .style(Danger)

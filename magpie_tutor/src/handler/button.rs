@@ -1,11 +1,12 @@
 use std::time::Duration;
 
 use poise::serenity_prelude::{
-    ComponentInteraction, Context, CreateInputText, CreateInteractionResponseFollowup,
-    CreateQuickModal, InputTextStyle::*,
+    ComponentInteraction, Context, CreateInputText, CreateInteractionResponse::UpdateMessage,
+    CreateInteractionResponseFollowup, CreateQuickModal, InputTextStyle::*,
 };
 
-use crate::{done, info, save_cache, Color, Death, Res, CACHE};
+use crate::search::process_search;
+use crate::{debug, done, info, save_cache, Color, Death, Res, CACHE};
 
 pub async fn button_handler(
     interaction: &ComponentInteraction,
@@ -86,6 +87,6 @@ async fn cache_remove(interaction: &ComponentInteraction, ctx: &Context) -> Res 
 
     Ok(())
 }
-async fn retry(_: &ComponentInteraction, _: &Context) -> Res {
-    Ok(())
+async fn retry(interaction: &ComponentInteraction, ctx: &Context) -> Res {
+    todo!()
 }
