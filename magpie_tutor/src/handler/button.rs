@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use poise::serenity_prelude::{CacheHttp, GetMessages};
 use poise::serenity_prelude::{
     ComponentInteraction, Context, CreateInputText, CreateInteractionResponse::UpdateMessage,
     CreateInteractionResponseFollowup, CreateQuickModal, InputTextStyle::*,
@@ -88,5 +89,30 @@ async fn cache_remove(interaction: &ComponentInteraction, ctx: &Context) -> Res 
     Ok(())
 }
 async fn retry(interaction: &ComponentInteraction, ctx: &Context) -> Res {
-    todo!()
+    interaction
+        .create_response(
+            &ctx.http,
+            UpdateMessage(
+                process_search(
+                    ctx.http()
+                        .get_message(
+                            interaction.message.channel_id,
+                            interaction
+                                .message
+                                .message_reference
+                                .as_ref()
+                                .unwrap()
+                                .message_id
+                                .unwrap(),
+                        )
+                        .await?
+                        .content
+                        .as_str(),
+                )
+                .into(),
+            ),
+        )
+        .await?;
+
+    Ok(())
 }

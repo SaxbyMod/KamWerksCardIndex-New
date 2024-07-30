@@ -7,13 +7,13 @@ use poise::serenity_prelude::{
     ButtonStyle::{Danger, Primary},
     Context,
     CreateActionRow::Buttons,
-    CreateAttachment, CreateButton, CreateEmbed, Message,
+    CreateAttachment, CreateButton, CreateEmbed, CreateMessage, Message,
 };
 
 use crate::{
     current_epoch, debug, done, fuzzy_best, get_portrait, hash_card_url, info,
     query::query_message, resize_img, save_cache, CacheData, Card, Color, Death, FuzzyRes,
-    MessageAdapter, Res, CACHE, CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
+    MessageAdapter, MessageCreateExt, Res, CACHE, CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };
 
 mod embed;
@@ -40,7 +40,10 @@ pub async fn search_message(ctx: &Context, msg: &Message) -> Res {
 
     let msg = msg
         .channel_id
-        .send_message(&ctx.http, process_search(&msg.content).into())
+        .send_message(
+            &ctx.http,
+            Into::<CreateMessage>::into(process_search(&msg.content)).reply(msg),
+        )
         .await?;
 
     update_cache(&msg);
