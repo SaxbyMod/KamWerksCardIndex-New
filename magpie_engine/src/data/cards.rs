@@ -2,6 +2,7 @@ use crate::bitsflag;
 use crate::Ptr;
 use crate::SetCode;
 use std::fmt::Debug;
+use std::fmt::Display;
 use std::hash::Hash;
 use std::hash::Hasher;
 
@@ -141,6 +142,22 @@ pub enum Rarity {
     ///
     /// This usually map to card that you can have only have 1 of this rarity per deck
     UNIQUE,
+}
+
+impl Display for Rarity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Rarity::SIDE => "Side",
+                Rarity::COMMON => "Common",
+                Rarity::UNCOMMON => "Uncommon",
+                Rarity::RARE => "Rare",
+                Rarity::UNIQUE => "Unique",
+            }
+        )
+    }
 }
 
 bitsflag! {
