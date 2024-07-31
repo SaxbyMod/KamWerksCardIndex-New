@@ -3,7 +3,7 @@
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
 use super::{fetch_json, FetchError};
-use crate::{Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits};
+use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits};
 use crate::{Ptr, Rarity};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -21,9 +21,10 @@ pub struct AugExt {
     pub artist: String,
 }
 
+self_upgrade!(AugExt);
+
 /// Fetch Augmented from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/edit?gid=0#gid=0).
-/// # Panics
 #[allow(clippy::too_many_lines)]
 pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
     let raw_card: Vec<AugCard> =

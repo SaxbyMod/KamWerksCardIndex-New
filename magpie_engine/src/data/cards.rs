@@ -75,13 +75,18 @@ impl<T> Hash for Card<T> {
     }
 }
 
-impl Card<()> {
-    /// Convert a empty, no extension card into something with a extension
+/// Trait for a card to be upgradeable to another card with different generic.
+pub trait UpgradeCard<T> {
+    /// Convert this card to another version with different generic
     #[must_use]
-    pub fn upgrade<T>(self) -> Card<T>
-    where
-        T: Default,
-    {
+    fn upgrade(self) -> Card<T>;
+}
+
+impl<T> UpgradeCard<T> for Card<()>
+where
+    T: Default,
+{
+    fn upgrade(self) -> Card<T> {
         Card {
             extra: T::default(),
 

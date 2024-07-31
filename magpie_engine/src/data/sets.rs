@@ -1,5 +1,6 @@
 use crate::Card;
 use crate::Ptr;
+use crate::UpgradeCard;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fmt::Display;
@@ -56,7 +57,7 @@ impl Display for SetCode {
 
 impl Debug for SetCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.code())
+        write!(f, "SetCode({:?} | {}) ", self.bytes(), self.code())
     }
 }
 
@@ -77,21 +78,20 @@ pub struct Set<C> {
     /// The sigils description look up table for the set.
     ///
     /// Set are require to include **every** sigil in this look up table. So you can safely get
-    /// value from this table without worrying about [`None`]
+    /// value from this table without worrying about [`None`].
     pub sigils_description: HashMap<Ptr<String>, String>,
 }
 
-impl Set<()> {
-    /// Convert a empty, no extension set into set with a extension
-    #[must_use]
-    pub fn upgrade<T>(self) -> Set<T>
+impl<T> Set<T> {
+    /// Upgrade a set to another with different genric.
+    pub fn upgrade<U>(self) -> Set<U>
     where
-        T: Default,
+        Card<T>: UpgradeCard<U>,
     {
         Set {
             code: self.code,
             name: self.name,
-            cards: self.cards.into_iter().map(Card::upgrade).collect(),
+            cards: self.cards.into_iter().map(UpgradeCard::upgrade).collect(),
             sigils_description: self.sigils_description,
         }
     }
