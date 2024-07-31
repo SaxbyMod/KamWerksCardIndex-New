@@ -88,12 +88,15 @@ macro_rules! debug {
             $crate::Color::magenta(&format!("{:?}", $expr)),
         )
     };
+    ($($expr:expr),*) => {
+        $(debug!($expr);)*
+    }
 }
 
 /// Helper to create hashmap.
 #[macro_export]
 macro_rules! hashmap {
-    ($($key:expr => $value:expr,)+) => {
+    ($($key:expr => $value:expr,)*) => {
         {
             let mut m = std::collections::HashMap::new();
 
@@ -107,7 +110,7 @@ macro_rules! hashmap {
 /// Helper to create set map.
 #[macro_export]
 macro_rules! set_map {
-    ($($name:ident ($code:ident) => $link:literal),+) => {
+    ($($name:ident ($code:ident) => $link:literal,)* --- $($key:ident ($key_code:ident) => $func:ident,)*) => {
         hashmap! {
             $(
                 stringify!($code) => {
@@ -126,6 +129,23 @@ macro_rules! set_map {
                         $crate::Color::green(&format!("{:.2?}", now.elapsed()))
                     );
 
+                    t
+                },
+            )*
+            $(
+                stringify!($key_code) => {
+                    let now = std::time::Instant::now();
+                    let t = $func(
+                        SetCode::new(stringify!($key_code)).unwrap()
+                    )
+                    .unwrap_or_die(&format!("Cannot process {} set", stringify!($key)))
+                    .upgrade();
+                    done!(
+                        "Finish fetching {} set with code {} in {}",
+                        $crate::Color::blue(stringify!($key)),
+                        $crate::Color::yellow(stringify!($key_code)),
+                        $crate::Color::green(&format!("{:.2?}", now.elapsed()))
+                    );
                     t
                 },
             )*

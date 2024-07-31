@@ -25,7 +25,7 @@ pub fn gen_embed(rank: f32, card: &Card, set: &Set) -> CreateEmbed {
 
     let (embed, footer) = match card.set.code() {
         "aug" => gen_aug_embed(card, set),
-        "egg" | "ete" | "com" | "old" => gen_imf_embed(card, set),
+        "com" | "ete" | "egg" => gen_imf_embed(card, set),
         _ => unimplemented!(),
     };
     embed.footer(CreateEmbedFooter::new(format!(
@@ -96,8 +96,85 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
     )
 }
 
-fn gen_aug_embed(_: &Card, _: &Set) -> EmbedRes {
-    (CreateEmbed::new(), String::new())
+fn gen_aug_embed(card: &Card, set: &Set) -> EmbedRes {
+    let color = if let Some(t) = Temple::from(card.temple).flags().next() {
+        match *t {
+            Temple::BEAST => roles::DARK_GOLD,
+            Temple::UNDEAD => roles::GREEN,
+            Temple::TECH => roles::BLUE,
+            Temple::MAGICK => roles::RED,
+            Temple::FOOL => roles::MAGENTA,
+            _ => unreachable!(),
+        }
+    } else {
+        unreachable!()
+    };
+
+    let mut embed = CreateEmbed::new().color(color).title(format!(
+        "{} ({}) {}",
+        card.name,
+        set.name,
+        match &card.traits {
+            Some(tr) => TraitsFlag::from(tr.flags).to_emoji(),
+            None => String::new(),
+        }
+    ));
+
+    let mut desc = if card.description.is_empty() {
+        String::new()
+    } else {
+        format!("*{}*\n\n", card.description)
+    };
+
+    desc.push_str(&format!(
+        "**Tier:** {}\n",
+        match &card.rarity {
+            Rarity::UNIQUE => String::from("Talking"),
+            a => a.to_string(),
+        }
+    ));
+    if let Some(t) = &card.tribes {
+        desc.push_str(&format!("**Tribes:** {t}\n"));
+    }
+
+    desc.push('\n'); // cost separator
+    desc.push_str(&cost_str(card)); // the card cost
+    desc.push('\n'); // stat separator
+
+    desc.push_str(&format!(
+        "**Stat:** {} / {}",
+        match &card.sp_atk {
+            Some(sp) => sp.to_emoji(),
+            None => card.attack.to_string(),
+        },
+        card.health
+    ));
+
+    if !card.sigils.is_empty() {
+        let mut desc = String::with_capacity(card.sigils.iter().map(|s| s.len()).sum());
+
+        for s in &card.sigils {
+            let text = set.sigils_description.get(s).unwrap();
+            desc.push_str(&format!("**{s}:** {text}\n"));
+        }
+
+        embed = embed.field("== SIGILS ==", desc, false);
+    }
+
+    if let Some(related) = &card.related {
+        embed = embed.field(
+            "== EXTRA INFO ==",
+            format!("**Related:** {}", related.join(", ")),
+            false,
+        );
+    }
+
+    (
+        embed
+            .description(desc)
+            .thumbnail(format!("attachment://{}.png", hash_card_url(card))),
+        String::new(), // empty footer
+    )
 }
 
 /// Missing embed when the card is not found

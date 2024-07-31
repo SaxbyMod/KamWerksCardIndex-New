@@ -1,13 +1,13 @@
 use std::time::Duration;
 
-use poise::serenity_prelude::{CacheHttp, GetMessages};
+use poise::serenity_prelude::CacheHttp;
 use poise::serenity_prelude::{
     ComponentInteraction, Context, CreateInputText, CreateInteractionResponse::UpdateMessage,
     CreateInteractionResponseFollowup, CreateQuickModal, InputTextStyle::*,
 };
 
 use crate::search::process_search;
-use crate::{debug, done, info, save_cache, Color, Death, Res, CACHE};
+use crate::{done, info, save_cache, Color, Death, Res, CACHE};
 
 pub async fn button_handler(
     interaction: &ComponentInteraction,

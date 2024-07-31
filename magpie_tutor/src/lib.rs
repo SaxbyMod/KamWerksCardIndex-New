@@ -111,7 +111,7 @@ lazy_static! {
 
     /// Debug card use to test rendering
     pub static ref DEBUG_CARD: Card = Card {
-        set: SetCode::new("com").unwrap(),
+        set: SetCode::new("aug").unwrap(),
         name: "OLD_DATA".to_owned(),
         description: "If you gaze long into an abyss, the abyss also gazes into you.".to_owned(),
         portrait: "https://pbs.twimg.com/media/DUgfSnpU0AAA5Ky.jpg".to_owned(),

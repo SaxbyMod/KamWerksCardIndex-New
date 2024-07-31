@@ -11,13 +11,18 @@ use poise::serenity_prelude::{
 };
 
 use crate::{
-    current_epoch, debug, done, fuzzy_best, get_portrait, hash_card_url, info,
-    query::query_message, resize_img, save_cache, CacheData, Card, Color, Death, FuzzyRes,
-    MessageAdapter, MessageCreateExt, Res, CACHE, CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
+    current_epoch, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
+    CacheData, Card, Color, Death, FuzzyRes, MessageAdapter, MessageCreateExt, Res, CACHE,
+    CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };
 
+mod portrait;
+#[allow(clippy::wildcard_imports)]
+use portrait::*;
+
 mod embed;
-use embed::{gen_embed, missing_embed};
+#[allow(clippy::wildcard_imports)]
+use embed::*;
 
 bitsflag! {
     struct Modifier: u8 {
@@ -177,10 +182,7 @@ pub fn process_search(content: &str) -> MessageAdapter {
                     let filename = hash.to_string() + ".png";
 
                     if !attachments.iter().any(|a| a.filename == filename) {
-                        attachments.push(CreateAttachment::bytes(
-                            resize_img(get_portrait(&card.portrait), 2),
-                            filename,
-                        ));
+                        attachments.push(CreateAttachment::bytes(gen_portrait(card), filename));
                     }
                 }
             }

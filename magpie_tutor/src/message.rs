@@ -4,7 +4,7 @@ use poise::serenity_prelude::{
     InteractionResponseFlags, MessageFlags,
 };
 
-use crate::{builder, debug};
+use crate::builder;
 
 builder! {
     /// Message adapter to conver between various message type
