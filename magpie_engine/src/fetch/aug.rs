@@ -155,7 +155,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         }
 
         let card = Card {
-            portrait: format!("https://github.com/answearingmachine/card-printer/raw/main/dist/printer/assets/art/{}.png", card.name.replace(' ', "%20")),
+            portrait: format!("https://raw.githubusercontent.com/answearingmachine/card-printer/main/dist/printer/assets/art/{}.png", card.name.replace(' ', "%20")),
 
             set: code,
 
@@ -182,7 +182,11 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
             attack: card.attack.parse().unwrap_or(0),
             health: card.health.parse().unwrap_or(0),
-            sigils: card.sigils.split(", ").map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone()).collect(),
+            sigils: if card.sigils.is_empty() {
+                vec![]
+            } else {
+                card.sigils.split(", ").map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone()).collect()
+            },
             // I don't pay enough attention to augmented to keep updating the code to accommodate
             // them so the value will just be parse as string
             sp_atk: None,
