@@ -90,7 +90,7 @@ pub const CACHE_FILE: &str = "./cache.bin";
 
 lazy_static! {
     /// The regex use to match for general search.
-    pub static ref SEARCH_REGEX: Regex = Regex::new(r"(?:([^\s{}]+?)(\w{3}(?:\|\w{3})*)?)?\{\{(.*?)\}\}") .unwrap_or_die("Cannot compiling search regex fails");
+    pub static ref SEARCH_REGEX: Regex = Regex::new(r"(\S*)\{\{(.*?)\}\}") .unwrap_or_die("Cannot compiling search regex fails");
     /// The regex use to match cache attachment link.
     pub static ref CACHE_REGEX: Regex = Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)") .unwrap_or_die("Cannot compiling cache regex fails");
     /// The regex use to match message and tokenize them
@@ -103,7 +103,9 @@ lazy_static! {
         set_map! {
             competitve (com) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/competitive.json",
             eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
-            egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json"
+            egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
+            ---
+            augmented (aug) => fetch_aug_set,
         }
     };
 

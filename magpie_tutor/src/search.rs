@@ -51,19 +51,45 @@ pub async fn search_message(ctx: &Context, msg: &Message) -> Res {
     Ok(())
 }
 
+/// Process a search with a content and return the message to send
 pub fn process_search(content: &str) -> MessageAdapter {
     let start = Instant::now();
 
     let mut embeds = vec![];
     let mut attachments: Vec<CreateAttachment> = vec![];
 
-    'a: for (modifier, set_code, search_term) in SEARCH_REGEX.captures_iter(&content).map(|c| {
+    'outer: for (modifier, search_term) in SEARCH_REGEX.captures_iter(content).map(|c| {
         (
             c.get(1).map_or("", |s| s.as_str()),
             c.get(2).map_or("", |s| s.as_str()),
-            c.get(3).map_or("", |s| s.as_str()),
         )
     }) {
+        let (set_code, modifier): (Vec<&str>, &str) = 'a: {
+            // Just leave if we don;t have anything to process
+            if modifier.is_empty() {
+                break 'a (vec![], "");
+            }
+
+            let mut set = vec![]; // no allocation so it fine
+            let mut i = modifier.len(); // get the length for slicing
+
+            // if we can't split any set code quit
+            if i < 3 {
+                break 'a (vec![], modifier);
+            }
+
+            // split the modifier from the back to detech set code
+            while let Some(code) = modifier.get((i - 3)..i) {
+                set.push(code);
+                i -= 3;
+                if i < 3 {
+                    break;
+                }
+            }
+
+            (set, &modifier[..i])
+        };
+
         let modifier = {
             let mut t = Modifier::EMPTY;
             for m in modifier.chars() {
@@ -71,7 +97,7 @@ pub fn process_search(content: &str) -> MessageAdapter {
                     'q' => Modifier::QUERY,
                     '*' => Modifier::ALL_SET,
                     'd' => Modifier::DEBUG,
-                    '`' => continue 'a, // exit this search term
+                    '`' => continue 'outer, // exit this search term
 
                     _ => continue,
                 }
@@ -88,7 +114,7 @@ pub fn process_search(content: &str) -> MessageAdapter {
         if modifier.contains(Modifier::ALL_SET) {
             sets.extend(SETS.values());
         } else {
-            for set in set_code.split('|') {
+            for set in set_code {
                 if let Some(set) = SETS.get(set) {
                     sets.push(set);
                 }
