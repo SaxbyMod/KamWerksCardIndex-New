@@ -7,6 +7,7 @@ use std::{
 };
 
 /// Result for fuzzy
+#[derive(Debug)]
 pub struct FuzzyRes<'a, T> {
     /// The rank of this result
     pub rank: f32,
@@ -53,7 +54,7 @@ where
 /// <https://github.com/TheAlgorithms/Rust/blob/master/src/string/levenshtein_distance.rs>
 pub fn lev(string1: &str, string2: &str, threshold: f32) -> f32 {
     if string1.is_empty() {
-        return string2.len() as f32;
+        return 0.;
     }
 
     let l1 = string1.len();
@@ -84,6 +85,7 @@ pub fn lev(string1: &str, string2: &str, threshold: f32) -> f32 {
     }
 
     let max = max(string1.len(), string2.len());
+
     // Normalize the distance
     let t = (max - prev_dist[l1]) as f32 / max as f32;
 
