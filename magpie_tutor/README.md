@@ -12,4 +12,9 @@
     [*] `*`, select all set
 [*] General query
 [*] Cache button
+[ ] Commands
+    [ ] Help
+    [ ] Set code display
+    [ ] Query help
+    [ ] Retry
 ````
