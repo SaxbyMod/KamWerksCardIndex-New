@@ -50,12 +50,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
     );
 
     for card in raw_card {
-        let traits = card
-            .traits
-            .split(", ")
-            .map(ToOwned::to_owned)
-            .collect::<Vec<String>>();
-
         let costs;
 
         let mut shattered_count = MoxCount::default();
@@ -194,11 +188,22 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
             costs,
 
-            traits: (!traits.is_empty()).then_some(Traits {
-                strings: Some(traits),
+            traits: (!card.traits.is_empty()).then_some(Traits {
+                strings: Some(
+                     card
+                    .traits
+                    .split(", ")
+                    .map(ToOwned::to_owned)
+                    .collect::<Vec<String>>()
+                ),
+
                 flags: 0
             }),
-            related: card.token.split(", ").map(ToOwned::to_owned).collect(),
+            related: if card.token.is_empty() {
+                vec![]
+            } else {
+                card.token.split(", ").map(ToOwned::to_owned).collect()
+            },
 
             extra: AugExt {
                 artist: card.artist,
