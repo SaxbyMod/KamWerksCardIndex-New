@@ -3,12 +3,11 @@
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
 use super::{fetch_json, FetchError};
+use crate::Rarity;
 use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits};
-use crate::{Ptr, Rarity};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::ops::Not;
 
 /// Augmented's [`Card`] extensions
 #[derive(Debug, Default, Clone)]
@@ -37,15 +36,12 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
     let mut cards = Vec::with_capacity(raw_card.len());
 
-    let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
+    let undefined_sigil = String::from("UNDEFINDED SIGILS");
 
-    let mut sigil_rc = HashMap::with_capacity(sigil.len());
     let mut sigils_description = HashMap::with_capacity(sigil.len());
 
     for s in sigil {
-        let rc = Ptr::new(s.name.clone());
-        sigil_rc.insert(s.name, rc.clone());
-        sigils_description.insert(rc.clone(), s.text);
+        sigils_description.insert(s.name, s.text.replace('\n', ""));
     }
 
     sigils_description.insert(
@@ -183,7 +179,14 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
             sigils: if card.sigils.is_empty() {
                 vec![]
             } else {
-                card.sigils.split(", ").map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone()).collect()
+                card.sigils.split(", ").map(|s| {
+                    let s = s.to_owned();
+                    if sigils_description.contains_key(&s) {
+                        s
+                    } else {
+                        String::from("UNDEFINEDED SIGILS")
+                    }
+                }).collect()
             },
             // I don't pay enough attention to augmented to keep updating the code to accommodate
             // them so the value will just be parse as string
@@ -195,12 +198,12 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                 strings: Some(traits),
                 flags: 0
             }),
-            related: card.token.is_empty().not().then(||card.token.split(", ").map(ToOwned::to_owned).collect()),
+            related: card.token.split(", ").map(ToOwned::to_owned).collect(),
 
             extra: AugExt {
                 artist: card.artist,
                 max,
-                shattered_count: if shattered_count.eq(&MoxCount::default()).not() { Some(shattered_count) } else { None },
+                shattered_count: (!shattered_count.eq(&MoxCount::default())).then_some(shattered_count),
             }
         };
 

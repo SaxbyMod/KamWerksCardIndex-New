@@ -2,7 +2,6 @@
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
-use crate::Ptr;
 use crate::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -17,21 +16,14 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
 
     let mut cards = Vec::with_capacity(set.cards.len() + 1);
 
-    let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
-
-    let mut sigil_rc = HashMap::with_capacity(set.sigils.len());
     let mut sigils_description = HashMap::with_capacity(set.sigils.len());
 
     for s in set.sigils {
-        // Convert the sigil to a pointer
-        let rc = Ptr::new(s.0.clone());
-
-        sigil_rc.insert(s.0, rc.clone());
-        sigils_description.insert(rc.clone(), s.1);
+        sigils_description.insert(s.0, s.1);
     }
 
     sigils_description.insert(
-        undefined_sigil.clone(),
+        String::from("UNDEFINEDED SIGILS"),
         "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
     );
 
@@ -64,8 +56,14 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
             health: c.health,
             sigils: c
                 .sigils
-                .iter()
-                .map(|s| sigil_rc.get(s).unwrap_or(&undefined_sigil).clone())
+                .into_iter()
+                .map(|s| {
+                    if sigils_description.contains_key(&s) {
+                        s
+                    } else {
+                        String::from("UNDEFINEDED SIGILS")
+                    }
+                })
                 .collect(),
 
             sp_atk: match c.atkspecial.as_str() {
@@ -110,7 +108,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                     .into(),
             }),
 
-            related: Some({
+            related: {
                 let mut v = Vec::new();
 
                 if !c.evolution.is_empty() {
@@ -126,7 +124,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                 }
 
                 v
-            }),
+            },
 
             extra: (),
         };

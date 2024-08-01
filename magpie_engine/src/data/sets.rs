@@ -1,5 +1,4 @@
 use crate::Card;
-use crate::Ptr;
 use crate::UpgradeCard;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -79,7 +78,7 @@ pub struct Set<C> {
     ///
     /// Set are require to include **every** sigil in this look up table. So you can safely get
     /// value from this table without worrying about [`None`].
-    pub sigils_description: HashMap<Ptr<String>, String>,
+    pub sigils_description: HashMap<String, String>,
 }
 
 impl<T> Set<T> {

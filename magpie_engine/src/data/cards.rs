@@ -1,5 +1,4 @@
 use crate::bitsflag;
-use crate::Ptr;
 use crate::SetCode;
 use std::fmt::Debug;
 use std::fmt::Display;
@@ -39,7 +38,7 @@ pub struct Card<C> {
     pub health: isize,
 
     /// The sigils or abilities on the card.
-    pub sigils: Vec<Ptr<String>>,
+    pub sigils: Vec<String>,
 
     /// The card special attack, [`None`] if the card have no special attack
     ///
@@ -63,7 +62,7 @@ pub struct Card<C> {
     /// Related card or token
     ///
     /// Usuall for tokens, evolution, etc.
-    pub related: Option<Vec<String>>,
+    pub related: Vec<String>,
 
     /// Extra
     pub extra: C,
