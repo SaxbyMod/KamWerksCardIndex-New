@@ -70,7 +70,7 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
     ));
 
     if !card.sigils.is_empty() {
-        let mut desc = String::with_capacity(card.sigils.iter().map(|s| s.len()).sum());
+        let mut desc = String::with_capacity(card.sigils.iter().map(String::len).sum());
 
         for s in &card.sigils {
             let text = set.sigils_description.get(s).unwrap();
@@ -80,10 +80,10 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
         embed = embed.field("== SIGILS ==", desc, false);
     }
 
-    if let Some(related) = &card.related {
+    if !card.related.is_empty() {
         embed = embed.field(
             "== EXTRA INFO ==",
-            format!("**Related:** {}", related.join(", ")),
+            format!("**Related:** {}", card.related.join(", ")),
             false,
         );
     }
@@ -151,7 +151,7 @@ fn gen_aug_embed(card: &Card, set: &Set) -> EmbedRes {
     ));
 
     if !card.sigils.is_empty() {
-        let mut desc = String::with_capacity(card.sigils.iter().map(|s| s.len()).sum());
+        let mut desc = String::with_capacity(card.sigils.iter().map(String::len).sum());
 
         for s in &card.sigils {
             let text = set.sigils_description.get(s).unwrap();
@@ -161,10 +161,24 @@ fn gen_aug_embed(card: &Card, set: &Set) -> EmbedRes {
         embed = embed.field("== SIGILS ==", desc, false);
     }
 
-    if let Some(related) = &card.related {
+    if let Some(Traits {
+        strings: Some(str), ..
+    }) = &card.traits
+    {
+        let mut desc = String::with_capacity(str.iter().map(String::len).sum());
+
+        for s in str {
+            let text = set.sigils_description.get(s).unwrap();
+            desc.push_str(&format!("**{s}:** {text}\n"));
+        }
+
+        embed = embed.field("== TRAITS ==", desc, false);
+    }
+
+    if !card.related.is_empty() {
         embed = embed.field(
             "== EXTRA INFO ==",
-            format!("**Related:** {}", related.join(", ")),
+            format!("**Token:** {}", card.related.join(", ")),
             false,
         );
     }

@@ -137,14 +137,14 @@ lazy_static! {
             }),
         }),
         traits: Some(Traits {
-            string: None,
+            strings: None,
             flags: TraitsFlag::all(),
         }),
-        related: Some(vec![
+        related: vec![
             "Phi".to_owned(),
             "NEW_DATA".to_owned(),
             "ANCIENT_DATA".to_owned(),
-        ]),
+        ],
         extra: AugExt {
             shattered_count: Some(MoxCount {
                 r: 1,
@@ -207,11 +207,7 @@ fn hash_card_url(card: &Card) -> u64 {
 
 /// Resize a image from it's bytes.
 fn resize_img(img: Vec<u8>, scale: u32) -> Vec<u8> {
-    let t = image::io::Reader::new(Cursor::new(img))
-        .with_guessed_format()
-        .expect("Cursor IO fails")
-        .decode()
-        .expect("Decode image fails");
+    let t = image::load(Cursor::new(img), image::ImageFormat::Png).expect("Decode image fails");
     let (w, h) = t.dimensions();
     let mut out = vec![];
     t.resize_exact(w * scale, h * scale, image::imageops::Nearest)
