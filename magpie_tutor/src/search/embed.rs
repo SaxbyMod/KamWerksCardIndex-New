@@ -19,13 +19,13 @@ type EmbedRes = (CreateEmbed, String);
 ///
 /// Sigils and other traits use the embed field because they are optional and not every card have
 /// them.
-pub fn gen_embed(rank: f32, card: &Card, set: &Set) -> CreateEmbed {
+pub fn gen_embed(rank: f32, card: &Card, set: &Set, compact: bool) -> CreateEmbed {
     // The specific gen embed function should return the embed and the footer that they would like
     // to add.
 
     let (embed, footer) = match card.set.code() {
-        "aug" => gen_aug_embed(card, set),
-        "com" | "ete" | "egg" => gen_imf_embed(card, set),
+        "aug" => gen_aug_embed(card, set, compact),
+        "com" | "ete" | "egg" => gen_imf_embed(card, set, compact),
         _ => unimplemented!(),
     };
     embed.footer(CreateEmbedFooter::new(format!(
@@ -34,7 +34,7 @@ pub fn gen_embed(rank: f32, card: &Card, set: &Set) -> CreateEmbed {
     )))
 }
 
-fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
+fn gen_imf_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
     let mut embed = CreateEmbed::new()
         .color(if card.rarity.eq(&Rarity::RARE) {
             roles::GREEN
@@ -51,7 +51,7 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
             }
         ));
 
-    let mut desc = if card.description.is_empty() {
+    let mut desc = if card.description.is_empty() || compact {
         String::new()
     } else {
         format!("*{}*\n\n", card.description)
@@ -61,7 +61,7 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
     desc.push('\n'); // stat separator
 
     desc.push_str(&format!(
-        "**Stat:** {} / {}",
+        "**Stat:** {} / {}\n",
         match &card.sp_atk {
             Some(sp) => sp.to_emoji(),
             None => card.attack.to_string(),
@@ -70,22 +70,31 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
     ));
 
     if !card.sigils.is_empty() {
-        let mut desc = String::with_capacity(card.sigils.iter().map(String::len).sum());
+        if compact {
+            desc.push_str(&format!("**Sigils:** {}\n", card.sigils.join(", ")));
+        } else {
+            let mut desc = String::with_capacity(card.sigils.iter().map(String::len).sum());
 
-        for s in &card.sigils {
-            let text = set.sigils_description.get(s).unwrap();
-            desc.push_str(&format!("**{s}:** {text}\n"));
+            for s in &card.sigils {
+                let text = set.sigils_description.get(s).unwrap();
+                desc.push_str(&format!("**{s}:** {text}\n"));
+            }
+
+            embed = embed.field("== SIGILS ==", desc, false);
         }
-
-        embed = embed.field("== SIGILS ==", desc, false);
     }
 
     if !card.related.is_empty() {
-        embed = embed.field(
-            "== EXTRA INFO ==",
-            format!("**Related:** {}", card.related.join(", ")),
-            false,
-        );
+        let value = format!("**Related:** {}\n", card.related.join(", "));
+        if compact {
+            desc.push_str(&value);
+        } else {
+            embed = embed.field("== EXTRA INFO ==", value, false);
+        }
+    }
+
+    if compact {
+        desc = desc.replace("\n\n", "\n");
     }
 
     (
@@ -96,7 +105,7 @@ fn gen_imf_embed(card: &Card, set: &Set) -> EmbedRes {
     )
 }
 
-fn gen_aug_embed(card: &Card, set: &Set) -> EmbedRes {
+fn gen_aug_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
     let color = if let Some(t) = Temple::from(card.temple).flags().next() {
         match *t {
             Temple::BEAST => roles::DARK_GOLD,
@@ -120,7 +129,7 @@ fn gen_aug_embed(card: &Card, set: &Set) -> EmbedRes {
         }
     ));
 
-    let mut desc = if card.description.is_empty() {
+    let mut desc = if card.description.is_empty() || compact {
         String::new()
     } else {
         format!("*{}*\n\n", card.description)
@@ -151,43 +160,60 @@ fn gen_aug_embed(card: &Card, set: &Set) -> EmbedRes {
     ));
 
     if !card.sigils.is_empty() {
-        let mut desc = String::with_capacity(card.sigils.iter().map(String::len).sum());
+        if compact {
+            desc.push_str(&format!("**Sigils:** {}\n", card.sigils.join(", ")));
+        } else {
+            let mut desc = String::with_capacity(card.sigils.iter().map(String::len).sum());
 
-        for s in &card.sigils {
-            let text = set.sigils_description.get(s).unwrap();
-            desc.push_str(&format!("**{s}:** {text}\n"));
+            for s in &card.sigils {
+                let text = set.sigils_description.get(s).unwrap();
+                desc.push_str(&format!("**{s}:** {text}\n"));
+            }
+
+            embed = embed.field("== SIGILS ==", desc, false);
         }
-
-        embed = embed.field("== SIGILS ==", desc, false);
     }
 
     if let Some(Traits {
-        strings: Some(str), ..
+        strings: Some(t), ..
     }) = &card.traits
     {
-        let mut desc = String::with_capacity(str.iter().map(String::len).sum());
+        if compact {
+            desc.push_str(&format!("**Traits:** {}", t.join(", ")));
+        } else {
+            let mut desc = String::with_capacity(t.iter().map(String::len).sum());
 
-        for s in str {
-            let text = set.sigils_description.get(s).unwrap();
-            desc.push_str(&format!("**{s}:** {text}\n"));
+            for s in t {
+                let text = set.sigils_description.get(s).unwrap();
+                desc.push_str(&format!("**{s}:** {text}\n"));
+            }
+
+            embed = embed.field("== TRAITS ==", desc, false);
         }
-
-        embed = embed.field("== TRAITS ==", desc, false);
     }
 
     if !card.related.is_empty() {
-        embed = embed.field(
-            "== EXTRA INFO ==",
-            format!("**Token:** {}", card.related.join(", ")),
-            false,
-        );
+        let value = format!("**Token:** {}", card.related.join(", "));
+        if compact {
+            desc.push_str(&value);
+        } else {
+            embed = embed.field("== EXTRA INFO ==", value, false);
+        }
+    }
+
+    if compact {
+        desc = desc.replace("\n\n", "\n");
     }
 
     (
         embed
             .description(desc)
             .thumbnail(format!("attachment://{}.png", hash_card_url(card))),
-        String::new(), // empty footer
+        if card.extra.artist.is_empty() {
+            String::new()
+        } else {
+            format!("This card art was drawn by {}", card.extra.artist)
+        },
     )
 }
 

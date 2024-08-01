@@ -29,6 +29,7 @@ bitsflag! {
         QUERY = 1;
         ALL_SET = 1 << 1;
         DEBUG = 1 << 2;
+        COMPACT = 1 << 3;
     }
 }
 
@@ -102,6 +103,7 @@ pub fn process_search(content: &str) -> MessageAdapter {
                     'q' => Modifier::QUERY,
                     '*' => Modifier::ALL_SET,
                     'd' => Modifier::DEBUG,
+                    'c' => Modifier::COMPACT,
                     '`' => continue 'outer, // exit this search term
 
                     _ => continue,
@@ -159,7 +161,12 @@ pub fn process_search(content: &str) -> MessageAdapter {
                 continue;
             }
 
-            let mut embed = gen_embed(rank, card, SETS.get(card.set.code()).unwrap());
+            let mut embed = gen_embed(
+                rank,
+                card,
+                SETS.get(card.set.code()).unwrap(),
+                modifier.contains(Modifier::COMPACT),
+            );
             let hash = hash_card_url(card);
             let mut cache_guard = CACHE.lock().unwrap_or_die("Cannot lock cache");
 
@@ -196,10 +203,10 @@ pub fn process_search(content: &str) -> MessageAdapter {
         .embeds(embeds)
         .attachments(attachments)
         .components(vec![Buttons(vec![
+            CreateButton::new("retry").style(Primary).label("Retry"),
             CreateButton::new("remove_cache")
                 .style(Danger)
                 .label("Remove Cache"),
-            CreateButton::new("retry").style(Primary).label("Retry"),
         ])])
 }
 

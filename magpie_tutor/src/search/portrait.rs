@@ -2,7 +2,7 @@ use image::{imageops, ImageFormat};
 use magpie_engine::Temple;
 use std::io::Cursor;
 
-use crate::{debug, get_portrait, resize_img, Card};
+use crate::{get_portrait, resize_img, Card};
 
 pub fn gen_portrait(card: &Card) -> Vec<u8> {
     match card.set.code() {
@@ -13,7 +13,7 @@ pub fn gen_portrait(card: &Card) -> Vec<u8> {
 }
 
 fn gen_imf_portrait(card: &Card) -> Vec<u8> {
-    resize_img(get_portrait(&card.portrait), 2)
+    resize_img(&get_portrait(&card.portrait), 2)
 }
 
 fn gen_aug_portrait(card: &Card) -> Vec<u8> {
@@ -41,8 +41,6 @@ fn gen_aug_portrait(card: &Card) -> Vec<u8> {
         },
     );
 
-    debug!(bg);
-
     let mut bg = image::load(Cursor::new(get_portrait(bg)), ImageFormat::Png).unwrap();
 
     imageops::overlay(&mut bg, &portrait, 0, 0);
@@ -51,5 +49,5 @@ fn gen_aug_portrait(card: &Card) -> Vec<u8> {
     bg.write_to(&mut Cursor::new(&mut out), ImageFormat::Png)
         .unwrap();
 
-    resize_img(out, 2)
+    resize_img(&out, 2)
 }

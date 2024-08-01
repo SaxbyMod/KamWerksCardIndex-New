@@ -111,7 +111,7 @@ lazy_static! {
 
     /// Debug card use to test rendering
     pub static ref DEBUG_CARD: Card = Card {
-        set: SetCode::new("aug").unwrap(),
+        set: SetCode::new("com").unwrap(),
         name: "OLD_DATA".to_owned(),
         description: "If you gaze long into an abyss, the abyss also gazes into you.".to_owned(),
         portrait: "https://pbs.twimg.com/media/DUgfSnpU0AAA5Ky.jpg".to_owned(),
@@ -206,8 +206,8 @@ fn hash_card_url(card: &Card) -> u64 {
 }
 
 /// Resize a image from it's bytes.
-fn resize_img(img: Vec<u8>, scale: u32) -> Vec<u8> {
-    let t = image::load(Cursor::new(img), image::ImageFormat::Png).expect("Decode image fails");
+fn resize_img(img: &[u8], scale: u32) -> Vec<u8> {
+    let t = image::load_from_memory(img).expect("Decode image fails");
     let (w, h) = t.dimensions();
     let mut out = vec![];
     t.resize_exact(w * scale, h * scale, image::imageops::Nearest)
