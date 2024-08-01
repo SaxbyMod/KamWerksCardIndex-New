@@ -57,7 +57,7 @@ impl Display for SetCode {
 
 impl Debug for SetCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SetCode({:?} | {}) ", self.bytes(), self.code())
+        write!(f, "{:?}", self.bytes())
     }
 }
 
@@ -70,7 +70,7 @@ pub struct Set<C> {
     /// The set code for the deck.
     pub code: SetCode,
     /// The name of the set.
-    pub name: Ptr<String>,
+    pub name: String,
     /// The cards store in the set.
     ///
     /// These cards should be shared along with the card in the pools to save space on larger set.

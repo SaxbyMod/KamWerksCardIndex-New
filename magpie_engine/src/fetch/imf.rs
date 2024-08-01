@@ -15,8 +15,6 @@ use super::{fetch_json, FetchError};
 pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
     let set: ImfSetJson = fetch_json(url).map_err(ImfError::FetchError)?;
 
-    let name = Ptr::new(set.ruleset);
-
     let mut cards = Vec::with_capacity(set.cards.len() + 1);
 
     let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
@@ -103,7 +101,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
             }),
 
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
-                string: None,
+                strings: None,
                 flags: TraitsFlag::EMPTY
                     .set_if(TraitsFlag::CONDUCTIVE, c.conduit)
                     .set_if(TraitsFlag::BAN, c.banned)
@@ -137,7 +135,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
     }
     Ok(Set {
         code,
-        name,
+        name: set.ruleset,
         cards,
         sigils_description,
     })

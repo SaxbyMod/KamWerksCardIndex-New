@@ -275,7 +275,7 @@ pub struct Traits {
     /// Traits that are not flags so they are [`String`].
     ///
     /// Uncommon trait are store in [`String`] form to reduce headache.
-    pub string: Option<Vec<String>>,
+    pub strings: Option<Vec<String>>,
     /// Trait that are in bit flags form.
     ///
     /// Common traits are store using bit flags to save space.
@@ -287,7 +287,7 @@ impl Traits {
     #[must_use]
     pub fn with_flags(flags: impl Into<u16>) -> Self {
         Traits {
-            string: None,
+            strings: None,
             flags: flags.into(),
         }
     }
@@ -296,7 +296,7 @@ impl Traits {
     #[must_use]
     pub fn with_str(traits: Vec<String>) -> Self {
         Traits {
-            string: Some(traits),
+            strings: Some(traits),
             flags: 0,
         }
     }

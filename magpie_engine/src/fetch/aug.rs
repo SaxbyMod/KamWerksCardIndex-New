@@ -35,8 +35,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
         fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Sigils")
             .map_err(AugError::SigilFetchError)?;
 
-    let name = Ptr::new("Augmented".to_owned());
-
     let mut cards = Vec::with_capacity(raw_card.len());
 
     let undefined_sigil = Ptr::new("UNDEFINDED SIGILS".to_string());
@@ -193,8 +191,8 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
             costs,
 
-            traits: traits.is_empty().then_some(Traits {
-                string: Some(traits),
+            traits: (!traits.is_empty()).then_some(Traits {
+                strings: Some(traits),
                 flags: 0
             }),
             related: card.token.is_empty().not().then(||card.token.split(", ").map(ToOwned::to_owned).collect()),
@@ -211,7 +209,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
     Ok(Set {
         code,
-        name,
+        name: String::from("Augmented"),
         cards,
         sigils_description,
     })
