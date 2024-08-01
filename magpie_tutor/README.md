@@ -13,7 +13,7 @@
 [*] General query
 [*] Cache button
 [ ] Commands
-    [ ] Help
+    [*] Help
     [ ] Set code display
     [ ] Query help
     [ ] Retry

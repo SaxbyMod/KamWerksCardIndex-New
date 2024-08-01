@@ -6,7 +6,7 @@ use magpie_tutor::{
     done, error, handler, info, CmdCtx, Color, Data, Error, Res, CACHE, CACHE_FILE, SETS,
 };
 use poise::{
-    serenity_prelude::{ClientBuilder, CreateEmbed, GatewayIntents},
+    serenity_prelude::{ClientBuilder, CreateEmbed, GatewayIntents, GuildId},
     CreateReply, Framework,
 };
 
@@ -20,6 +20,26 @@ async fn test(ctx: CmdCtx<'_>) -> Res {
     }
     ctx.send(msg).await?;
 
+    Ok(())
+}
+
+/// Show help on what and how to use Magpie Tutor
+#[poise::command(slash_command)]
+async fn help(ctx: CmdCtx<'_>) -> Res {
+    ctx.defer_ephemeral().await?;
+    ctx.say(
+r#"
+You can use Magpie to look up a card infomation by surrounding the card name in `[[]]`. A few "modifiers" can be added in front of the `[[]]` to change the output.
+
+You can see these modifier by using the `/show-modifers` command. Set code are a special type of modifer that are 3 characters long and is at the end of the modifiers list and can be use to change the selected set.
+
+For example:
+- `[[stoat]]`: Look up the card name `stoat` using the server default set.
+- `egg[[warren]]`: Look up the card name `warren` using the `egg` set.
+
+"#,
+    )
+    .await?;
     Ok(())
 }
 
@@ -57,7 +77,7 @@ async fn main() {
 fn build_framework() -> Framework<Data, Error> {
     poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![test()],
+            commands: vec![help()],
             event_handler: |ctx, event, fw, data| Box::pin(handler(ctx, event, fw, data)),
             ..Default::default()
         })
@@ -69,6 +89,14 @@ fn build_framework() -> Framework<Data, Error> {
 
                 // Register all the normal command
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+
+                poise::builtins::register_in_guild(
+                    ctx,
+                    &[test()],
+                    GuildId::from(1199457939333849118),
+                )
+                .await?;
+
                 done!(
                     "Finish registering {} commands",
                     framework.options().commands.len().green()
