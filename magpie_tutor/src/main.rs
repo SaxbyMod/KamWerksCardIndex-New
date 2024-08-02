@@ -3,11 +3,12 @@
 use std::panic::PanicInfo;
 
 use magpie_tutor::{
-    done, error, handler, info, CmdCtx, Color, Data, Error, Res, CACHE, CACHE_FILE, SETS,
+    debug, done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE,
+    SETS,
 };
 use poise::{
-    serenity_prelude::{ClientBuilder, CreateEmbed, GatewayIntents, GuildId},
-    CreateReply, Framework,
+    serenity_prelude::{CacheHttp, ClientBuilder, CreateEmbed, GatewayIntents, GuildId},
+    CreateReply,
 };
 
 /// Test command
@@ -57,6 +58,7 @@ macro_rules! mod_help {
 /// Show the lists of all support modifiers and set code.
 #[poise::command(slash_command)]
 async fn show_modifiers(ctx: CmdCtx<'_>) -> Res {
+    debug!("Hello");
     ctx.say(mod_help! {
         com: "IMF Competitive";
         egg: "Mr.Egg's Goofy";
@@ -75,6 +77,19 @@ async fn show_modifiers(ctx: CmdCtx<'_>) -> Res {
     Ok(())
 }
 
+/// Test to see if the IMF tunnel is online
+#[poise::command(slash_command)]
+async fn tunnel_status(ctx: CmdCtx<'_>) -> Res {
+    ctx.defer().await?;
+    ctx.say(match isahc::get("http://localtunnel.me") {
+        Ok(_) => "Tunnel is up and running. If you have issue check out [this faq](https://discord.com/channels/994573431880286289/1168644586319659100/1168657617141366805).",
+        Err(_) => "I cannot reach tunnel right now, this may mean tunnel is down but you can [check yourself](https://isitdownorjust.me/localtunnel-me/)."
+    })
+    .await?;
+
+    Ok(())
+}
+
 // main entry point of the bot
 #[tokio::main]
 async fn main() {
@@ -85,7 +100,15 @@ async fn main() {
         | GatewayIntents::MESSAGE_CONTENT;
 
     // poise framework
-    let framework = build_framework();
+    let framework = frameworks! {
+        global: help(), show_modifiers();
+        guild (1199457939333849118): test();
+        guild (994573431880286289): tunnel_status();
+        ---
+        {
+            Ok(Data::new())
+        }
+    };
 
     info!("Fetching set...");
     done!("Finish fetching {} sets", SETS.len().green());
@@ -104,40 +127,6 @@ async fn main() {
         .await;
 
     client.unwrap().start().await.unwrap();
-}
-
-fn build_framework() -> Framework<Data, Error> {
-    poise::Framework::builder()
-        .options(poise::FrameworkOptions {
-            commands: vec![help(), show_modifiers()],
-            event_handler: |ctx, event, fw, data| Box::pin(handler(ctx, event, fw, data)),
-            ..Default::default()
-        })
-        .setup(|ctx, _ready, framework| {
-            Box::pin(async move {
-                info!("Refreshing commands...");
-                // Clear all command
-                //poise::builtins::register_globally::<Data, Error>(ctx, &[]).await?;
-
-                // Register all the normal command
-                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-
-                poise::builtins::register_in_guild(
-                    ctx,
-                    &[test()],
-                    GuildId::from(1199457939333849118),
-                )
-                .await?;
-
-                done!(
-                    "Finish registering {} commands",
-                    framework.options().commands.len().green()
-                );
-
-                Ok(Data::new())
-            })
-        })
-        .build()
 }
 
 fn panic_hook(info: &PanicInfo) {

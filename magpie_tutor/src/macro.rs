@@ -195,3 +195,44 @@ macro_rules! builder {
         }
     };
 }
+
+#[allow(missing_docs)]
+#[macro_export]
+macro_rules! frameworks {
+    (global: $($gb_cmd:expr),*; $(guild($g_id:literal): $($g_cmd:expr),*;)*---$rest:block) => {
+        poise::Framework::builder()
+            .options(poise::FrameworkOptions {
+                commands: vec![$($gb_cmd,)* $($($g_cmd,)*)*],
+                event_handler: |ctx, event, fw, data| Box::pin(handler(ctx, event, fw, data)),
+                ..Default::default()
+            })
+            .setup(|ctx, _ready, framework| {
+                Box::pin(async move {
+                    info!("Refreshing commands...");
+
+                    poise::builtins::register_globally(
+                        ctx.http(),
+                        &[$($gb_cmd,)*]
+                    )
+                    .await?;
+
+                    $(
+                        poise::builtins::register_in_guild(
+                            ctx.http(),
+                            &[$($g_cmd,)*],
+                            GuildId::from($g_id)
+                        )
+                        .await?;
+                    )*
+
+                    done!(
+                        "Finish registering {} commands",
+                        framework.options().commands.len().green()
+                    );
+
+                    $rest
+                })
+            })
+            .build()
+    };
+}

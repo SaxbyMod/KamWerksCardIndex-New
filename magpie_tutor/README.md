@@ -17,5 +17,5 @@
     [*] Modifier display
     [ ] Query help
     [ ] Retry
-    [ ] Tunnel status (only on imf)
+    [*] Tunnel status (only on imf)
 ````
