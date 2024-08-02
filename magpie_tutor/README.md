@@ -14,7 +14,8 @@
 [*] Cache button
 [ ] Commands
     [*] Help
-    [ ] Set code display
+    [*] Modifier display
     [ ] Query help
     [ ] Retry
+    [ ] Tunnel status (only on imf)
 ````

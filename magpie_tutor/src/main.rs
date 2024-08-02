@@ -23,10 +23,9 @@ async fn test(ctx: CmdCtx<'_>) -> Res {
     Ok(())
 }
 
-/// Show help on what and how to use Magpie Tutor
+/// Show help on what and how to use Magpie Tutor.
 #[poise::command(slash_command)]
 async fn help(ctx: CmdCtx<'_>) -> Res {
-    ctx.defer_ephemeral().await?;
     ctx.say(
 r#"
 You can use Magpie to look up a card infomation by surrounding the card name in `[[]]`. A few "modifiers" can be added in front of the `[[]]` to change the output.
@@ -40,6 +39,39 @@ For example:
 "#,
     )
     .await?;
+
+    Ok(())
+}
+
+macro_rules! mod_help {
+    ($($code:ident: $code_desc:literal;)*---$($mod:literal: $desc:literal;)*) => {
+        concat!(
+            "# Set Codes\n",
+            $(concat!("- `", stringify!($code), "`: ", $code_desc, ".\n"),)*
+            "# Modifiers\n",
+            $(concat!("- `", $mod,"`: ", $desc, " ", ".\n"),)*
+        )
+    };
+}
+
+/// Show the lists of all support modifiers and set code.
+#[poise::command(slash_command)]
+async fn show_modifiers(ctx: CmdCtx<'_>) -> Res {
+    ctx.say(mod_help! {
+        com: "IMF Competitive";
+        egg: "Mr.Egg's Goofy";
+        ete: "IMF Eternal";
+        aug: "Augmented";
+        ---
+        "q": "Query instead of normal fuzzy search";
+        "*": "Select all supported set";
+        "d": "Output the raw data instead of embed";
+        "c": "Output the embed in compact mode to save space";
+        "\\`": "Skip this search match";
+
+    })
+    .await?;
+
     Ok(())
 }
 
@@ -77,7 +109,7 @@ async fn main() {
 fn build_framework() -> Framework<Data, Error> {
     poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![help()],
+            commands: vec![help(), show_modifiers()],
             event_handler: |ctx, event, fw, data| Box::pin(handler(ctx, event, fw, data)),
             ..Default::default()
         })
