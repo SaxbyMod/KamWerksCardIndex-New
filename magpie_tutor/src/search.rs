@@ -7,7 +7,7 @@ use poise::serenity_prelude::{
     ButtonStyle::{Danger, Primary},
     Context,
     CreateActionRow::Buttons,
-    CreateAttachment, CreateButton, CreateEmbed, CreateMessage, Message,
+    CreateAttachment, CreateButton, CreateEmbed, CreateMessage, GuildId, Message,
 };
 
 use crate::{
@@ -34,7 +34,7 @@ bitsflag! {
 }
 
 /// Main searching function.
-pub async fn search_message(ctx: &Context, msg: &Message) -> Res {
+pub async fn search_message(ctx: &Context, msg: &Message, guild_id: GuildId) -> Res {
     if !SEARCH_REGEX.is_match(&msg.content) {
         return Ok(());
     }
@@ -48,7 +48,7 @@ pub async fn search_message(ctx: &Context, msg: &Message) -> Res {
         .channel_id
         .send_message(
             &ctx.http,
-            Into::<CreateMessage>::into(process_search(&msg.content)).reply(msg),
+            Into::<CreateMessage>::into(process_search(&msg.content, guild_id)).reply(msg),
         )
         .await?;
 
@@ -58,7 +58,7 @@ pub async fn search_message(ctx: &Context, msg: &Message) -> Res {
 }
 
 /// Process a search with a content and return the message to send
-pub fn process_search(content: &str) -> MessageAdapter {
+pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
     let start = Instant::now();
 
     let mut embeds = vec![];
@@ -128,7 +128,15 @@ pub fn process_search(content: &str) -> MessageAdapter {
             }
         }
 
-        sets.is_empty().then(|| sets.push(SETS.get("com").unwrap())); // put in a default set
+        if sets.is_empty() {
+            sets.push(
+                SETS.get(match guild_id.get() {
+                    1028530290727063604 => "aug",
+                    _ => "com",
+                })
+                .unwrap(),
+            );
+        }
 
         if modifier.contains(Modifier::QUERY) {
             embeds.push(query_message(sets, search_term));

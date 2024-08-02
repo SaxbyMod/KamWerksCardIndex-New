@@ -108,6 +108,7 @@ async fn retry(interaction: &ComponentInteraction, ctx: &Context) -> Res {
                         .await?
                         .content
                         .as_str(),
+                    interaction.guild_id.unwrap(),
                 )
                 .into(),
             ),

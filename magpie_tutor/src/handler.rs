@@ -31,7 +31,7 @@ pub async fn handler(
         }
 
         Message { new_message: msg } if msg.author.id != ctx.cache.current_user().id => {
-            search_message(ctx, msg).await
+            search_message(ctx, msg, msg.guild_id.unwrap()).await
         }
 
         // handle button shit

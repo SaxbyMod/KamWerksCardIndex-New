@@ -3,9 +3,6 @@ name = "magpie_tutor"
 version = "0.1.0"
 edition = "2021"
 
-[profile.dev]
-incremental = true
-
 [lints.rust]
 missing_docs = "warn"
 

@@ -58,7 +58,6 @@ macro_rules! mod_help {
 /// Show the lists of all support modifiers and set code.
 #[poise::command(slash_command)]
 async fn show_modifiers(ctx: CmdCtx<'_>) -> Res {
-    debug!("Hello");
     ctx.say(mod_help! {
         com: "IMF Competitive";
         egg: "Mr.Egg's Goofy";
