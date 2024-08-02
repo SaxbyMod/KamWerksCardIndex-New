@@ -90,7 +90,7 @@ pub const CACHE_FILE: &str = "./cache.bin";
 
 lazy_static! {
     /// The regex use to match for general search.
-    pub static ref SEARCH_REGEX: Regex = Regex::new(r"(\S*)\{\{(.*?)\}\}") .unwrap_or_die("Cannot compiling search regex fails");
+    pub static ref SEARCH_REGEX: Regex = Regex::new(r"(\S*)\[\[(.*?)\]\]") .unwrap_or_die("Cannot compiling search regex fails");
     /// The regex use to match cache attachment link.
     pub static ref CACHE_REGEX: Regex = Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)") .unwrap_or_die("Cannot compiling cache regex fails");
     /// The regex use to match message and tokenize them
