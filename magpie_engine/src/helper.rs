@@ -118,7 +118,7 @@ macro_rules! bitsflag {
     };
 }
 
-/// Generate a [`UpgradeCard`] implementation for upgrading to the same type.
+/// Generate a [`UpgradeCard`](crate::UpgradeCard) implementation for upgrading to the same type.
 #[macro_export]
 macro_rules! self_upgrade {
     ($ty:ty) => {

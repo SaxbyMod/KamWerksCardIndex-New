@@ -17,7 +17,7 @@ pub struct Card<C> {
     pub name: String,
     /// The card description, note or favor text.
     pub description: String,
-    /// Return the url to the card portrait
+    /// The url to the card portrait
     pub portrait: String,
 
     /// The card rarity.
@@ -51,12 +51,16 @@ pub struct Card<C> {
     /// Cost contain a few component, one for each of the cost a card may have blood, bone, etc.
     /// The [`mox_count`](Costs::mox_count) component is available if the card can have multiple
     /// mox of each color.
+    ///
+    /// Free card can have this as [`None`]
     pub costs: Option<Costs>,
     /// The card traits
     ///
     /// Traits contain 2 components, the string component which is for uncommon or unique traits and
     /// the flags component for common traits. The flags iare just bit flags that multiple cards have
     /// like terrain, conductive, etc.
+    ///
+    /// Card with no traits can have this as [`None`]
     pub traits: Option<Traits>,
 
     /// Related card or token
@@ -282,7 +286,7 @@ pub struct Traits {
 }
 
 impl Traits {
-    /// Create a new Traits with flags and empty [`Traits::string`]
+    /// Create a new Traits with flags and empty [`Traits::strings`]
     #[must_use]
     pub fn with_flags(flags: impl Into<u16>) -> Self {
         Traits {

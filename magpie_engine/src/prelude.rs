@@ -9,7 +9,7 @@
 //! ```
 
 pub use crate::{
-    fetch::{aug::*, imf::*},
+    fetch::{fetch_aug_set, fetch_desc, fetch_imf_set, AugError, AugExt, DescError, ImfError},
     query::{Filters, QueryBuilder, QueryOrder, ToFilter},
     *,
 };

@@ -7,8 +7,13 @@ use serde::Deserialize;
 use std::error::Error;
 use std::fmt::Display;
 
-pub mod aug;
-pub mod imf;
+mod aug;
+mod desc;
+mod imf;
+
+pub use aug::*;
+pub use desc::*;
+pub use imf::*;
 
 /// Error that happned when calling [`fetch_json`]
 #[derive(Debug)]

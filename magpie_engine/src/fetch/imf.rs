@@ -12,7 +12,7 @@ use super::{fetch_json, FetchError};
 
 /// Fetch a IMF Set from a url
 pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
-    let set: ImfSetJson = fetch_json(url).map_err(ImfError::FetchError)?;
+    let set: ImfSet = fetch_json(url).map_err(ImfError::FetchError)?;
 
     let mut cards = Vec::with_capacity(set.cards.len() + 1);
 
@@ -160,16 +160,16 @@ impl Display for ImfError {
 impl Error for ImfError {}
 /// Json scheme for IMF set
 #[derive(Deserialize, Debug)]
-struct ImfSetJson {
+struct ImfSet {
     ruleset: String,
-    cards: Vec<ImfCardJson>,
+    cards: Vec<ImfCard>,
     sigils: HashMap<String, String>,
 }
 
 /// Json scheme for IMF card
 #[derive(Debug, Deserialize)]
 #[allow(clippy::struct_excessive_bools)]
-struct ImfCardJson {
+struct ImfCard {
     pub name: String,
 
     #[serde(default)]
