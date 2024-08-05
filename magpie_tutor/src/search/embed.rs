@@ -25,7 +25,7 @@ pub fn gen_embed(rank: f32, card: &Card, set: &Set, compact: bool) -> CreateEmbe
 
     let (embed, footer) = match card.set.code() {
         "aug" => gen_aug_embed(card, set, compact),
-        "com" | "ete" | "egg" => gen_imf_embed(card, set, compact),
+        "std" | "ete" | "egg" => gen_imf_embed(card, set, compact),
         _ => unimplemented!(),
     };
     embed.footer(CreateEmbedFooter::new(format!(

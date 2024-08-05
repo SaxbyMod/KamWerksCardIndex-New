@@ -7,7 +7,7 @@ use crate::{get_portrait, resize_img, Card};
 pub fn gen_portrait(card: &Card) -> Vec<u8> {
     match card.set.code() {
         "aug" => gen_aug_portrait(card),
-        "com" | "ete" | "egg" => gen_imf_portrait(card),
+        "std" | "ete" | "egg" => gen_imf_portrait(card),
         _ => unimplemented!(),
     }
 }

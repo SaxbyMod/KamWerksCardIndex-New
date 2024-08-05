@@ -132,7 +132,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             sets.push(
                 SETS.get(match guild_id.get() {
                     1028530290727063604 => "aug",
-                    _ => "com",
+                    _ => "std",
                 })
                 .unwrap(),
             );
