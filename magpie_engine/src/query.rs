@@ -2,7 +2,7 @@
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
-use crate::{Card, Costs, Rarity, Set, SpAtk, Traits};
+use crate::{Attack, Card, Costs, Rarity, Set, SpAtk, Traits};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
@@ -172,7 +172,12 @@ where
     /// filter for card special attack.
     ///
     /// The value in this variant is the special attack to filter for.
-    SpAtk(Option<SpAtk>),
+    SpAtk(SpAtk),
+
+    /// filter for card special attack saved as [`String`].
+    ///
+    /// The value in this variant is the special attack to filter for.
+    StrAtk(String),
 
     /// Filter for card cost
     ///
@@ -242,9 +247,13 @@ where
                     .contains(&tribes.as_ref().unwrap().to_lowercase()),
                 _ => c.tribes == tribes,
             }),
-            Filters::Attack(ord, attack) => {
-                Box::new(move |c| match_query_order!(ord, c.attack, attack))
-            }
+            Filters::Attack(ord, attack) => Box::new(move |c| {
+                if let Attack::Num(a) = c.attack {
+                    match_query_order!(ord, a, attack)
+                } else {
+                    false
+                }
+            }),
             Filters::Health(ord, health) => {
                 Box::new(move |c| match_query_order!(ord, c.health, health))
             }
@@ -257,7 +266,20 @@ where
                         .any(|s| s.eq(&lower))
                 })
             }
-            Filters::SpAtk(a) => Box::new(move |c| c.sp_atk == a),
+            Filters::SpAtk(a) => Box::new(move |c| {
+                if let Attack::SpAtk(sp) = &c.attack {
+                    *sp == a
+                } else {
+                    false
+                }
+            }),
+            Filters::StrAtk(s) => Box::new(move |c| {
+                if let Attack::Str(str) = &c.attack {
+                    *str == s
+                } else {
+                    false
+                }
+            }),
             Filters::Costs(cost) => Box::new(move |c| c.costs == cost),
             Filters::Traits(traits) => Box::new(move |c| c.traits == traits),
 

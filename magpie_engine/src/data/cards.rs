@@ -33,18 +33,12 @@ pub struct Card<E, C> {
     pub tribes: Option<String>,
 
     /// The card attack or power.
-    pub attack: isize,
+    pub attack: Attack,
     /// The card health.
     pub health: isize,
 
     /// The sigils or abilities on the card.
     pub sigils: Vec<String>,
-
-    /// The card special attack, [`None`] if the card have no special attack
-    ///
-    /// Usually for card with variable attack or attack that are affected by traits. You would
-    /// usually want [`Card::attack`] to return `0` if the card have a special attack.
-    pub sp_atk: Option<SpAtk>,
 
     /// The card cost
     ///
@@ -110,8 +104,6 @@ where
             health: self.health,
 
             sigils: self.sigils,
-
-            sp_atk: self.sp_atk,
 
             costs: self.costs.map(|c| Costs {
                 blood: c.blood,
@@ -187,6 +179,17 @@ bitsflag! {
         /// The Artistry or Galliard Temple from Descryprion.
         ARTISTRY = 1 << 5;
     }
+}
+
+/// Enum for the diffrent attack type
+#[derive(Debug, Clone)]
+pub enum Attack {
+    /// Numeric attack value
+    Num(isize),
+    /// Common predefined special attack
+    SpAtk(SpAtk),
+    /// String special attack
+    Str(String),
 }
 
 /// Special attack for cards.

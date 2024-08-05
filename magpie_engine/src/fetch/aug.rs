@@ -3,8 +3,8 @@
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
 use super::{fetch_json, FetchError};
-use crate::Rarity;
 use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits};
+use crate::{Attack, Rarity};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::Display;
@@ -178,7 +178,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCost>, AugError> {
             }.into(),
             tribes: (!card.tribes.is_empty()).then_some(card.tribes),
 
-            attack: card.attack.parse().unwrap_or(0),
+            attack: Attack::Num(card.attack.parse().unwrap_or(0)),
             health: card.health.parse().unwrap_or(0),
             sigils: if card.sigils.is_empty() {
                 vec![]
@@ -192,9 +192,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCost>, AugError> {
                     }
                 }).collect()
             },
-            // I don't pay enough attention to augmented to keep updating the code to accommodate
-            // them so the value will just be parse as string
-            sp_atk: None,
 
             costs,
 

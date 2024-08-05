@@ -2,7 +2,7 @@
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
-use crate::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag};
+use crate::{Attack, Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;
@@ -52,7 +52,20 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> 
                 .into(),
             tribes: None,
 
-            attack: c.attack,
+            attack: {
+                if c.atkspecial.is_empty() {
+                    Attack::Num(c.attack)
+                } else {
+                    let atk = c.atkspecial.as_str();
+                    Attack::SpAtk(match atk {
+                        "mox" => SpAtk::MOX,
+                        "green_mox" => SpAtk::GREEN_MOX,
+                        "mirror" => SpAtk::MIRROR,
+                        "ant" => SpAtk::ANT,
+                        _ => return Err(ImfError::InvalidSpAtk(c.atkspecial)),
+                    })
+                }
+            },
             health: c.health,
             sigils: c
                 .sigils
@@ -65,17 +78,6 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> 
                     }
                 })
                 .collect(),
-
-            sp_atk: match c.atkspecial.as_str() {
-                "" => None,
-                atk => Some(match atk {
-                    "mox" => SpAtk::MOX,
-                    "green_mox" => SpAtk::GREEN_MOX,
-                    "mirror" => SpAtk::MIRROR,
-                    "ant" => SpAtk::ANT,
-                    _ => return Err(ImfError::InvalidSpAtk(c.atkspecial)),
-                }),
-            },
 
             costs: ((c.blood_cost > 0)
                 | (c.bone_cost > 0)
