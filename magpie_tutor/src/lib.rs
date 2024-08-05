@@ -120,10 +120,9 @@ lazy_static! {
         temple: Temple::TECH.into(),
         tribes: Some("Big Green Mother".to_string()),
 
-        attack: 0,
+        attack: Attack::SpAtk(SpAtk::MIRROR),
         health: 10,
         sigils: Vec::new(),
-        sp_atk: Some(SpAtk::CARD),
         costs: Some(Costs {
             blood: isize::MAX,
             bone: isize::MIN,

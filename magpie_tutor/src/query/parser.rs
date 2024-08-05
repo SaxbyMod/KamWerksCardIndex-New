@@ -265,14 +265,6 @@ macro_rules! map_kw_ft {
         }
     };
 }
-macro_rules! map_kw_ft_some {
-    ($value:ident => $type:ident, $($pat:pat => $variant:ident),*) => {
-        match $value.as_str() {
-            $($pat => ft_some!($type($type::$variant.into())),)*
-            _ => Err(concat!("Invalid", stringify!($type)))
-        }
-    };
-}
 macro_rules! ft { ($type:ident ($($value:expr),*)) => {Ok(Filters::$type($($value,)*)) }; }
 macro_rules! ft_some { ($type:ident ($($value:expr),*)) => {ft!($type(Some($($value,)*))) }; }
 
@@ -303,7 +295,7 @@ impl TryFrom<Keyword> for Filters {
             Keyword::Attack(cmp, attack) => ft!(Attack(cmp, attack)),
             Keyword::Health(cmp, health) => ft!(Health(cmp, health)),
             Keyword::Sigil(sigil) => ft!(Sigil(sigil)),
-            Keyword::SpAtk(spatk) => map_kw_ft_some! {
+            Keyword::SpAtk(spatk) => map_kw_ft! {
                 spatk => SpAtk,
                 "mox" => MOX,
                 "green" => GREEN_MOX,

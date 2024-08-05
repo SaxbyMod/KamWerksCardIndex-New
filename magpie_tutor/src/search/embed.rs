@@ -60,11 +60,14 @@ fn gen_imf_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
     desc.push_str(&cost_str(card)); // the card cost
     desc.push('\n'); // stat separator
 
+    // imf shouldn't have any other thing
+    #[allow(clippy::match_wildcard_for_single_variants)]
     desc.push_str(&format!(
         "**Stat:** {} / {}\n",
-        match &card.sp_atk {
-            Some(sp) => sp.to_emoji(),
-            None => card.attack.to_string(),
+        match &card.attack {
+            Attack::Num(a) => a.to_string(),
+            Attack::SpAtk(sp) => sp.to_emoji(),
+            _ => unreachable!(),
         },
         card.health
     ));
@@ -150,11 +153,14 @@ fn gen_aug_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
     desc.push_str(&cost_str(card)); // the card cost
     desc.push('\n'); // stat separator
 
+    // remove this once we actually parse aug spatk
+    #[allow(clippy::match_wildcard_for_single_variants)]
     desc.push_str(&format!(
         "**Stat:** {} / {}",
-        match &card.sp_atk {
-            Some(sp) => sp.to_emoji(),
-            None => card.attack.to_string(),
+        match &card.attack {
+            Attack::Num(a) => a.to_string(),
+            Attack::Str(s) => s.to_owned(),
+            _ => unreachable!(),
         },
         card.health
     ));
