@@ -2,6 +2,7 @@
 
 use magpie_engine::{
     bitsflag,
+    fetch::AugCost,
     prelude::AugExt,
     query::{FilterFn, ToFilter},
 };
@@ -31,8 +32,8 @@ pub enum FilterExt {
     CostType(CostType),
 }
 
-impl ToFilter<AugExt> for FilterExt {
-    fn to_fn(self) -> FilterFn<AugExt> {
+impl ToFilter<AugExt, AugCost> for FilterExt {
+    fn to_fn(self) -> FilterFn<AugExt, AugCost> {
         match self {
             FilterExt::Fuzzy(str) => {
                 Box::new(move |c| lev(&c.name, &str, 0.5) != 0. || c.name.contains(&str))

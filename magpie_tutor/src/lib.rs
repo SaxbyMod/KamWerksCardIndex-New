@@ -36,7 +36,7 @@ pub use fuzzy::*;
 #[macro_use]
 pub mod r#macro;
 
-use self::magpie::FilterExt;
+use self::{fetch::AugCost, magpie::FilterExt};
 
 // Type definition for stuff
 
@@ -65,11 +65,11 @@ pub type CmdCtx<'a> = poise::Context<'a, Data, Error>;
 pub type Res = Result<(), Error>;
 
 /// Card type alias.
-pub type Card = magpie_engine::Card<AugExt>;
+pub type Card = magpie_engine::Card<AugExt, AugCost>;
 /// Set type alias.
-pub type Set = magpie_engine::Set<AugExt>;
+pub type Set = magpie_engine::Set<AugExt, AugCost>;
 /// Filters type alias
-pub type Filters = magpie_engine::prelude::Filters<AugExt, FilterExt>;
+pub type Filters = magpie_engine::prelude::Filters<AugExt, AugCost, FilterExt>;
 
 /// Type alias for caches
 pub type Cache = HashMap<u64, CacheData>;
@@ -135,6 +135,15 @@ lazy_static! {
                 b: 4,
                 y: 2,
             }),
+            extra: AugCost {
+                shattered_count: Some(MoxCount {
+                    r: 1,
+                    g: 9,
+                    b: 8,
+                    y: 4,
+                }),
+                max: 451,
+            }
         }),
         traits: Some(Traits {
             strings: None,
@@ -146,13 +155,6 @@ lazy_static! {
             "ANCIENT_DATA".to_owned(),
         ],
         extra: AugExt {
-            shattered_count: Some(MoxCount {
-                r: 1,
-                g: 9,
-                b: 8,
-                y: 4,
-            }),
-            max: 451,
             artist: "art".to_owned(),
         },
     };

@@ -245,6 +245,7 @@ fn cost_str(card: &Card) -> String {
         append_cost(&mut out, costs.blood, "Blood", imf::BLOOD);
         append_cost(&mut out, costs.bone, "Bone", imf::BONE);
         append_cost(&mut out, costs.energy, "Energy", imf::ENERGY);
+        append_cost(&mut out, costs.extra.max, "Max", imf::MAX);
 
         if costs.mox != 0 {
             let mut mox_cost = String::from("**Mox cost:** ");
@@ -263,8 +264,6 @@ fn cost_str(card: &Card) -> String {
             out.push('\n');
         }
     }
-
-    append_cost(&mut out, card.extra.max, "Max", imf::MAX);
 
     if out.is_empty() {
         out.push_str("**Free**\n");

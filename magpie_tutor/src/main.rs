@@ -3,8 +3,7 @@
 use std::panic::PanicInfo;
 
 use magpie_tutor::{
-    debug, done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE,
-    SETS,
+    done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE, SETS,
 };
 use poise::{
     serenity_prelude::{CacheHttp, ClientBuilder, CreateEmbed, GatewayIntents, GuildId},
