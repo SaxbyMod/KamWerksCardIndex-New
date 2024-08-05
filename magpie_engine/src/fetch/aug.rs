@@ -12,20 +12,25 @@ use std::fmt::Display;
 /// Augmented's [`Card`] extensions
 #[derive(Debug, Default, Clone)]
 pub struct AugExt {
-    /// Shattered mox cost count.
-    pub shattered_count: Option<MoxCount>,
-    /// Max energy cell cost.
-    pub max: isize,
     /// Artist credit.
     pub artist: String,
 }
 
-self_upgrade!(AugExt);
+/// Augmented's [`Costs`] extensions
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct AugCost {
+    /// Shattered mox cost count.
+    pub shattered_count: Option<MoxCount>,
+    /// Max energy cell cost.
+    pub max: isize,
+}
+
+self_upgrade!(AugExt, AugCost);
 
 /// Fetch Augmented from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/edit?gid=0#gid=0).
 #[allow(clippy::too_many_lines)]
-pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
+pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCost>, AugError> {
     let raw_card: Vec<AugCard> =
         fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Cards")
             .map_err(AugError::CardFetchError)?;
@@ -52,12 +57,11 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
     for card in raw_card {
         let costs;
 
-        let mut shattered_count = MoxCount::default();
         let mut mox_count = MoxCount::default();
-        let mut max = 0;
+        let mut shattered_count = MoxCount::default();
 
         if card.cost != "free" && !card.cost.is_empty() {
-            let mut t = Costs::default();
+            let mut t: Costs<AugCost> = Costs::default();
 
             for c in card
                 .cost
@@ -91,7 +95,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     "blood" => t.blood += count,
                     "bone" => t.bone += count,
                     "energy" => t.energy += count,
-                    "max" => max += count,
+                    "max" => t.extra.max += count,
                     "shattered" => match cost.pop().unwrap().as_str() {
                         "ruby" => {
                             t.mox |= Mox::R;
@@ -134,8 +138,14 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     c => return Err(AugError::UnknowCost(c.to_string())),
                 }
             }
+
+            // only include the moxes if they are not the default all 1
             if mox_count != MoxCount::default() {
                 t.mox_count = Some(mox_count);
+            }
+
+            if shattered_count != MoxCount::default() {
+                t.extra.shattered_count = Some(shattered_count);
             }
             costs = Some(t);
         } else {
@@ -207,8 +217,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
             extra: AugExt {
                 artist: card.artist,
-                max,
-                shattered_count: (!shattered_count.eq(&MoxCount::default())).then_some(shattered_count),
             }
         };
 

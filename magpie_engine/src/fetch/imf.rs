@@ -11,7 +11,7 @@ use std::fmt::Display;
 use super::{fetch_json, FetchError};
 
 /// Fetch a IMF Set from a url
-pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
+pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> {
     let set: ImfSet = fetch_json(url).map_err(ImfError::FetchError)?;
 
     let mut cards = Vec::with_capacity(set.cards.len() + 1);
@@ -96,6 +96,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                     })
                     .into(),
                 mox_count: None,
+                extra: (),
             }),
 
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {

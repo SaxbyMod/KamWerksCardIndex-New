@@ -9,7 +9,7 @@ use std::hash::Hasher;
 ///
 /// You can add extra infomation using the [`Card::extra`] field and the generic `E`
 #[derive(Debug, Clone)]
-pub struct Card<C> {
+pub struct Card<E, C> {
     /// The set code that the card belong to.
     pub set: SetCode,
 
@@ -53,7 +53,7 @@ pub struct Card<C> {
     /// mox of each color.
     ///
     /// Free card can have this as [`None`]
-    pub costs: Option<Costs>,
+    pub costs: Option<Costs<C>>,
     /// The card traits
     ///
     /// Traits contain 2 components, the string component which is for uncommon or unique traits and
@@ -69,10 +69,10 @@ pub struct Card<C> {
     pub related: Vec<String>,
 
     /// Extra
-    pub extra: C,
+    pub extra: E,
 }
 
-impl<T> Hash for Card<T> {
+impl<T, U> Hash for Card<T, U> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.set.hash(state);
@@ -80,17 +80,18 @@ impl<T> Hash for Card<T> {
 }
 
 /// Trait for a card to be upgradeable to another card with different generic.
-pub trait UpgradeCard<T> {
+pub trait UpgradeCard<T, U> {
     /// Convert this card to another version with different generic
     #[must_use]
-    fn upgrade(self) -> Card<T>;
+    fn upgrade(self) -> Card<T, U>;
 }
 
-impl<T> UpgradeCard<T> for Card<()>
+impl<T, U> UpgradeCard<T, U> for Card<(), ()>
 where
     T: Default,
+    U: Default,
 {
-    fn upgrade(self) -> Card<T> {
+    fn upgrade(self) -> Card<T, U> {
         Card {
             extra: T::default(),
 
@@ -112,7 +113,14 @@ where
 
             sp_atk: self.sp_atk,
 
-            costs: self.costs,
+            costs: self.costs.map(|c| Costs {
+                blood: c.blood,
+                bone: c.bone,
+                energy: c.energy,
+                mox: c.mox,
+                mox_count: c.mox_count,
+                extra: U::default(),
+            }),
 
             traits: self.traits,
             related: self.related,
@@ -242,7 +250,7 @@ impl Default for MoxCount {
 
 /// Contain all the cost info.
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct Costs {
+pub struct Costs<E> {
     /// Other case where the card are not free.
     /// Blood cost for the card.
     pub blood: isize,
@@ -256,6 +264,9 @@ pub struct Costs {
     ///
     /// If the card only cost 1 Mox max you should not add this type.
     pub mox_count: Option<MoxCount>,
+
+    /// Extra Field for cost extension
+    pub extra: E,
 }
 
 bitsflag! {

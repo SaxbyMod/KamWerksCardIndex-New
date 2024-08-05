@@ -121,9 +121,9 @@ macro_rules! bitsflag {
 /// Generate a [`UpgradeCard`](crate::UpgradeCard) implementation for upgrading to the same type.
 #[macro_export]
 macro_rules! self_upgrade {
-    ($ty:ty) => {
-        impl $crate::UpgradeCard<$ty> for Card<$ty> {
-            fn upgrade(self) -> Card<$ty> {
+    ($ty1:ty, $ty2:ty) => {
+        impl $crate::UpgradeCard<$ty1, $ty2> for Card<$ty1, $ty2> {
+            fn upgrade(self) -> Card<$ty1, $ty2> {
                 self
             }
         }
