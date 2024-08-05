@@ -101,7 +101,7 @@ lazy_static! {
     /// Collection of all set magpie use
     pub static ref SETS: HashMap<&'static str, Set> = {
         set_map! {
-            competitve (com) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/competitive.json",
+            standard (std) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
             eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
             egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
             ---
