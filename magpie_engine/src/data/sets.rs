@@ -65,7 +65,11 @@ impl Debug for SetCode {
 /// Sets are container for cards, they also carry a few other infomation like the sigils look up
 /// table and pools. Pools are pre-sorted cards into categories.
 #[derive(Clone, Debug)]
-pub struct Set<E, C> {
+pub struct Set<E, C>
+where
+    E: Clone,
+    C: Clone + PartialEq,
+{
     /// The set code for the deck.
     pub code: SetCode,
     /// The name of the set.
@@ -81,10 +85,16 @@ pub struct Set<E, C> {
     pub sigils_description: HashMap<String, String>,
 }
 
-impl<T, U> Set<T, U> {
+impl<T, U> Set<T, U>
+where
+    T: Clone,
+    U: Clone + PartialEq,
+{
     /// Upgrade a set to another with different genric.
     pub fn upgrade<V, W>(self) -> Set<V, W>
     where
+        V: Clone,
+        W: Clone + PartialEq,
         Card<T, U>: UpgradeCard<V, W>,
     {
         Set {

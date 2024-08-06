@@ -13,7 +13,8 @@ use std::vec;
 #[derive(Debug)]
 pub struct Query<'a, E, C, F>
 where
-    C: Clone,
+    E: Clone,
+    C: Clone + PartialEq,
     F: ToFilter<E, C>,
 {
     /// The result of this query
@@ -24,7 +25,8 @@ where
 
 impl<E, C, F> Display for Query<'_, E, C, F>
 where
-    C: Clone,
+    E: Clone,
+    C: Clone + PartialEq,
     F: ToFilter<E, C>,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -49,7 +51,8 @@ pub type FilterFn<E, C> = Box<dyn Fn(&Card<E, C>) -> bool>;
 /// start querying for cards
 pub struct QueryBuilder<'a, E, C, F>
 where
-    C: Clone,
+    E: Clone,
+    C: Clone + PartialEq,
     F: ToFilter<E, C>,
 {
     /// All the set that is use for this query
@@ -129,6 +132,8 @@ pub enum QueryOrder {
 #[derive(Debug, Clone)]
 pub enum Filters<E, C, F>
 where
+    E: Clone,
+    C: Clone + PartialEq,
     F: ToFilter<E, C>,
 {
     /// Filter for card name.
@@ -205,7 +210,11 @@ where
 /// Traits for converting a type to a [`FilterFn`].
 ///
 /// The generic is for the cards extension.
-pub trait ToFilter<E, C>: Clone {
+pub trait ToFilter<E, C>: Clone
+where
+    E: Clone,
+    C: Clone + PartialEq,
+{
     /// Convert the value into a [`FilterFn`]
     fn to_fn(self) -> FilterFn<E, C>;
 }
@@ -226,8 +235,8 @@ macro_rules! match_query_order {
 
 impl<E, C, F> ToFilter<E, C> for Filters<E, C, F>
 where
-    C: Clone + PartialEq + 'static,
     E: Clone + 'static,
+    C: Clone + PartialEq + 'static,
     F: ToFilter<E, C> + 'static,
 {
     fn to_fn(self) -> FilterFn<E, C> {
@@ -301,7 +310,11 @@ where
     }
 }
 
-impl<E, C> ToFilter<E, C> for () {
+impl<E, C> ToFilter<E, C> for ()
+where
+    E: Clone,
+    C: Clone + PartialEq,
+{
     fn to_fn(self) -> FilterFn<E, C> {
         unimplemented!()
     }

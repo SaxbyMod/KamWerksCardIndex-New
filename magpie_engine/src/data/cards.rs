@@ -9,7 +9,11 @@ use std::hash::Hasher;
 ///
 /// You can add extra infomation using the [`Card::extra`] field and the generic `E`
 #[derive(Debug, Clone)]
-pub struct Card<E, C> {
+pub struct Card<E, C>
+where
+    E: Clone,
+    C: Clone + PartialEq,
+{
     /// The set code that the card belong to.
     pub set: SetCode,
 
@@ -66,7 +70,11 @@ pub struct Card<E, C> {
     pub extra: E,
 }
 
-impl<T, U> Hash for Card<T, U> {
+impl<T, U> Hash for Card<T, U>
+where
+    T: Clone,
+    U: Clone + PartialEq,
+{
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.set.hash(state);
@@ -74,7 +82,11 @@ impl<T, U> Hash for Card<T, U> {
 }
 
 /// Trait for a card to be upgradeable to another card with different generic.
-pub trait UpgradeCard<T, U> {
+pub trait UpgradeCard<T, U>
+where
+    T: Clone,
+    U: Clone + PartialEq,
+{
     /// Convert this card to another version with different generic
     #[must_use]
     fn upgrade(self) -> Card<T, U>;
@@ -82,8 +94,8 @@ pub trait UpgradeCard<T, U> {
 
 impl<T, U> UpgradeCard<T, U> for Card<(), ()>
 where
-    T: Default,
-    U: Default,
+    T: Default + Clone,
+    U: Default + Clone + PartialEq,
 {
     fn upgrade(self) -> Card<T, U> {
         Card {
@@ -222,7 +234,8 @@ bitsflag! {
         G = 1 << 1;
         /// Green or Emerald Mox
         B = 1 << 2;
-        /// Gray or Prism Mox
+        /// Gray or Prism Mox, also use to represent Descryption's Black mox but it is functionally
+        /// different
         Y = 1 << 3;
     }
 }
