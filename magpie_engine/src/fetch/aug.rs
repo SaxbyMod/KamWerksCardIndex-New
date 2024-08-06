@@ -251,13 +251,13 @@ pub enum AugError {
 impl Display for AugError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AugError::CardFetchError(e) => write!(f, "cannot fetch cards due to: {e}"),
+            AugError::CardFetchError(e) => write!(f, "cannot fetch augmented cards due to: {e}"),
             AugError::SigilFetchError(e) => write!(f, "cannot fetch sigils due to: {e}"),
-            AugError::UnknownRarity(r) => write!(f, "unknown rarity: {r}"),
-            AugError::UnknownTemple(r) => write!(f, "unknown temple: {r}"),
-            AugError::InvalidCostFormat(s) => write!(f, "invalid cost: {s}"),
-            AugError::UnknowCost(c) => write!(f, "unknow cost: {c}"),
-            AugError::UnknowMox(m) => write!(f, "unknow mox: {m}"),
+            AugError::UnknownRarity(r) => write!(f, "unknown augmented rarity: {r}"),
+            AugError::UnknownTemple(r) => write!(f, "unknown augmented temple: {r}"),
+            AugError::InvalidCostFormat(s) => write!(f, "invalid augmented cost format: {s}"),
+            AugError::UnknowCost(c) => write!(f, "unknow augmented cost: {c}"),
+            AugError::UnknowMox(m) => write!(f, "unknow augmented mox: {m}"),
         }
     }
 }
