@@ -182,7 +182,16 @@ pub enum DescError {
 
 impl Display for DescError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        match self {
+            DescError::CardFetchError(e) => write!(f, "cannot fetch descryption cards due to: {e}"),
+            DescError::SigilFetchError(e) => {
+                write!(f, "cannot fetch descryption sigils due to : {e}")
+            }
+            DescError::UnknownTemple(e) => write!(f, "unknown descryption scrybe: {e}"),
+            DescError::UnknownRarity(e) => write!(f, "unknown descryption rarity: {e}"),
+            DescError::UnknownMoxColor(e) => write!(f, "unknown descryption mox color: {e}"),
+            DescError::UnknownCost(e) => write!(f, "unknown descryption cost: {e}"),
+        }
     }
 }
 
