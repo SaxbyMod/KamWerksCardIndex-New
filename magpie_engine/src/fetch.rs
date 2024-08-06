@@ -15,7 +15,7 @@ pub use aug::*;
 pub use desc::*;
 pub use imf::*;
 
-/// Error that happned when calling [`fetch_json`]
+/// Error that happen when calling [`fetch_json`]
 #[derive(Debug)]
 pub enum FetchError {
     /// [`isahc`](https://docs.rs/isahc) error or error that happen when trying to fetch the json data

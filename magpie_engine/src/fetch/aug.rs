@@ -28,7 +28,7 @@ pub struct AugCost {
 self_upgrade!(AugExt, AugCost);
 
 /// Fetch Augmented from the
-/// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/edit?gid=0#gid=0).
+/// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk)
 #[allow(clippy::too_many_lines)]
 pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCost>, AugError> {
     let raw_card: Vec<AugCard> =
@@ -235,16 +235,16 @@ pub enum AugError {
     CardFetchError(FetchError),
     /// Error when trying to [`fetch_json`] sigils.
     SigilFetchError(FetchError),
-    /// Invalid Rarity.
+    /// Unkown rarity.
     UnknownRarity(String),
-    /// Invalid Temple.
+    /// Unkown temple.
     UnknownTemple(String),
     /// Invalid cost format. The cost doesn't follow each component are a number then the cost
     /// with space between and every cost is separted by `'+'`.
     InvalidCostFormat(String),
     /// Unknow cost.
     UnknowCost(String),
-    /// Invalid Mox color.
+    /// Unkown Mox color.
     UnknowMox(String),
 }
 

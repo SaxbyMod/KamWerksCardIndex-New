@@ -1,21 +1,21 @@
-use std::collections::HashMap;
-use std::fmt::Display;
-use std::ops::BitOr;
+use std::{collections::HashMap, error::Error, fmt::Display};
 
 use serde::Deserialize;
-use std::error::Error;
 
-use crate::data::cards;
-use crate::{Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits};
+use crate::{
+    fetch::{fetch_json, FetchError},
+    Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits,
+};
 
-use super::{fetch_json, FetchError};
-
+/// Descryption's [`Costs`] extension.
 #[derive(Default, Clone, PartialEq)]
 pub struct DescCost {
     link: isize,
     gold: isize,
 }
 
+/// Fetch Descryption from the
+/// [sheet](https://docs.google.com/spreadsheets/d/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE)
 pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
     let card_raw: Vec<DescCard> =
         fetch_json("https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/Cards")
@@ -148,14 +148,22 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
     })
 }
 
+
+/// Error that happen when calling [`fetch_desc`].
 #[derive(Debug)]
 pub enum DescError {
+    /// Error when trying to [`fetch_json`] cards.
     CardFetchError(FetchError),
+    /// Error when trying to [`fetch_json`] sigils.
     SigilFetchError(FetchError),
 
+    /// Unknown Temple or Scrybe.
     UnknownTemple(String),
+    /// Unknown rarity.
     UnknownRarity(String),
+    /// Unknown Mox color.
     UnknownMoxColor(String),
+    /// Unknown cost type.
     UnknownCost(String),
 }
 
