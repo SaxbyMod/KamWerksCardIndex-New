@@ -1,74 +1,211 @@
 use std::collections::HashMap;
+use std::fmt::Display;
+use std::ops::BitOr;
 
 use serde::Deserialize;
+use std::error::Error;
 
 use crate::data::cards;
-use crate::{Set, SetCode};
+use crate::{Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits};
 
 use super::{fetch_json, FetchError};
 
-pub fn fetch_desc(code: SetCode) -> Result<Set<()>, DescError> {
-    todo!();
-
-    //let card_raw: Vec<DescCard> =
-    //    fetch_json("https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/Cards")
-    //        .map_err(DescError::CardFetchError)?;
-    //
-    //let sigils: Vec<DescSigil> = fetch_json(
-    //    "https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/[Sigils]",
-    //)
-    //.map_err(DescError::SigilFetchError)?;
-    //
-    //let mut cards = Vec::with_capacity(card_raw.len());
-    //let sigils_description = {
-    //    let mut h = HashMap::with_capacity(sigils.len());
-    //    for s in sigils {
-    //        h.insert(s.name, s.text);
-    //    }
-    //    h
-    //};
-    //
-    //for card in card_raw {
-    //    cards.push(card)
-    //}
-    //
-    //Ok(Set {
-    //    code,
-    //    name: String::from("Descryption"),
-    //    cards,
-    //    sigils_description,
-    //})
+#[derive(Default, Clone, PartialEq)]
+pub struct DescCost {
+    link: isize,
+    gold: isize,
 }
 
+pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
+    let card_raw: Vec<DescCard> =
+        fetch_json("https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/Cards")
+            .map_err(DescError::CardFetchError)?;
+
+    let sigils: Vec<DescSigil> = fetch_json(
+        "https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/[Sigils]",
+    )
+    .map_err(DescError::SigilFetchError)?;
+
+    let mut cards = Vec::with_capacity(card_raw.len());
+    let sigils_description = {
+        let mut h = HashMap::with_capacity(sigils.len());
+        for s in sigils {
+            h.insert(s.name, s.text);
+        }
+        h
+    };
+
+    for card in card_raw {
+        if card.name.is_empty() {
+            continue;
+        }
+
+        let mut temple = Temple::EMPTY;
+
+        for t in card.temple.split(", ") {
+            temple |= match t {
+                "Leshy" => Temple::BEAST,
+
+                "Grimora" => Temple::UNDEAD,
+                "P03" => Temple::TECH,
+                "Magnificus" => Temple::MAGICK,
+                "Galliard" => Temple::ARTISTRY,
+
+                "-" | "N/A" | "" => Temple::EMPTY,
+                _ => return Err(DescError::UnknownTemple(t.to_owned())),
+            }
+        }
+
+        let mut costs = Costs::<DescCost>::default();
+
+        if card.cost == "-" || card.cost.is_empty() || card.cost == "N/A" {
+        } else if card.cost.contains(',') | !card.cost.contains(' ') {
+            for m in card.cost.split(", ") {
+                costs.mox |= match m {
+                    "Orange" => Mox::R,
+                    "Green" => Mox::G,
+                    "Blue" => Mox::B,
+                    "Black" => Mox::Y,
+                    _ => return Err(DescError::UnknownMoxColor(m.to_owned())),
+                }
+            }
+        } else {
+            let (count, cost) = {
+                let mut t = card.cost.split_whitespace();
+                (
+                    t.next().unwrap().parse::<isize>().unwrap(),
+                    t.next().unwrap(),
+                )
+            };
+
+            match cost.to_lowercase().as_str() {
+                "blood" => costs.blood += count,
+                "bone" | "bones" => costs.bone += count,
+                "energy" => costs.energy += count,
+                "links" | "link" => costs.extra.link += count,
+                "gold" | "golds" => costs.extra.gold += count,
+                _ => return Err(DescError::UnknownCost(cost.to_owned())),
+            }
+        }
+
+        let card = Card {
+            set: code,
+            name: card.name,
+            description: String::new(),
+            portrait: String::new(),
+            rarity: match card.rarity.as_str() {
+                "Common" | "" => Rarity::COMMON,
+                "Rare" => Rarity::RARE,
+                "Unique" => Rarity::UNIQUE,
+                _ => return Err(DescError::UnknownRarity(card.rarity)),
+            },
+            temple: temple.into(),
+            tribes: (card.tribes == "-").then_some(card.tribes),
+            attack: if let Ok(a) = card.attack.parse() {
+                Attack::Num(a)
+            } else {
+                Attack::Str(card.attack)
+            },
+            health: card.health.parse().unwrap_or(0),
+            sigils: if card.sigils == "-" {
+                vec![]
+            } else {
+                card.sigils
+                    .split(", ")
+                    .map(|s| {
+                        let s = s.to_owned();
+                        if sigils_description.contains_key(&s) {
+                            s
+                        } else {
+                            String::from("UNDEFINEDED SIGILS")
+                        }
+                    })
+                    .collect()
+            },
+            costs: if card.cost == "-" { None } else { Some(costs) },
+            traits: Some(Traits {
+                strings: Some(
+                    card.traits_unique
+                        .split("; ")
+                        .chain(card.traits.split("; "))
+                        .map(ToOwned::to_owned)
+                        .collect(),
+                ),
+                flags: 0,
+            }),
+            related: vec![],
+            extra: (),
+        };
+
+        cards.push(card);
+    }
+
+    Ok(Set {
+        code,
+        name: String::from("Descryption"),
+        cards,
+        sigils_description,
+    })
+}
+
+#[derive(Debug)]
 pub enum DescError {
     CardFetchError(FetchError),
     SigilFetchError(FetchError),
+
+    UnknownTemple(String),
+    UnknownRarity(String),
+    UnknownMoxColor(String),
+    UnknownCost(String),
 }
+
+impl Display for DescError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
+impl Error for DescError {}
 
 /// Json scheme for desc card
 #[derive(Deserialize)]
 struct DescCard {
     #[serde(rename = "Name")]
+    #[serde(default)]
     name: String,
 
     #[serde(rename = "Scrybes")]
+    #[serde(default)]
     temple: String,
     #[serde(rename = "Rarity")]
+    #[serde(default)]
     rarity: String,
 
     #[serde(rename = "Cost")]
+    #[serde(default)]
     cost: String,
 
     #[serde(rename = "Power")]
+    #[serde(default)]
     attack: String,
-    #[serde(rename = "Heakth")]
+    #[serde(rename = "Health")]
+    #[serde(default)]
     health: String,
 
     #[serde(rename = "Sigils")]
+    #[serde(default)]
     sigils: String,
 
     #[serde(rename = "Traits")]
+    #[serde(default)]
     traits: String,
+    #[serde(rename = "Traits (Named)")]
+    #[serde(default)]
+    traits_unique: String,
+
+    #[serde(rename = "Tribes")]
+    #[serde(default)]
+    tribes: String,
 }
 
 #[derive(Deserialize)]
