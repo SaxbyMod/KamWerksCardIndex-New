@@ -45,7 +45,7 @@ impl<T> Death<T> for Option<T> {
         }
         error!("{}", message.red());
         error!("Critical error awaiting death...");
-        std::process::exit(0)
+        std::process::exit(1)
     }
 }
 
@@ -60,7 +60,7 @@ where
                 error!("{}", message.red());
                 error!("{}", format!("{err:?}").red());
                 error!("{}", "Critical error awaiting death...".red());
-                std::process::exit(0)
+                std::process::exit(1)
             }
         }
     }
