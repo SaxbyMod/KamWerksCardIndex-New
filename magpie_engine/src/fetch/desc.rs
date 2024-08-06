@@ -42,49 +42,51 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
 
         let mut temple = Temple::EMPTY;
 
-        for t in card.temple.split(", ") {
-            temple |= match t {
-                "Leshy" => Temple::BEAST,
+        if !is_empty(&card.temple) {
+            for t in card.temple.split(", ") {
+                temple |= match t {
+                    "Leshy" => Temple::BEAST,
 
-                "Grimora" => Temple::UNDEAD,
-                "P03" => Temple::TECH,
-                "Magnificus" => Temple::MAGICK,
-                "Galliard" => Temple::ARTISTRY,
+                    "Grimora" => Temple::UNDEAD,
+                    "P03" => Temple::TECH,
+                    "Magnificus" => Temple::MAGICK,
+                    "Galliard" => Temple::ARTISTRY,
 
-                "-" | "N/A" | "" => Temple::EMPTY,
-                _ => return Err(DescError::UnknownTemple(t.to_owned())),
+                    _ => return Err(DescError::UnknownTemple(t.to_owned())),
+                }
             }
         }
 
         let mut costs = Costs::<DescCost>::default();
 
-        if card.cost == "-" || card.cost.is_empty() || card.cost == "N/A" {
-        } else if card.cost.contains(',') | !card.cost.contains(' ') {
-            for m in card.cost.split(", ") {
-                costs.mox |= match m {
-                    "Orange" => Mox::R,
-                    "Green" => Mox::G,
-                    "Blue" => Mox::B,
-                    "Black" => Mox::Y,
-                    _ => return Err(DescError::UnknownMoxColor(m.to_owned())),
+        if !is_empty(&card.name) {
+            if card.cost.contains(',') | !card.cost.contains(' ') {
+                for m in card.cost.split(", ") {
+                    costs.mox |= match m {
+                        "Orange" => Mox::R,
+                        "Green" => Mox::G,
+                        "Blue" => Mox::B,
+                        "Black" => Mox::Y,
+                        _ => return Err(DescError::UnknownMoxColor(m.to_owned())),
+                    }
                 }
-            }
-        } else {
-            let (count, cost) = {
-                let mut t = card.cost.split_whitespace();
-                (
-                    t.next().unwrap().parse::<isize>().unwrap(),
-                    t.next().unwrap(),
-                )
-            };
+            } else {
+                let (count, cost) = {
+                    let mut t = card.cost.split_whitespace();
+                    (
+                        t.next().unwrap().parse::<isize>().unwrap(),
+                        t.next().unwrap(),
+                    )
+                };
 
-            match cost.to_lowercase().as_str() {
-                "blood" => costs.blood += count,
-                "bone" | "bones" => costs.bone += count,
-                "energy" => costs.energy += count,
-                "links" | "link" => costs.extra.link += count,
-                "gold" | "golds" => costs.extra.gold += count,
-                _ => return Err(DescError::UnknownCost(cost.to_owned())),
+                match cost.to_lowercase().as_str() {
+                    "blood" => costs.blood += count,
+                    "bone" | "bones" => costs.bone += count,
+                    "energy" => costs.energy += count,
+                    "links" | "link" => costs.extra.link += count,
+                    "gold" | "golds" => costs.extra.gold += count,
+                    _ => return Err(DescError::UnknownCost(cost.to_owned())),
+                }
             }
         }
 
@@ -93,11 +95,15 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
             name: card.name,
             description: String::new(),
             portrait: String::new(),
-            rarity: match card.rarity.as_str() {
-                "Common" | "" => Rarity::COMMON,
-                "Rare" => Rarity::RARE,
-                "Unique" => Rarity::UNIQUE,
-                _ => return Err(DescError::UnknownRarity(card.rarity)),
+            rarity: if is_empty(&card.rarity) {
+                Rarity::COMMON
+            } else {
+                match card.rarity.as_str() {
+                    "Common" => Rarity::COMMON,
+                    "Rare" => Rarity::RARE,
+                    "Unique" => Rarity::UNIQUE,
+                    _ => return Err(DescError::UnknownRarity(card.rarity)),
+                }
             },
             temple: temple.into(),
             tribes: (card.tribes == "-").then_some(card.tribes),
@@ -107,7 +113,7 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
                 Attack::Str(card.attack)
             },
             health: card.health.parse().unwrap_or(0),
-            sigils: if card.sigils == "-" {
+            sigils: if is_empty(&card.sigils) {
                 vec![]
             } else {
                 card.sigils
@@ -122,15 +128,19 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
                     })
                     .collect()
             },
-            costs: if card.cost == "-" { None } else { Some(costs) },
+            costs: if is_empty(&card.cost) {
+                None
+            } else {
+                Some(costs)
+            },
             traits: Some(Traits {
-                strings: Some(
+                strings: (card.traits_unique.is_empty() || card.traits_unique == "-").then(|| {
                     card.traits_unique
                         .split("; ")
                         .chain(card.traits.split("; "))
                         .map(ToOwned::to_owned)
-                        .collect(),
-                ),
+                        .collect()
+                }),
                 flags: 0,
             }),
             related: vec![],
@@ -148,6 +158,9 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
     })
 }
 
+fn is_empty(str: &str) -> bool {
+    str.is_empty() || str == "-" || str == "N/A"
+}
 
 /// Error that happen when calling [`fetch_desc`].
 #[derive(Debug)]
