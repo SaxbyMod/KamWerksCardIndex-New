@@ -3,20 +3,23 @@ use std::{collections::HashMap, error::Error, fmt::Display};
 use serde::Deserialize;
 
 use crate::{
+    bitsflag,
     fetch::{fetch_json, FetchError},
     Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits,
 };
 
 /// Descryption's [`Costs`] extension.
 #[derive(Default, Clone, PartialEq)]
-pub struct DescCost {
-    link: isize,
-    gold: isize,
+pub struct DescCosts {
+    /// Links cost.
+    pub link: isize,
+    /// Gold cost.
+    pub gold: isize,
 }
 
 /// Fetch Descryption from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE)
-pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
+pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
     let card_raw: Vec<DescCard> =
         fetch_json("https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/Cards")
             .map_err(DescError::CardFetchError)?;
@@ -57,9 +60,9 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCost>, DescError> {
             }
         }
 
-        let mut costs = Costs::<DescCost>::default();
+        let mut costs = Costs::<DescCosts>::default();
 
-        if !is_empty(&card.name) {
+        if !is_empty(&card.cost) {
             if card.cost.contains(',') | !card.cost.contains(' ') {
                 for m in card.cost.split(", ") {
                     costs.mox |= match m {

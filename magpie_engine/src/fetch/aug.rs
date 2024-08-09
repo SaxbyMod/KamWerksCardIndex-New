@@ -18,19 +18,19 @@ pub struct AugExt {
 
 /// Augmented's [`Costs`] extensions
 #[derive(Debug, Default, Clone, PartialEq)]
-pub struct AugCost {
+pub struct AugCosts {
     /// Shattered mox cost count.
     pub shattered_count: Option<MoxCount>,
     /// Max energy cell cost.
     pub max: isize,
 }
 
-self_upgrade!(AugExt, AugCost);
+self_upgrade!(AugExt, AugCosts);
 
 /// Fetch Augmented from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk)
 #[allow(clippy::too_many_lines)]
-pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCost>, AugError> {
+pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
     let raw_card: Vec<AugCard> =
         fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Cards")
             .map_err(AugError::CardFetchError)?;
@@ -61,7 +61,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCost>, AugError> {
         let mut shattered_count = MoxCount::default();
 
         if card.cost != "free" && !card.cost.is_empty() {
-            let mut t: Costs<AugCost> = Costs::default();
+            let mut t: Costs<AugCosts> = Costs::default();
 
             for c in card
                 .cost

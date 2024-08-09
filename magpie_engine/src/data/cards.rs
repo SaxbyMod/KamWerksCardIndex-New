@@ -5,53 +5,90 @@ use std::fmt::Display;
 use std::hash::Hash;
 use std::hash::Hasher;
 
-/// Represent a card containing all the infomation on the cards.
-///
-/// You can add extra infomation using the [`Card::extra`] field and the generic `E`
-#[derive(Debug, Clone)]
-pub struct Card<E, C>
-where
-    E: Clone,
-    C: Clone + PartialEq,
-{
+macro_rules! card {
+    ($($(#[$attr:meta])* $f:ident: $ty:ty,)*) => {
+        /// Represent a card containing all the infomation on the cards.
+        ///
+        /// You can add extra infomation using the [`Card::extra`] field and the generic `E`
+        #[derive(Debug, Clone)]
+        pub struct Card<E, C>
+        where
+            E: Clone,
+            C: Clone + PartialEq,
+        {
+            /// The card cost
+            ///
+            /// Cost contain a few component, one for each of the cost a card may have blood, bone, etc.
+            /// The [`mox_count`](Costs::mox_count) component is available if the card can have multiple
+            /// mox of each color.
+            ///
+            /// Free card can have this as [`None`]
+            pub costs: Option<Costs<C>>,
+
+            /// Extra
+            pub extra: E,
+
+            $(
+                $(#[$attr])*
+                pub $f: $ty,
+            )*
+        }
+
+        /// Macro to help with generating [`UpgradeCard`] implementation
+        #[macro_export]
+        macro_rules! upgrade_card {
+            (extra: $extra:expr, costs: $costs:expr, ..$card:expr) => {
+                Card {
+                    extra: $extra,
+                    costs: $card.costs.map(|c| Costs {
+                        extra: $costs(c.clone()),
+
+                        blood: c.blood,
+                        bone: c.bone,
+                        energy: c.energy,
+                        mox: c.mox,
+                        mox_count: c.mox_count,
+
+                    }),
+
+                    $($f: $card.$f,)*
+                }
+            };
+        }
+    };
+}
+
+card! {
     /// The set code that the card belong to.
-    pub set: SetCode,
+    set: SetCode,
 
     /// The card name.
-    pub name: String,
+    name: String,
     /// The card description, note or favor text.
-    pub description: String,
+    description: String,
     /// The url to the card portrait
-    pub portrait: String,
+    portrait: String,
 
     /// The card rarity.
-    pub rarity: Rarity,
+    rarity: Rarity,
     /// The card temple or archetype.
     ///
     /// Temple are a bit flag to tell which temple the card belong to. You should use the associated
     /// constant of [`Temple`] to set these bit flags. We use a [`u16`] instead of other crate like
     /// [`Bitflags`](https://docs.rs/bitflags/) so we can support more temple and make it easier to
     /// extend, if you need more than 16 temples, may god help you.
-    pub temple: u16,
+    temple: u16,
     /// The card tribes.
-    pub tribes: Option<String>,
+    tribes: Option<String>,
 
     /// The card attack or power.
-    pub attack: Attack,
+    attack: Attack,
     /// The card health.
-    pub health: isize,
+    health: isize,
 
     /// The sigils or abilities on the card.
-    pub sigils: Vec<String>,
+    sigils: Vec<String>,
 
-    /// The card cost
-    ///
-    /// Cost contain a few component, one for each of the cost a card may have blood, bone, etc.
-    /// The [`mox_count`](Costs::mox_count) component is available if the card can have multiple
-    /// mox of each color.
-    ///
-    /// Free card can have this as [`None`]
-    pub costs: Option<Costs<C>>,
     /// The card traits
     ///
     /// Traits contain 2 components, the string component which is for uncommon or unique traits and
@@ -59,15 +96,13 @@ where
     /// like terrain, conductive, etc.
     ///
     /// Card with no traits can have this as [`None`]
-    pub traits: Option<Traits>,
+    traits: Option<Traits>,
 
     /// Related card or token
     ///
     /// Usuall for tokens, evolution, etc.
-    pub related: Vec<String>,
+    related: Vec<String>,
 
-    /// Extra
-    pub extra: E,
 }
 
 impl<T, U> Hash for Card<T, U>
@@ -82,14 +117,14 @@ where
 }
 
 /// Trait for a card to be upgradeable to another card with different generic.
-pub trait UpgradeCard<T, U>
+pub trait UpgradeCard<E, U>
 where
-    T: Clone,
+    E: Clone,
     U: Clone + PartialEq,
 {
     /// Convert this card to another version with different generic
     #[must_use]
-    fn upgrade(self) -> Card<T, U>;
+    fn upgrade(self) -> Card<E, U>;
 }
 
 impl<T, U> UpgradeCard<T, U> for Card<(), ()>
@@ -98,36 +133,10 @@ where
     U: Default + Clone + PartialEq,
 {
     fn upgrade(self) -> Card<T, U> {
-        Card {
+        upgrade_card! {
             extra: T::default(),
-
-            set: self.set,
-
-            name: self.name,
-            description: self.description,
-
-            portrait: self.portrait,
-
-            rarity: self.rarity,
-            temple: self.temple,
-            tribes: self.tribes,
-
-            attack: self.attack,
-            health: self.health,
-
-            sigils: self.sigils,
-
-            costs: self.costs.map(|c| Costs {
-                blood: c.blood,
-                bone: c.bone,
-                energy: c.energy,
-                mox: c.mox,
-                mox_count: c.mox_count,
-                extra: U::default(),
-            }),
-
-            traits: self.traits,
-            related: self.related,
+            costs: |_| U::default(),
+            ..self
         }
     }
 }
@@ -243,13 +252,13 @@ bitsflag! {
 /// Component for when card cost multiple of 1 Mox color.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MoxCount {
-    /// The Red, Orange or Ruby component
+    /// The Red component.
     pub r: usize,
-    /// The Green or Emerald component
+    /// The Green component.
     pub g: usize,
-    /// The Blue or Sapphire component
+    /// The Blue component.
     pub b: usize,
-    /// The Gray, Prism component
+    /// The Gray component.
     pub y: usize,
 }
 
