@@ -1,4 +1,4 @@
-//! Collection of helper for this crate
+//! Collection of helper for this crate.
 
 /// Tiny implmentation of bits flag to be a bit more flexiable and allow for extension.
 #[macro_export]
@@ -38,7 +38,7 @@ macro_rules! bitsflag {
                 self.0 & other == other
             }
 
-            /// Turn a bit on if the `toggle` is true and do nothing otherwise
+            /// Turn a bit on if the `toggle` is true and do nothing otherwise.
             ///
             /// This is just sugar for `self | (bit * toggle)`
             #[must_use]
@@ -46,7 +46,7 @@ macro_rules! bitsflag {
                 self | (bit * toggle)
             }
 
-            /// Get the actual flag inside the struct
+            /// Get the actual flag inside the struct.
             pub fn flags(&self) -> impl Iterator<Item = &'static $name> {
                 let flag = vec![$(self.contains($name::$flag),)*];
                 [

@@ -18,7 +18,7 @@ pub struct DescCosts {
 }
 
 /// Fetch Descryption from the
-/// [sheet](https://docs.google.com/spreadsheets/d/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE)
+/// [sheet](https://docs.google.com/spreadsheets/d/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE).
 pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
     let card_raw: Vec<DescCard> =
         fetch_json("https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/Cards")
@@ -200,7 +200,7 @@ impl Display for DescError {
 
 impl Error for DescError {}
 
-/// Json scheme for desc card
+/// Json scheme for desc card.
 #[derive(Deserialize)]
 struct DescCard {
     #[serde(rename = "Name")]
@@ -241,6 +241,7 @@ struct DescCard {
     tribes: String,
 }
 
+/// Json scheme for desc sigil.
 #[derive(Deserialize)]
 struct DescSigil {
     #[serde(rename = "Name")]

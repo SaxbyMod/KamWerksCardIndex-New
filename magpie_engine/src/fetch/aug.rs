@@ -1,4 +1,4 @@
-//! Implementation for the [Augmented] set
+//! Implementation for the [Augmented] set.
 //!
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
@@ -9,14 +9,14 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::Display;
 
-/// Augmented's [`Card`] extensions
+/// Augmented's [`Card`] extensions.
 #[derive(Debug, Default, Clone)]
 pub struct AugExt {
     /// Artist credit.
     pub artist: String,
 }
 
-/// Augmented's [`Costs`] extensions
+/// Augmented's [`Costs`] extensions.
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct AugCosts {
     /// Shattered mox cost count.
@@ -28,7 +28,7 @@ pub struct AugCosts {
 self_upgrade!(AugExt, AugCosts);
 
 /// Fetch Augmented from the
-/// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk)
+/// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk).
 #[allow(clippy::too_many_lines)]
 pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
     let raw_card: Vec<AugCard> =
@@ -262,7 +262,7 @@ impl Display for AugError {
     }
 }
 
-/// Json scheme for aug card
+/// Json scheme for aug card.
 #[derive(Deserialize)]
 struct AugCard {
     #[serde(rename = "Card Name")]
@@ -297,7 +297,7 @@ struct AugCard {
     artist: String,
 }
 
-/// Json scheme for aug sigil
+/// Json scheme for aug sigil.
 #[derive(Deserialize)]
 struct AugSigil {
     #[serde(rename = "Name")]

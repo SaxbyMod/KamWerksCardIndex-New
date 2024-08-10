@@ -1,4 +1,4 @@
-//! Implementation for [IMF] set
+//! Implementation for [IMF] set.
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
@@ -10,7 +10,7 @@ use std::fmt::Display;
 
 use super::{fetch_json, FetchError};
 
-/// Fetch a IMF Set from a url
+/// Fetch a IMF Set from a url.
 pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> {
     let set: ImfSet = fetch_json(url).map_err(ImfError::FetchError)?;
 
@@ -143,11 +143,11 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> 
 }
 
 #[derive(Debug)]
-/// Error that happen when calling [`fetch_imf_set`]
+/// Error that happen when calling [`fetch_imf_set`].
 pub enum ImfError {
-    /// Error when calling [`fetch_json`]
+    /// Error when calling [`fetch_json`].
     FetchError(FetchError),
-    /// Invalid `atkspecial` when converting to [`Card`]
+    /// Invalid `atkspecial` when converting to [`Card`].
     InvalidSpAtk(String),
 }
 
@@ -161,7 +161,7 @@ impl Display for ImfError {
 }
 
 impl Error for ImfError {}
-/// Json scheme for IMF set
+/// Json scheme for IMF set.
 #[derive(Deserialize, Debug)]
 struct ImfSet {
     ruleset: String,
@@ -169,7 +169,7 @@ struct ImfSet {
     sigils: HashMap<String, String>,
 }
 
-/// Json scheme for IMF card
+/// Json scheme for IMF card.
 #[derive(Debug, Deserialize)]
 #[allow(clippy::struct_excessive_bools)]
 struct ImfCard {

@@ -147,11 +147,11 @@ pub enum Rarity {
     /// Side deck rarity for card.
     ///
     /// This usually map to card that are restricted to the side deck or card that you can add a
-    /// unlimited about of
+    /// unlimited about of.
     SIDE,
-    /// Common rarity for card
+    /// Common rarity for card.
     ///
-    /// This usually map to card with the least amount of deck restriction
+    /// This usually map to card with the least amount of deck restriction.
     COMMON,
     //// Uncommon rarity for card.
     ///
@@ -164,7 +164,7 @@ pub enum Rarity {
     RARE,
     /// Unique rarity for card.
     ///
-    /// This usually map to card that you can have only have 1 of this rarity per deck
+    /// This usually map to card that you can have only have 1 of this rarity per deck.
     UNIQUE,
 }
 
@@ -202,14 +202,14 @@ bitsflag! {
     }
 }
 
-/// Enum for the diffrent attack type
+/// Enum for the diffrent attack type.
 #[derive(Debug, Clone)]
 pub enum Attack {
-    /// Numeric attack value
+    /// Numeric attack value.
     Num(isize),
-    /// Common predefined special attack
+    /// Common predefined special attack.
     SpAtk(SpAtk),
-    /// String special attack
+    /// String special attack.
     Str(String),
 }
 
@@ -229,19 +229,19 @@ pub enum SpAtk {
     BONE,
     /// Card that have power from it position to the bell.
     BELL,
-    /// Card that have power from the amount of card in your hand
+    /// Card that have power from the amount of card in your hand.
     CARD,
 }
 
 bitsflag! {
     /// Bits flag for Mox, If you need more than these 4 colors you need to make you own mox type and
-    /// extend it
+    /// extend it.
     pub struct Mox: u16 {
-        /// Red, Orange or Ruby Mox
+        /// Red, Orange or Ruby Mox.
         R = 1;
-        /// Blue or Sapphire Mox
+        /// Blue or Sapphire Mox.
         G = 1 << 1;
-        /// Green or Emerald Mox
+        /// Green or Emerald Mox.
         B = 1 << 2;
         /// Gray or Prism Mox, also use to represent Descryption's Black mox but it is functionally
         /// different
@@ -290,12 +290,12 @@ pub struct Costs<E> {
     /// If the card only cost 1 Mox max you should not add this type.
     pub mox_count: Option<MoxCount>,
 
-    /// Extra Field for cost extension
+    /// Extra Field for cost extension.
     pub extra: E,
 }
 
 bitsflag! {
-    /// Bit flags for a card trait
+    /// Bit flags for a card trait.
     pub struct TraitsFlag: u16 {
         /// If this card is conductive.
         CONDUCTIVE = 1;
@@ -303,7 +303,7 @@ bitsflag! {
         BAN = 1 << 1;
         /// If this card is unsaccable or a terrain.
         TERRAIN = 1 << 2;
-        /// If this card is hard or unhammerable
+        /// If this card is hard or unhammerable.
         HARD = 1 << 3;
     }
 }

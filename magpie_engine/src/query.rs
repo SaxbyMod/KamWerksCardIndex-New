@@ -1,7 +1,7 @@
 //! Implementation for querying card
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
-//! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
+//! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`].
 use crate::{Attack, Card, Costs, Rarity, Set, SpAtk, Traits};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
@@ -17,9 +17,9 @@ where
     C: Clone + PartialEq,
     F: ToFilter<E, C>,
 {
-    /// The result of this query
+    /// The result of this query.
     pub cards: Vec<&'a Card<E, C>>,
-    /// The filter that produce this query
+    /// The filter that produce this query.
     pub filters: Vec<Filters<E, C, F>>,
 }
 
@@ -45,17 +45,17 @@ where
 /// Type shorthand for a filter.
 pub type FilterFn<E, C> = Box<dyn Fn(&Card<E, C>) -> bool>;
 
-/// Query builder, it contain the set and is the main way to query cards
+/// Query builder, it contain the set and is the main way to query cards.
 ///
 /// You must first build up your query then lastly call `.query()` to compile all the condition and
-/// start querying for cards
+/// start querying for cards.
 pub struct QueryBuilder<'a, E, C, F>
 where
     E: Clone,
     C: Clone + PartialEq,
     F: ToFilter<E, C>,
 {
-    /// All the set that is use for this query
+    /// All the set that is use for this query.
     pub sets: Vec<&'a Set<E, C>>,
 
     filters: Vec<Filters<E, C, F>>,
@@ -113,22 +113,25 @@ where
     }
 }
 
-/// [`Ordering`](std::cmp::Ordering) extension for more ordering
+/// [`Ordering`](std::cmp::Ordering) extension for more ordering.
 #[derive(Debug, Clone)]
 pub enum QueryOrder {
-    /// Greater than another
+    /// Greater than another.
     Greater,
-    /// Greater than or equal to another
+    /// Greater than or equal to another.
     GreaterEqual,
-    /// Equal to another
+    /// Equal to another.
     Equal,
-    /// Less than or equal to another
+    /// Less than or equal to another.
     LessEqual,
-    /// Less than another
+    /// Less than another.
     Less,
 }
 
-/// Enum for When query stuff
+/// Filters to be apply to when querying card.
+///
+/// You can add custom filter by providing the `F` generic and implementing [`ToFilter`] trait for
+/// it.
 #[derive(Debug, Clone)]
 pub enum Filters<E, C, F>
 where
@@ -158,15 +161,15 @@ where
     /// The value is the tribe or tribes to match against.
     Tribe(Option<String>),
 
-    /// Filter for the card attack
+    /// Filter for the card attack.
     ///
     /// The first value is what what qualifier or comparasion to compare the attack against, the
-    /// second is for equality (mainly for >=, <=) and lastly is the value to compare against
+    /// second is the value to compare against.
     Attack(QueryOrder, isize),
-    /// Filter for the card attack
+    /// Filter for the card attack.
     ///
     /// The first value is what what qualifier or comparasion to compare the health against, the
-    /// second is for equality (mainly for >=, <=) and lastly is the value to compare against
+    /// second is the value to compare against.
     Health(QueryOrder, isize),
 
     /// Filter for card sigil
@@ -184,13 +187,13 @@ where
     /// The value in this variant is the special attack to filter for.
     StrAtk(String),
 
-    /// Filter for card cost
+    /// Filter for card cost.
     ///
-    /// The value in this variant is cost table to filterfor
+    /// The value in this variant is cost table to filter for.
     Costs(Option<Costs<C>>),
-    /// Filter for card trait
+    /// Filter for card trait.
     ///
-    /// The value in this variant is trait table to filter for
+    /// The value in this variant is trait table to filter for.
     Traits(Option<Traits>),
 
     /// Logical `or` between 2 filters instead of the default and.
@@ -215,11 +218,11 @@ where
     E: Clone,
     C: Clone + PartialEq,
 {
-    /// Convert the value into a [`FilterFn`]
+    /// Convert the value into a [`FilterFn`].
     fn to_fn(self) -> FilterFn<E, C>;
 }
 
-/// Generate code to help with matching [`QueryOrder`]
+/// Generate code to help with matching [`QueryOrder`].
 #[macro_export]
 macro_rules! match_query_order {
     ($ord:expr, $a:expr, $b:expr) => {

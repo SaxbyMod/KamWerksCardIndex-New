@@ -1,6 +1,6 @@
-//! Import commonly use types and traits
+//! Import commonly use types and traits.
 //!
-//! Re-export types that you can use by just importing it
+//! Re-export types that you can use by just importing it.
 //! # Example
 //!
 //! Import the prelude with:

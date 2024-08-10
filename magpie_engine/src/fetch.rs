@@ -1,6 +1,4 @@
-//! Provide function to fetch json and supported set
-//!
-//! The only supported set currently are `imf` and `aug`
+//! Provide function to fetch json and supported sets.
 
 use isahc::ReadResponseExt;
 use serde::Deserialize;
@@ -15,12 +13,12 @@ pub use aug::*;
 pub use desc::*;
 pub use imf::*;
 
-/// Error that happen when calling [`fetch_json`]
+/// Error that happen when calling [`fetch_json`].
 #[derive(Debug)]
 pub enum FetchError {
-    /// [`isahc`](https://docs.rs/isahc) error or error that happen when trying to fetch the json data
+    /// [`isahc`](https://docs.rs/isahc) error or error that happen when trying to fetch the json data.
     IsahcError(isahc::Error),
-    /// [`serde`] error or error that happen when parsing the json data to the target type.
+    /// [`serde`] error or error that happen when parsing the json data to the target type..
     SerdeError(serde_json::Error),
 }
 
