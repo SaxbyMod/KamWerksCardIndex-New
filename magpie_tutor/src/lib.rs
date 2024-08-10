@@ -17,7 +17,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 pub mod emojis;
-pub mod magpie;
+pub mod engine;
 pub mod query;
 pub mod search;
 
@@ -36,7 +36,7 @@ pub use fuzzy::*;
 #[macro_use]
 pub mod r#macro;
 
-use self::{fetch::AugCost, magpie::FilterExt};
+use self::engine::{FilterExt, MagpieCosts, MagpieExt};
 
 // Type definition for stuff
 
@@ -65,11 +65,11 @@ pub type CmdCtx<'a> = poise::Context<'a, Data, Error>;
 pub type Res = Result<(), Error>;
 
 /// Card type alias.
-pub type Card = magpie_engine::Card<AugExt, AugCost>;
+pub type Card = magpie_engine::Card<MagpieExt, MagpieCosts>;
 /// Set type alias.
-pub type Set = magpie_engine::Set<AugExt, AugCost>;
+pub type Set = magpie_engine::Set<MagpieExt, MagpieCosts>;
 /// Filters type alias
-pub type Filters = magpie_engine::prelude::Filters<AugExt, AugCost, FilterExt>;
+pub type Filters = magpie_engine::prelude::Filters<MagpieExt, MagpieCosts, FilterExt>;
 
 /// Type alias for caches
 pub type Cache = HashMap<u64, CacheData>;
@@ -106,6 +106,7 @@ lazy_static! {
             egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
             ---
             augmented (aug) => fetch_aug_set,
+            descryption (des) => fetch_desc_set,
         }
     };
 
@@ -134,7 +135,7 @@ lazy_static! {
                 b: 4,
                 y: 2,
             }),
-            extra: AugCost {
+            extra: MagpieCosts {
                 shattered_count: Some(MoxCount {
                     r: 1,
                     g: 9,
@@ -142,6 +143,8 @@ lazy_static! {
                     y: 4,
                 }),
                 max: 451,
+                link: 6,
+                gold: 24601
             }
         }),
         traits: Some(Traits {
@@ -153,8 +156,8 @@ lazy_static! {
             "NEW_DATA".to_owned(),
             "ANCIENT_DATA".to_owned(),
         ],
-        extra: AugExt {
-            artist: "art".to_owned(),
+        extra: MagpieExt {
+            artist: String::from("artist")
         },
     };
 

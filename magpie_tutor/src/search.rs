@@ -156,7 +156,14 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             {
                 best
             } else {
-                embeds.push(missing_embed(search_term));
+                embeds.push({
+                    CreateEmbed::new()
+                        .color(roles::RED)
+                        .title(format!("Card \"{search_term}\" not found"))
+                        .description(
+                            "No card found with sufficient similarity with the search term in the selected set(s).",
+                        )
+                });
                 continue;
             };
 
@@ -196,7 +203,10 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
                     let filename = hash.to_string() + ".png";
 
-                    if !attachments.iter().any(|a| a.filename == filename) {
+                    if !card.portrait.is_empty()
+                        && !attachments.iter().any(|a| a.filename == filename)
+                    {
+                        embed = embed.thumbnail(format!("attachment://{filename}.png"));
                         attachments.push(CreateAttachment::bytes(gen_portrait(card), filename));
                     }
                 }

@@ -8,7 +8,7 @@ pub fn gen_portrait(card: &Card) -> Vec<u8> {
     match card.set.code() {
         "aug" => gen_aug_portrait(card),
         "std" | "ete" | "egg" => gen_imf_portrait(card),
-        _ => unimplemented!(),
+        code => todo!("portrait for set code is not implemented yet: {code}"),
     }
 }
 

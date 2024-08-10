@@ -31,12 +31,14 @@ emoji_table! {
 }
 
 emoji_table! {
-    pub mod imf {
+    pub mod cost {
         // Cost icon
         BLOOD = "<:imf_blood:1262601160121122837>";
         BONE = "<:imf_bone:1262601002180284437>";
         ENERGY = "<:imf_energy:1262601154479521835>";
         MAX = "<:imf_energy:1262601154479521835>";
+        LINK = "<:imf_energy:1262601154479521835>";
+        GOLD = "<:imf_energy:1262601154479521835>";
 
         // Mox color
         RED = "<:red:1262601156560158770>";

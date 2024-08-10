@@ -29,7 +29,7 @@ use std::{fmt::Display, vec};
 use magpie_engine::prelude::*;
 
 use crate::{
-    magpie::{CostType, FilterExt},
+    engine::{CostType, FilterExt},
     Filters, COST_REGEX,
 };
 
@@ -320,7 +320,7 @@ impl TryFrom<Keyword> for Filters {
                         'o' => costs.bone = count,
                         'e' => costs.energy = count,
                         'r' => {
-                            costs.mox |= Mox::R;
+                            costs.mox |= Mox::O;
                             if let Some(ref mut c) = costs.mox_count {
                                 c.r = count as usize;
                             }
