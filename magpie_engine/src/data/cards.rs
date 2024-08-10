@@ -237,11 +237,11 @@ bitsflag! {
     /// Bits flag for Mox, If you need more than these 4 colors you need to make you own mox type and
     /// extend it.
     pub struct Mox: u16 {
-        /// Red, Orange or Ruby Mox.
-        R = 1;
-        /// Blue or Sapphire Mox.
-        G = 1 << 1;
+        /// Orange or Ruby Mox.
+        O = 1;
         /// Green or Emerald Mox.
+        G = 1 << 1;
+        /// Blue or Sapphire Mox.
         B = 1 << 2;
         /// Gray or Prism Mox, also use to represent Descryption's Black mox but it is functionally
         /// different

@@ -91,7 +91,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> 
                     .mox_cost
                     .iter()
                     .fold(Mox::EMPTY, |flags, mox| match mox.as_str() {
-                        "Orange" => flags | Mox::R,
+                        "Orange" => flags | Mox::O,
                         "Green" => flags | Mox::G,
                         "Blue" => flags | Mox::B,
                         _ => unreachable!(),

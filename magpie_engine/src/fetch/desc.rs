@@ -66,7 +66,7 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
             if card.cost.contains(',') | !card.cost.contains(' ') {
                 for m in card.cost.split(", ") {
                     costs.mox |= match m {
-                        "Orange" => Mox::R,
+                        "Orange" => Mox::O,
                         "Green" => Mox::G,
                         "Blue" => Mox::B,
                         "Black" => Mox::Y,
