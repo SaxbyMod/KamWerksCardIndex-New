@@ -11,7 +11,7 @@ use poise::serenity_prelude::{
 };
 
 use crate::{
-    current_epoch, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
+    current_epoch, debug, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
     CacheData, Card, Color, Death, FuzzyRes, MessageAdapter, MessageCreateExt, Res, CACHE,
     CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };
@@ -203,10 +203,10 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
                     let filename = hash.to_string() + ".png";
 
+                    embed = embed.thumbnail(format!("attachment://{filename}"));
                     if !card.portrait.is_empty()
                         && !attachments.iter().any(|a| a.filename == filename)
                     {
-                        embed = embed.thumbnail(format!("attachment://{filename}.png"));
                         attachments.push(CreateAttachment::bytes(gen_portrait(card), filename));
                     }
                 }
