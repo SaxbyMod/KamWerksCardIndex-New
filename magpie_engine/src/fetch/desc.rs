@@ -3,9 +3,8 @@ use std::{collections::HashMap, error::Error, fmt::Display};
 use serde::Deserialize;
 
 use crate::{
-    bitsflag,
     fetch::{fetch_json, FetchError},
-    Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits,
+    Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits, TraitsFlag,
 };
 
 /// Descryption's [`Costs`] extension.
@@ -43,7 +42,7 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
             continue;
         }
 
-        let mut temple = Temple::EMPTY;
+        let mut temple = Temple::empty();
 
         if !is_empty(&card.temple) {
             for t in card.temple.split(", ") {
@@ -69,7 +68,13 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                         "Orange" => Mox::O,
                         "Green" => Mox::G,
                         "Blue" => Mox::B,
-                        "Black" => Mox::Y,
+                        "Black" => {
+                            if costs.mox.is_empty() {
+                                Mox::K
+                            } else {
+                                Mox::P
+                            }
+                        }
                         _ => return Err(DescError::UnknownMoxColor(m.to_owned())),
                     }
                 }
@@ -108,7 +113,7 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                     _ => return Err(DescError::UnknownRarity(card.rarity)),
                 }
             },
-            temple: temple.into(),
+            temple,
             tribes: (card.tribes == "-").then_some(card.tribes),
             attack: if let Ok(a) = card.attack.parse() {
                 Attack::Num(a)
@@ -144,7 +149,7 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                         .map(ToOwned::to_owned)
                         .collect()
                 }),
-                flags: 0,
+                flags: TraitsFlag::empty(),
             }),
             related: vec![],
             extra: (),

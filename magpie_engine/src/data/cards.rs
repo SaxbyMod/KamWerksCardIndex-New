@@ -1,9 +1,11 @@
-use crate::bitsflag;
-use crate::SetCode;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::hash::Hasher;
+
+use bitflags::bitflags;
+
+use crate::SetCode;
 
 macro_rules! card {
     ($($(#[$attr:meta])* $f:ident: $ty:ty,)*) => {
@@ -77,7 +79,7 @@ card! {
     /// constant of [`Temple`] to set these bit flags. We use a [`u16`] instead of other crate like
     /// [`Bitflags`](https://docs.rs/bitflags/) so we can support more temple and make it easier to
     /// extend, if you need more than 16 temples, may god help you.
-    temple: u16,
+    temple: Temple,
     /// The card tribes.
     tribes: Option<String>,
 
@@ -184,21 +186,22 @@ impl Display for Rarity {
     }
 }
 
-bitsflag! {
+bitflags! {
     /// Temples, binder or archetypes card belong to.
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct Temple: u16 {
         /// The Beast or Leshy Temple.
-        BEAST = 1;
+        const BEAST = 1;
         /// The Undead or Grimora Temple.
-        UNDEAD = 1 << 1;
+        const UNDEAD = 1 << 1;
         /// The Tech or PO3 Temple.
-        TECH = 1 << 2;
+        const TECH = 1 << 2;
         /// The Magick or Magnificus Temple.
-        MAGICK = 1 << 3;
+        const MAGICK = 1 << 3;
         /// The Fool Temple from Augmented.
-        FOOL = 1 << 4;
+        const FOOL = 1 << 4;
         /// The Artistry or Galliard Temple from Descryprion.
-        ARTISTRY = 1 << 5;
+        const ARTISTRY = 1 << 5;
     }
 }
 
@@ -233,19 +236,24 @@ pub enum SpAtk {
     CARD,
 }
 
-bitsflag! {
+bitflags! {
     /// Bits flag for Mox, If you need more than these 4 colors you need to make you own mox type and
     /// extend it.
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct Mox: u16 {
         /// Orange or Ruby Mox.
-        O = 1;
+        const O = 1;
         /// Green or Emerald Mox.
-        G = 1 << 1;
+        const G = 1 << 1;
         /// Blue or Sapphire Mox.
-        B = 1 << 2;
-        /// Gray or Prism Mox, also use to represent Descryption's Black mox but it is functionally
-        /// different
-        Y = 1 << 3;
+        const B = 1 << 2;
+        /// Gray or Prism Mox
+        const Y = 1 << 3;
+
+        /// Black or Onyx Mox.
+        const K = 1 << 4;
+        /// Plus 1 indicator for Descryption
+        const P = 1<< 5;
     }
 }
 
@@ -260,6 +268,8 @@ pub struct MoxCount {
     pub b: usize,
     /// The Gray component.
     pub y: usize,
+    /// The Black component.
+    pub k: usize,
 }
 
 impl Default for MoxCount {
@@ -269,12 +279,13 @@ impl Default for MoxCount {
             g: 1,
             b: 1,
             y: 1,
+            k: 1,
         }
     }
 }
 
 /// Contain all the cost info.
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct Costs<E> {
     /// Other case where the card are not free.
     /// Blood cost for the card.
@@ -284,7 +295,7 @@ pub struct Costs<E> {
     /// Energy cost for the card.
     pub energy: isize,
     /// Mox bit flags for the card.
-    pub mox: u16,
+    pub mox: Mox,
     /// Multiple Mox support for card.
     ///
     /// If the card only cost 1 Mox max you should not add this type.
@@ -294,22 +305,23 @@ pub struct Costs<E> {
     pub extra: E,
 }
 
-bitsflag! {
+bitflags! {
     /// Bit flags for a card trait.
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct TraitsFlag: u16 {
         /// If this card is conductive.
-        CONDUCTIVE = 1;
+        const CONDUCTIVE = 1;
         /// If this card is ban.
-        BAN = 1 << 1;
+        const BAN = 1 << 1;
         /// If this card is unsaccable or a terrain.
-        TERRAIN = 1 << 2;
+        const TERRAIN = 1 << 2;
         /// If this card is hard or unhammerable.
-        HARD = 1 << 3;
+        const HARD = 1 << 3;
     }
 }
 
 /// Store both flag based traits and string based traits.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Traits {
     /// Traits that are not flags so they are [`String`].
     ///
@@ -318,16 +330,16 @@ pub struct Traits {
     /// Trait that are in bit flags form.
     ///
     /// Common traits are store using bit flags to save space.
-    pub flags: u16,
+    pub flags: TraitsFlag,
 }
 
 impl Traits {
     /// Create a new Traits with flags and empty [`Traits::strings`]
     #[must_use]
-    pub fn with_flags(flags: impl Into<u16>) -> Self {
+    pub fn with_flags(flags: TraitsFlag) -> Self {
         Traits {
             strings: None,
-            flags: flags.into(),
+            flags,
         }
     }
 
@@ -336,7 +348,7 @@ impl Traits {
     pub fn with_str(traits: Vec<String>) -> Self {
         Traits {
             strings: Some(traits),
-            flags: 0,
+            flags: TraitsFlag::empty(),
         }
     }
 }

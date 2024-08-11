@@ -2,7 +2,7 @@
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`].
-use crate::{Attack, Card, Costs, Rarity, Set, SpAtk, Traits};
+use crate::{Attack, Card, Costs, Rarity, Set, SpAtk, Temple, Traits};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
@@ -155,7 +155,7 @@ where
     /// Filter for card rarity
     ///
     /// The value in this variant is bit flags to match against.
-    Temple(u16),
+    Temple(Temple),
     /// Filter for card tribe
     ///
     /// The value is the tribe or tribes to match against.

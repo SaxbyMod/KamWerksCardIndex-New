@@ -2,6 +2,7 @@
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
+use crate::helper::FlagsExt;
 use crate::{Attack, Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -44,12 +45,11 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> 
             description: c.description,
 
             rarity: if c.rare { Rarity::RARE } else { Rarity::COMMON },
-            temple: Temple::EMPTY
+            temple: Temple::empty()
                 .set_if(Temple::BEAST, c.blood_cost != 0)
                 .set_if(Temple::UNDEAD, c.bone_cost != 0)
                 .set_if(Temple::TECH, c.energy_cost != 0)
-                .set_if(Temple::MAGICK, !c.mox_cost.is_empty())
-                .into(),
+                .set_if(Temple::MAGICK, !c.mox_cost.is_empty()),
             tribes: None,
 
             attack: {
@@ -90,25 +90,23 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> 
                 mox: c
                     .mox_cost
                     .iter()
-                    .fold(Mox::EMPTY, |flags, mox| match mox.as_str() {
+                    .fold(Mox::empty(), |flags, mox| match mox.as_str() {
                         "Orange" => flags | Mox::O,
                         "Green" => flags | Mox::G,
                         "Blue" => flags | Mox::B,
                         _ => unreachable!(),
-                    })
-                    .into(),
+                    }),
                 mox_count: None,
                 extra: (),
             }),
 
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
                 strings: None,
-                flags: TraitsFlag::EMPTY
+                flags: TraitsFlag::empty()
                     .set_if(TraitsFlag::CONDUCTIVE, c.conduit)
                     .set_if(TraitsFlag::BAN, c.banned)
                     .set_if(TraitsFlag::TERRAIN, c.nosac)
-                    .set_if(TraitsFlag::HARD, c.nohammer)
-                    .into(),
+                    .set_if(TraitsFlag::HARD, c.nohammer),
             }),
 
             related: {

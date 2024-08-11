@@ -3,7 +3,7 @@
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
 use super::{fetch_json, FetchError};
-use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits};
+use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits, TraitsFlag};
 use crate::{Attack, Rarity};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -175,7 +175,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
                 "Magick" => Temple::MAGICK,
                 "Fool" => Temple::FOOL,
                 _ => return Err(AugError::UnknownTemple(card.temple))
-            }.into(),
+            },
             tribes: (!card.tribes.is_empty()).then_some(card.tribes),
 
             attack: Attack::Num(card.attack.parse().unwrap_or(0)),
@@ -204,7 +204,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
                     .collect::<Vec<String>>()
                 ),
 
-                flags: 0
+                flags: TraitsFlag::empty()
             }),
             related: if card.token.is_empty() {
                 vec![]
