@@ -350,7 +350,7 @@ impl TryFrom<Keyword> for Filters {
                 ft_some!(Costs(costs))
             }
             Keyword::CostType(c) => {
-                let mut t = CostType::EMPTY;
+                let mut t = CostType::empty();
                 for c in c.chars() {
                     t |= match c {
                         'b' => CostType::BLOOD,

@@ -1,7 +1,7 @@
 //! Contain the main search function and implementations.
 use std::{time::Instant, vec};
 
-use magpie_engine::bitsflag;
+use bitflags::bitflags;
 use poise::serenity_prelude::{
     colours::roles,
     ButtonStyle::{Danger, Primary},
@@ -24,12 +24,12 @@ mod embed;
 #[allow(clippy::wildcard_imports)]
 use embed::*;
 
-bitsflag! {
+bitflags! {
     struct Modifier: u8 {
-        QUERY = 1;
-        ALL_SET = 1 << 1;
-        DEBUG = 1 << 2;
-        COMPACT = 1 << 3;
+        const QUERY = 1;
+        const ALL_SET = 1 << 1;
+        const DEBUG = 1 << 2;
+        const COMPACT = 1 << 3;
     }
 }
 
@@ -97,7 +97,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
         };
 
         let modifier = {
-            let mut t = Modifier::EMPTY;
+            let mut t = Modifier::empty();
             for m in modifier.chars() {
                 t |= match m {
                     'q' => Modifier::QUERY,

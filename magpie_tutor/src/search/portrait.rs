@@ -28,8 +28,8 @@ fn gen_aug_portrait(card: &Card) -> Vec<u8> {
             "Rare" | "Unique" => "rare",
             r => unreachable!("{}", r)
         },
-        if let Some(t) = Temple::from(card.temple).flags().next() {
-            match *t {
+        if let Some(t) = card.temple.iter().next() {
+            match t {
                 Temple::BEAST => "beast",
                 Temple::UNDEAD => "undead",
                 Temple::TECH => "tech",

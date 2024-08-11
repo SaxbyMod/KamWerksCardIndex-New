@@ -1198,6 +1198,7 @@ dependencies = [
 name = "magpie_engine"
 version = "0.1.0"
 dependencies = [
+ "bitflags 2.6.0",
  "isahc",
  "serde",
  "serde_json",
@@ -1208,6 +1209,7 @@ name = "magpie_tutor"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "bitflags 2.6.0",
  "chrono",
  "image",
  "isahc",

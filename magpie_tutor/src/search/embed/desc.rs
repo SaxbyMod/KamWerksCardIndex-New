@@ -1,3 +1,5 @@
+#![allow(unused)] // shush im fixing them
+
 use magpie_engine::prelude::*;
 use poise::serenity_prelude::{colours::roles, CreateEmbed};
 

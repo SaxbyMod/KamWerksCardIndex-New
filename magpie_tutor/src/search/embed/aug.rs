@@ -9,8 +9,8 @@ use crate::{
 use super::{append_cost, EmbedRes};
 
 pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
-    let color = if let Some(t) = Temple::from(card.temple).flags().next() {
-        match *t {
+    let color = if let Some(t) = card.temple.iter().next() {
+        match t {
             Temple::BEAST => roles::DARK_GOLD,
             Temple::UNDEAD => roles::GREEN,
             Temple::TECH => roles::BLUE,
@@ -27,7 +27,7 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
         card.name,
         set.name,
         match &card.traits {
-            Some(tr) => TraitsFlag::from(tr.flags).to_emoji(),
+            Some(tr) => tr.flags.to_emoji(),
             None => String::new(),
         }
     ));
@@ -58,12 +58,12 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
         append_cost(&mut out, costs.energy, "Energy", cost::ENERGY);
         append_cost(&mut out, costs.extra.max, "Max", cost::MAX);
 
-        if costs.mox != 0 {
+        if costs.mox.is_empty() {
             let mut mox_cost = String::from("**Mox cost:** ");
             let count = costs.mox_count.clone().unwrap_or_default();
 
-            for m in Mox::from(costs.mox).flags() {
-                match *m {
+            for m in costs.mox.iter() {
+                match m {
                     Mox::O => mox_cost.extend(vec![cost::RED; count.r]),
                     Mox::G => mox_cost.extend(vec![cost::GREEN; count.g]),
                     Mox::B => mox_cost.extend(vec![cost::BLUE; count.b]),

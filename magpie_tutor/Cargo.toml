@@ -26,16 +26,23 @@ path = "../magpie_engine/"
 [dependencies]
 
 poise = "0.6" # poise is actually just use for the data stuff because I can't be bother to handle it
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", features = [
+  "macros",
+  "rt-multi-thread",
+] } # tokio for async shit cus it discord api
 
-isahc = "1" # for getting potrait
+isahc = "1"    # for getting potrait
 image = "0.25" # scaling and working with portrait
-regex = "1" # parse input and query
+regex = "1"    # parse input and query
 
 bincode = "1" # use to save the cache table
 
-serde = { version = "1.0", features = ["derive"] } # simply serde what else to say
+serde = { version = "1.0", features = [
+  "derive",
+] } # simply serde what else to say
 
 chrono = "0.4" # maninly for log
 
 lazy_static = "1" # global variable
+
+bitflags = "2"

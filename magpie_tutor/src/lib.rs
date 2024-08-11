@@ -118,7 +118,7 @@ lazy_static! {
         portrait: "https://pbs.twimg.com/media/DUgfSnpU0AAA5Ky.jpg".to_owned(),
 
         rarity: Rarity::RARE,
-        temple: Temple::TECH.into(),
+        temple: Temple::TECH,
         tribes: Some("Big Green Mother".to_string()),
 
         attack: Attack::SpAtk(SpAtk::MIRROR),
@@ -134,6 +134,7 @@ lazy_static! {
                 g: 9,
                 b: 4,
                 y: 2,
+                k: 1
             }),
             extra: MagpieCosts {
                 shattered_count: Some(MoxCount {
@@ -141,6 +142,7 @@ lazy_static! {
                     g: 9,
                     b: 8,
                     y: 4,
+                    k: 1
                 }),
                 max: 451,
                 link: 6,

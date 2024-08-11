@@ -1,20 +1,22 @@
 //! Some code, implementation and extension for the engine
 
+use bitflags::bitflags;
 use magpie_engine::prelude::*;
 
 use crate::lev;
 
-bitsflag! {
+bitflags! {
     /// Cost type value for filter
+    #[derive(Clone, PartialEq, Eq)]
     pub struct CostType: u8 {
         /// Blood cost
-        BLOOD = 1;
+        const BLOOD = 1;
         /// Bone cost
-        BONE = 1 << 1;
+        const BONE = 1 << 1;
         /// Energy Cost
-        ENERGY = 1 << 2;
+        const ENERGY = 1 << 2;
         /// Mox cost
-        MOX = 1 << 3;
+        const MOX = 1 << 3;
     }
 }
 
@@ -38,7 +40,7 @@ impl ToFilter<MagpieExt, MagpieCosts> for FilterExt {
                     !(t.contains(CostType::BLOOD) && c.blood == 0
                         || t.contains(CostType::BONE) && c.bone == 0
                         || t.contains(CostType::ENERGY) && c.energy == 0
-                        || t.contains(CostType::MOX) && c.mox == 0)
+                        || t.contains(CostType::MOX) && c.mox.is_empty())
                 } else {
                     false
                 }

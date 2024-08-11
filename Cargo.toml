@@ -3,7 +3,4 @@ incremental = true
 
 [workspace]
 resolver = "2"
-members = [
-    "magpie_engine",
-    "magpie_tutor"
-]
+members = ["magpie_engine", "magpie_tutor"]

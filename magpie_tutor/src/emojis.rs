@@ -86,8 +86,8 @@ impl ToEmoji for SpAtk {
 
 impl ToEmoji for TraitsFlag {
     fn to_emoji(&self) -> String {
-        self.flags()
-            .map(|v| match *v {
+        self.iter()
+            .map(|v| match v {
                 TraitsFlag::CONDUCTIVE => icon::CONDUCTIVE,
                 TraitsFlag::BAN => icon::BAN,
                 TraitsFlag::TERRAIN => icon::TERRAIN,
