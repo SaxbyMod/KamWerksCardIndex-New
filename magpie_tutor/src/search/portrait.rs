@@ -17,8 +17,10 @@ fn gen_imf_portrait(card: &Card) -> Vec<u8> {
 }
 
 fn gen_aug_portrait(card: &Card) -> Vec<u8> {
-    let portrait =
-        image::load(Cursor::new(get_portrait(&card.portrait)), ImageFormat::Png).unwrap();
+    let Ok(portrait) = image::load(Cursor::new(get_portrait(&card.portrait)), ImageFormat::Png)
+    else {
+        return Vec::new();
+    };
 
     let bg = &format!(
         "https://raw.githubusercontent.com/answearingmachine/card-printer/main/dist/printer/assets/bg/bg_{}_{}.png",
