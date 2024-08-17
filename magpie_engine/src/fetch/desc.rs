@@ -114,7 +114,7 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                 }
             },
             temple,
-            tribes: (card.tribes == "-").then_some(card.tribes),
+            tribes: (!is_empty(&card.tribes)).then_some(card.tribes),
             attack: if let Ok(a) = card.attack.parse() {
                 Attack::Num(a)
             } else {
@@ -147,6 +147,7 @@ pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                         .split("; ")
                         .chain(card.traits.split("; "))
                         .map(ToOwned::to_owned)
+                        .filter(|t| !is_empty(t))
                         .collect()
                 }),
                 flags: TraitsFlag::empty(),
