@@ -171,7 +171,7 @@ fn is_empty(str: &str) -> bool {
     str.is_empty() || str == "-" || str == "N/A"
 }
 
-/// Error that happen when calling [`fetch_desc`].
+/// Error that happen when calling [`fetch_desc_set`].
 #[derive(Debug)]
 pub enum DescError {
     /// Error when trying to [`fetch_json`] cards.
