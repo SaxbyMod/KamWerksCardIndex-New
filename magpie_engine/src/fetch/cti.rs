@@ -103,7 +103,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<(), ()>, CtiError> {
         }
 
         cards.push(Card {
-            portrait: format!("https://github.com/SaxbyMod/NotionAssets/tree/main/Formats/Custom%20TCG%20Inscryption/Portraits/{}.png", card.name.replace(' ', "%20")),
+            portrait: format!("https://raw.githubusercontent.com/SaxbyMod/NotionAssets/main/Formats/Custom%20TCG%20Inscryption/Portraits/{}.png", card.name.replace(' ', "%20")),
 
             set: code,
 
