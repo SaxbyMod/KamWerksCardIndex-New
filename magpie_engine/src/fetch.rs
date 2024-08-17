@@ -6,10 +6,12 @@ use std::error::Error;
 use std::fmt::Display;
 
 mod aug;
+mod cti;
 mod desc;
 mod imf;
 
 pub use aug::*;
+pub use cti::*;
 pub use desc::*;
 pub use imf::*;
 

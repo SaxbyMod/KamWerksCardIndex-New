@@ -2,12 +2,15 @@
 //!
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
-use super::{fetch_json, FetchError};
-use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits, TraitsFlag};
-use crate::{Attack, Rarity};
+use std::{collections::HashMap, fmt::Display};
+
 use serde::Deserialize;
-use std::collections::HashMap;
-use std::fmt::Display;
+
+use crate::{
+    fetch::{fetch_json, FetchError},
+    self_upgrade, Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode, Temple, Traits,
+    TraitsFlag,
+};
 
 /// Augmented's [`Card`] extensions.
 #[derive(Debug, Default, Clone)]
@@ -41,8 +44,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
 
     let mut cards = Vec::with_capacity(raw_card.len());
 
-    let undefined_sigil = String::from("UNDEFINDED SIGILS");
-
     let mut sigils_description = HashMap::with_capacity(sigil.len());
 
     for s in sigil {
@@ -50,7 +51,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
     }
 
     sigils_description.insert(
-        undefined_sigil.clone(),
+        String::from("UNDEFINDED SIGILS"),
         "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
     );
 

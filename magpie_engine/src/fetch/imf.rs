@@ -2,14 +2,15 @@
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
-use crate::helper::FlagsExt;
-use crate::{Attack, Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag};
-use serde::Deserialize;
-use std::collections::HashMap;
-use std::error::Error;
-use std::fmt::Display;
+use std::{collections::HashMap, error::Error, fmt::Display};
 
-use super::{fetch_json, FetchError};
+use serde::Deserialize;
+
+use crate::{
+    fetch::{fetch_json, FetchError},
+    helper::FlagsExt,
+    Attack, Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag,
+};
 
 /// Fetch a IMF Set from a url.
 pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> {
