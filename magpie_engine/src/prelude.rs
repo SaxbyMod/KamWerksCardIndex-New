@@ -10,8 +10,8 @@
 
 pub use crate::{
     fetch::{
-        fetch_aug_set, fetch_desc as fetch_desc_set, fetch_imf_set, AugCosts, AugError, AugExt,
-        DescCosts, DescError, ImfError,
+        fetch_aug_set, fetch_cti_set, fetch_desc_set, fetch_imf_set, AugCosts, AugError, AugExt,
+        CtiError, DescCosts, DescError, ImfError,
     },
     query::{FilterFn, Filters, QueryBuilder, QueryOrder, ToFilter},
     *,

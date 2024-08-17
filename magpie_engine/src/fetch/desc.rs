@@ -18,7 +18,7 @@ pub struct DescCosts {
 
 /// Fetch Descryption from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE).
-pub fn fetch_desc(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
+pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
     let card_raw: Vec<DescCard> =
         fetch_json("https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/Cards")
             .map_err(DescError::CardFetchError)?;
