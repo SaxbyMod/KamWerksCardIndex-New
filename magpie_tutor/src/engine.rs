@@ -7,7 +7,7 @@ use crate::lev;
 
 bitflags! {
     /// Cost type value for filter
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct CostType: u8 {
         /// Blood cost
         const BLOOD = 1;
@@ -21,7 +21,7 @@ bitflags! {
 }
 
 /// Extra Filter for query
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FilterExt {
     /// Fuzzy match the card name
     Fuzzy(String),
