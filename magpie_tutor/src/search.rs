@@ -131,7 +131,11 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
         if sets.is_empty() {
             sets.push(
                 SETS.get(match guild_id.get() {
+                    // Default to aug in the augmented server
                     1028530290727063604 => "aug",
+                    // Default to des in the descryption server
+                    1257552767984074803 => "des",
+
                     _ => "std",
                 })
                 .unwrap(),

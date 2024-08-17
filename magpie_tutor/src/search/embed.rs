@@ -27,7 +27,7 @@ pub fn gen_embed(rank: f32, card: &Card, set: &Set, compact: bool) -> CreateEmbe
     // to add.
 
     let (embed, footer) = match card.set.code() {
-        "aug" => aug::gen_embed(card, set, compact),
+        "aug" | "cti" => aug::gen_embed(card, set, compact),
         "std" | "ete" | "egg" => imf::gen_embed(card, set, compact),
         "des" => desc::gen_embed(card, set, compact),
         code => todo!("embed for set code is not implemented yet: {code}"),

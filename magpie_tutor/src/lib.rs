@@ -107,6 +107,7 @@ lazy_static! {
             ---
             augmented (aug) => fetch_aug_set,
             descryption (des) => fetch_desc_set,
+            custom_tcg (cti) => fetch_cti_set,
         }
     };
 
@@ -121,7 +122,7 @@ lazy_static! {
         temple: Temple::TECH,
         tribes: Some("Big Green Mother".to_string()),
 
-        attack: Attack::SpAtk(SpAtk::MIRROR),
+        attack: Attack::Num(420),
         health: 10,
         sigils: Vec::new(),
         costs: Some(Costs {
