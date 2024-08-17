@@ -112,7 +112,7 @@ lazy_static! {
 
     /// Debug card use to test rendering
     pub static ref DEBUG_CARD: Card = Card {
-        set: SetCode::new("std").unwrap(),
+        set: SetCode::new("des").unwrap(),
         name: "OLD_DATA".to_owned(),
         description: "If you gaze long into an abyss, the abyss also gazes into you.".to_owned(),
         portrait: "https://pbs.twimg.com/media/DUgfSnpU0AAA5Ky.jpg".to_owned(),
@@ -150,7 +150,7 @@ lazy_static! {
             }
         }),
         traits: Some(Traits {
-            strings: None,
+            strings: Some(["Beastly", "Trait 13", "Prisoner 24601"].into_iter().map(std::string::ToString::to_string).collect()),
             flags: TraitsFlag::all(),
         }),
         related: vec![
