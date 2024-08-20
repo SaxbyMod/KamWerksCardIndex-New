@@ -156,7 +156,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<(), ()>, CtiError> {
 
     Ok(Set {
         code,
-        name: String::from("Augmented"),
+        name: String::from("Custom TCG Inscryption"),
         cards,
         sigils_description,
     })
