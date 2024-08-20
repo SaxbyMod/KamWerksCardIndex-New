@@ -142,14 +142,16 @@ pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                 Some(costs)
             },
             traits: Some(Traits {
-                strings: (card.traits_unique.is_empty() || card.traits_unique == "-").then(|| {
-                    card.traits_unique
-                        .split("; ")
-                        .chain(card.traits.split("; "))
-                        .map(ToOwned::to_owned)
-                        .filter(|t| !is_empty(t))
-                        .collect()
-                }),
+                strings: {
+                    (!(is_empty(&card.traits_unique) && is_empty(&card.traits))).then(|| {
+                        card.traits_unique
+                            .split("; ")
+                            .chain(card.traits.split("; "))
+                            .map(ToOwned::to_owned)
+                            .filter(|t| !is_empty(t))
+                            .collect()
+                    })
+                },
                 flags: TraitsFlag::empty(),
             }),
             related: vec![],
