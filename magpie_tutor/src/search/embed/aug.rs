@@ -16,6 +16,7 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
             Temple::TECH => roles::BLUE,
             Temple::MAGICK => roles::RED,
             Temple::FOOL => roles::MAGENTA,
+            _ if t.is_empty() => roles::LIGHT_GREY,
             _ => unreachable!(),
         }
     } else {

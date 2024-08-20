@@ -1,6 +1,5 @@
 //! Simple implementation for simple fuzzy sorting.
 
-use core::f32;
 use std::{
     cmp::{max, min},
     fmt::Debug,
