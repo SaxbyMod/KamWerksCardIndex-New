@@ -9,7 +9,7 @@ pub fn gen_portrait(card: &Card) -> Vec<u8> {
     match card.set.code() {
         "aug" => gen_aug_portrait(card),
         "cti" => gen_simple_portrait(card),
-        "std" | "ete" | "egg" | "des" => gen_scale_portrait(card, 2),
+        "std" | "ete" | "egg" | "des" => gen_scale_portrait(card, 4),
         code => todo!("portrait for set code is not implemented yet: {code}"),
     }
 }
