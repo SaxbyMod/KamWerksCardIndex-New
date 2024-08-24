@@ -24,7 +24,7 @@ pub fn fetch_desc_set(code: SetCode) -> SetResult<(), DescCosts> {
     let card_raw: Vec<DescCard> =
         fetch_json(card_url).map_err(|e| SetError::FetchError(e, card_url.to_string()))?;
 
-    let sigil_url = "https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/3";
+    let sigil_url = "https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/4";
     let sigils: Vec<DescSigil> =
         fetch_json(sigil_url).map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
 

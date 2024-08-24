@@ -35,11 +35,11 @@ self_upgrade!(AugExt, AugCosts);
 /// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk).
 #[allow(clippy::too_many_lines)]
 pub fn fetch_aug_set(code: SetCode) -> SetResult<AugExt, AugCosts> {
-    let card_url = "https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/1";
+    let card_url = "https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/2";
     let raw_card: Vec<AugCard> =
         fetch_json(card_url).map_err(|e| SetError::FetchError(e, card_url.to_string()))?;
 
-    let sigil_url = "https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/2";
+    let sigil_url = "https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/3";
     let sigil: Vec<AugSigil> =
         fetch_json(sigil_url).map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
 
