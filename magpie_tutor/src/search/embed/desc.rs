@@ -1,7 +1,7 @@
 #![allow(unused)] // shush im fixing them
 
 use magpie_engine::prelude::*;
-use poise::serenity_prelude::{colours::roles, CreateEmbed};
+use poise::serenity_prelude::{colours::roles, Colour, CreateEmbed};
 
 use crate::{
     emojis::{cost, ToEmoji},
@@ -16,8 +16,8 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
             Temple::BEAST => roles::DARK_GOLD,
             Temple::UNDEAD => roles::GREEN,
             Temple::TECH => roles::BLUE,
-            Temple::MAGICK => roles::RED,
-            Temple::ARTISTRY => roles::MAGENTA,
+            Temple::MAGICK => roles::MAGENTA,
+            Temple::ARTISTRY => Colour::new(u32::from_str_radix("3c3f4a", 16).unwrap()),
             _ => unreachable!(),
         }
     } else {

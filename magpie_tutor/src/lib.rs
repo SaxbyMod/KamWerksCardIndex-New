@@ -119,7 +119,7 @@ lazy_static! {
         portrait: "https://pbs.twimg.com/media/DUgfSnpU0AAA5Ky.jpg".to_owned(),
 
         rarity: Rarity::RARE,
-        temple: Temple::TECH,
+        temple: Temple::ARTISTRY,
         tribes: Some("Big Green Mother".to_string()),
 
         attack: Attack::Num(420),
