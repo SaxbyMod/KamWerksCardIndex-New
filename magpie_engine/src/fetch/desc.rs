@@ -100,9 +100,19 @@ pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
 
         let card = Card {
             set: code,
+            portrait: format!(
+                "https://raw.githubusercontent.com/EternalHours/Descryption/main/images/portraits/{}_{}.png", 
+                if card.traits_unique.contains("Full Art") { 
+                    "fullpixel"
+                } else {
+                   "pixelportrait"
+                },
+                card.name
+                    .to_lowercase()
+                    .replace([' ', '\'', '(', ')', '-', '.'], "")
+            ),
             name: card.name,
             description: String::new(),
-            portrait: String::new(),
             rarity: if is_empty(&card.rarity) {
                 Rarity::COMMON
             } else {
