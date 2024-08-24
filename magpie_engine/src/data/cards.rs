@@ -322,7 +322,22 @@ pub struct Traits {
 }
 
 impl Traits {
-    /// Create a new Traits with flags and empty [`Traits::strings`]
+    /// Create a new Traits with flags component and empty [`Traits::strings`].
+    ///
+    /// # Examples
+    /// ```
+    /// use magpie_engine::prelude::*;
+    ///
+    /// let test = Traits::with_flags(TraitsFlag::BAN | TraitsFlag::HARD);
+    ///
+    /// assert_eq!(
+    ///     test,
+    ///     Traits {
+    ///         strings: None,
+    ///         flags: TraitsFlag::BAN | TraitsFlag::HARD,
+    ///     }
+    /// );
+    /// ```
     #[must_use]
     pub fn with_flags(flags: TraitsFlag) -> Self {
         Traits {
@@ -332,8 +347,27 @@ impl Traits {
     }
 
     /// Create a new Traits with string component and empty [`Traits::flags`]
+    ///
+    /// # Examples
+    /// ```
+    /// use magpie_engine::prelude::*;
+    ///
+    /// let test = Traits::with_string(
+    ///     vec!["A Good Song Never Die".to_string()]
+    /// );
+    ///
+    /// assert_eq!(
+    ///     test,
+    ///     Traits {
+    ///         strings: Some(
+    ///             vec!["A Good Song Never Die".to_string()]
+    ///         ),
+    ///         flags: TraitsFlag::empty()
+    ///     }
+    /// );
+    /// ```
     #[must_use]
-    pub fn with_str(traits: Vec<String>) -> Self {
+    pub fn with_string(traits: Vec<String>) -> Self {
         Traits {
             strings: Some(traits),
             flags: TraitsFlag::empty(),

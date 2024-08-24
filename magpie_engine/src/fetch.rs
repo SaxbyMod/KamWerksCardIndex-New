@@ -17,6 +17,7 @@ pub use imf::*;
 
 use crate::Set;
 
+/// Type alias for set fetch output.
 pub type SetResult<E, C> = Result<Set<E, C>, SetError>;
 
 /// Error that happen when calling [`fetch_json`].

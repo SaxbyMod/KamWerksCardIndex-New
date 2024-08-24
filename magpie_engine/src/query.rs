@@ -2,14 +2,39 @@
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
 //! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`].
+//!
+//! # Examples
+//!
+//! ```
+//! use magpie_engine::prelude::*;
+//!
+//! // Fetch the set to query
+//! let imf = fetch_imf_set(
+//!     "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
+//!     SetCode::new("std").unwrap(),
+//! ).unwrap();
+//!
+//! // Make the query
+//! let query: QueryBuilder<(), (), ()> = QueryBuilder::with_filters(
+//!     vec![&imf],
+//!     vec![
+//!         Filters::Attack(QueryOrder::GreaterEqual, 3),
+//!         Filters::Health(QueryOrder::Less, 3 ),
+//!         Filters::Sigil("Airborne".to_string()),
+//!     ]
+//! );
+//!
+//! // Finally compile and get the results
+//! let result = query.query();
+//! ```
+
 use crate::{Attack, Card, Costs, Rarity, Set, SpAtk, Temple, Traits};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
 use std::vec;
 
-/// The query object containing your results and infomation about the filter that give you
-/// the results.
+/// The result of a filters obtain by calling [`QueryBuilder::query`].
 #[derive(Debug)]
 pub struct Query<'a, E, C, F>
 where
@@ -17,9 +42,9 @@ where
     C: Clone + PartialEq,
     F: ToFilter<E, C>,
 {
-    /// The result of this query.
+    /// The results of this query.
     pub cards: Vec<&'a Card<E, C>>,
-    /// The filter that produce this query.
+    /// The filters that produce this query.
     pub filters: Vec<Filters<E, C, F>>,
 }
 
@@ -42,13 +67,38 @@ where
     }
 }
 
-/// Type shorthand for a filter.
+/// Type alias for a filter function.
 pub type FilterFn<E, C> = Box<dyn Fn(&Card<E, C>) -> bool>;
 
 /// Query builder, it contain the set and is the main way to query cards.
 ///
-/// You must first build up your query then lastly call `.query()` to compile all the condition and
-/// start querying for cards.
+/// You build up your query using [`add_filter`](QueryBuilder::add_filter) then call [`query`](QueryBuilder::query) to compile all the filters and
+/// query for cards. You could also start out with all the filters using
+/// [`with_filters`](QueryBuilder::with_filters) and then just call [`query`](QueryBuilder::query)
+///
+/// The final result will be a [`Query`] that contain what filters was used and the cards that
+/// satisfied those filters.
+///
+/// # Examples
+///
+/// ```
+/// use magpie_engine::prelude::*;
+///
+/// // Fetch the set to query
+/// let imf = fetch_imf_set(
+///     "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
+///     SetCode::new("std").unwrap(),
+/// ).unwrap();
+///
+/// // Make the query
+/// let query: QueryBuilder<(), (), ()> = QueryBuilder::with_filters(
+///     vec![&imf],
+///     vec![Filters::Name("Squirrel".to_string())]
+/// );
+///
+/// // Finally compile and get the results
+/// let result = query.query();
+/// ```
 pub struct QueryBuilder<'a, E, C, F>
 where
     E: Clone,
@@ -56,7 +106,7 @@ where
     F: ToFilter<E, C>,
 {
     /// All the set that is use for this query.
-    pub sets: Vec<&'a Set<E, C>>,
+    sets: Vec<&'a Set<E, C>>,
 
     filters: Vec<Filters<E, C, F>>,
     funcs: Vec<FilterFn<E, C>>,
@@ -68,7 +118,39 @@ where
     E: Clone + 'static,
     F: ToFilter<E, C> + 'static,
 {
-    /// Create a new [`QueryBuilder`] from a collection of set.
+    /// Create a new empty [`QueryBuilder`] from a collection of set.
+    ///
+    /// This will give a [`QueryBuilder`] with no filters so you can add them using
+    /// [`QueryBuilder::add_filter`] or [`QueryBuilder::add_filter_mut`] to do it inplace
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use magpie_engine::prelude::*;
+    ///
+    /// // Fetch the set to query
+    /// let imf = fetch_imf_set(
+    ///     "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
+    ///     SetCode::new("std").unwrap(),
+    /// ).unwrap();
+    ///
+    /// // Make the query
+    /// let mut query: QueryBuilder<(), (), ()> = QueryBuilder::new(vec![&imf]);
+    ///
+    /// // Add a health filter
+    /// query.add_filter_mut(Filters::Health(QueryOrder::Greater, 3));
+    ///
+    /// // Finally compile and query get the results
+    /// let result = query.query();
+    ///
+    /// // Or alternatively you could use the builder pattern:
+    ///
+    /// let mut query: QueryBuilder<(), (), ()> =
+    ///     QueryBuilder::new(vec![&imf])
+    ///         .add_filter(Filters::Health(QueryOrder::Greater, 3));
+    ///
+    /// let result = query.query();
+    /// ```
     #[must_use]
     pub fn new(sets: Vec<&'a Set<E, C>>) -> Self {
         QueryBuilder {
@@ -78,7 +160,28 @@ where
         }
     }
 
-    /// Create a new [`QueryBuilder`] from some sets and filters.
+    /// Create a new [`QueryBuilder`] from a collection sets and filters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use magpie_engine::prelude::*;
+    ///
+    /// // Fetch the set to query
+    /// let imf = fetch_imf_set(
+    ///     "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
+    ///     SetCode::new("std").unwrap(),
+    /// ).unwrap();
+    ///
+    /// // Make the query
+    /// let query: QueryBuilder<(), (), ()> = QueryBuilder::with_filters(
+    ///     vec![&imf],
+    ///     vec![Filters::Attack(QueryOrder::Less, 3)]
+    /// );
+    ///
+    /// // Finally compile and get the results
+    /// let result = query.query();
+    /// ```
     #[must_use]
     pub fn with_filters(sets: Vec<&'a Set<E, C>>, filters: Vec<Filters<E, C, F>>) -> Self {
         QueryBuilder {
@@ -89,11 +192,22 @@ where
     }
 
     /// Add a new filter to this query.
+    ///
+    /// If you want to in place version use [`add_filter_mut`](QueryBuilder::add_filter_mut)
+    /// instead
     #[must_use]
     pub fn add_filter(mut self, filter: Filters<E, C, F>) -> Self {
         self.filters.push(filter.clone());
         self.funcs.push(filter.to_fn());
         self
+    }
+
+    /// Add a new filter in place.
+    ///
+    /// If you want to use the builder pattern use [`add_filter`](QueryBuilder::add_filter) instead
+    pub fn add_filter_mut(&mut self, filter: Filters<E, C, F>) {
+        self.filters.push(filter.clone());
+        self.funcs.push(filter.to_fn());
     }
 
     /// Compile all the query and give you the result.

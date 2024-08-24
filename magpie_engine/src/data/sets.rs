@@ -4,19 +4,38 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fmt::Display;
 
-/// A 3 ascii characters set code for card and set
+/// A 3 ascii characters set code for card and set.
+///
+/// [`SetCode`] are just 3 bytes internally (`[u8; 3]`) to save on space.
+///
+/// # Examples
+/// ```
+/// use magpie_engine::prelude::*;
+///
+/// // Set code can be any set of 3 letters
+/// assert!(SetCode::new("ABC").is_some());
+/// assert!(SetCode::new("std").is_some());
+///
+/// // Or any valid ascii symbol
+/// assert!(SetCode::new("$%>").is_some());
+/// assert!(SetCode::new("<=>").is_some());
+///
+/// // Even combination of them as long as they are all ascii
+/// assert!(SetCode::new("<a>").is_some());
+///
+/// assert!(SetCode::new("ABCD").is_none()); // Invalid because this is too long
+/// assert!(SetCode::new("🤓💀🧏").is_none()); // Invalid because it not ascii
+/// assert!(SetCode::new(";;;").is_none()); // These are actually greek question mark
+/// ```
 #[derive(Clone, Copy, Hash)]
 pub struct SetCode([u8; 3]);
 
 impl SetCode {
     /// Create a new [`SetCode`] using a 3 ascii characters.
     ///
-    /// Character are ascii so it is guaranteed that every character is a single byte, because of
-    /// this fact [`SetCode`] are just 3 bytes internally (`[u8; 3]`)
-    ///
-    /// # Example
+    /// # Examples
     /// ```
-    /// use magpie_engine::cards::SetCode;
+    /// use magpie_engine::prelude::*;
     ///
     /// assert!(SetCode::new("ABC").is_some());
     /// assert!(SetCode::new("ABCD").is_none());
@@ -29,6 +48,14 @@ impl SetCode {
     }
 
     /// Return the code as str.
+    ///
+    /// # Examples
+    /// ```
+    /// use magpie_engine::prelude::*;
+    /// let standard = SetCode::new("std").unwrap();
+    ///
+    /// assert_eq!(standard.code(), "std");
+    /// ```
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
     pub fn code(&self) -> &str {
@@ -36,6 +63,15 @@ impl SetCode {
     }
 
     /// Return the bytes of the set code
+    ///
+    /// # Examples
+    /// ```
+    /// use magpie_engine::prelude::*;
+    ///
+    /// let answer_to_life = SetCode::new("042").unwrap();
+    ///
+    /// assert_eq!(answer_to_life.bytes(), [48, 52, 50]);
+    /// ```
     #[must_use]
     pub fn bytes(&self) -> [u8; 3] {
         self.0

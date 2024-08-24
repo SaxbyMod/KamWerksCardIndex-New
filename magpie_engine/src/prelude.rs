@@ -5,7 +5,7 @@
 //!
 //! Import the prelude with:
 //! ```
-//! use magpie_engine::prelude::*
+//! use magpie_engine::prelude::*;
 //! ```
 
 pub use crate::{

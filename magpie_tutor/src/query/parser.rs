@@ -377,7 +377,7 @@ impl TryFrom<Keyword> for Filters {
                     ft_some!(Traits(Traits::with_flags(TraitsFlag::HARD)))
                 }
                 _ => {
-                    ft_some!(Traits(Traits::with_str(
+                    ft_some!(Traits(Traits::with_string(
                         t.split(',').map(ToOwned::to_owned).collect()
                     )))
                 }
