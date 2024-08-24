@@ -9,7 +9,7 @@ use std::{
     sync::Mutex,
 };
 
-use image::GenericImageView;
+use image::{GenericImageView, ImageFormat};
 use isahc::ReadResponseExt;
 use lazy_static::lazy_static;
 use magpie_engine::prelude::*;
@@ -214,6 +214,9 @@ fn hash_card_url(card: &Card) -> u64 {
 
 /// Resize a image from it's bytes.
 fn resize_img(img: &[u8], scale: u32) -> Vec<u8> {
+    if img.is_empty() {
+        return Vec::new();
+    }
     let t = image::load_from_memory(img).expect("Decode image fails");
     let (w, h) = t.dimensions();
     let mut out = vec![];
@@ -225,10 +228,18 @@ fn resize_img(img: &[u8], scale: u32) -> Vec<u8> {
 
 /// Generate card embed from a card data.
 pub fn get_portrait(url: &str) -> Vec<u8> {
-    isahc::get(url)
-        .unwrap_or_else(|_| panic!("Cannot reach url: {url}"))
-        .bytes()
-        .unwrap_or_else(|_| panic!("Cannot decode image to byte from url: {url}"))
+    match isahc::get(url) {
+        Ok(t) if t.status().is_success() => t,
+        _ => {
+            error!("Cannot reach url: {url}");
+            return Vec::new();
+        }
+    }
+    .bytes()
+    .unwrap_or_else(|_| {
+        error!("Cannot decode card portrait from url: {url}");
+        Vec::new()
+    })
 }
 
 /// Return the current epoch
