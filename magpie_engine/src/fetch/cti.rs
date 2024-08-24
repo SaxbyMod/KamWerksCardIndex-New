@@ -2,26 +2,25 @@
 //!
 //! [Custom TCG Inscryption]: https://www.notion.so/inscryption-pvp-wiki/Custom-TCG-Inscryption-3f22fc55858d4cfab2061783b5120f87
 
-use std::{collections::HashMap, fmt::Display};
+use std::collections::HashMap;
 
 use serde::Deserialize;
 
-use crate::{
-    fetch::{fetch_json, FetchError},
-    Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode, Temple,
-};
+use crate::{fetch::fetch_json, Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode, Temple};
+
+use super::{SetError, SetResult};
 
 /// Fetch Custom TCG Inscryption from the
 /// [sheet](https://docs.google.com/spreadsheets/d/152SuTx1fVc4zsqL4_zVDPx69sd9vYWikc2Ce9Y5vhJE/edit?gid=0#gid=0).
 #[allow(clippy::too_many_lines)]
-pub fn fetch_cti_set(code: SetCode) -> Result<Set<(), ()>, CtiError> {
+pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
+    let card_url = "https://opensheet.elk.sh/152SuTx1fVc4zsqL4_zVDPx69sd9vYWikc2Ce9Y5vhJE/1";
     let raw_card: Vec<CtiCard> =
-        fetch_json("https://opensheet.elk.sh/152SuTx1fVc4zsqL4_zVDPx69sd9vYWikc2Ce9Y5vhJE/1")
-            .map_err(CtiError::CardFetchError)?;
+        fetch_json(card_url).map_err(|e| SetError::FetchError(e, card_url.to_string()))?;
 
+    let sigil_url = "https://opensheet.elk.sh/152SuTx1fVc4zsqL4_zVDPx69sd9vYWikc2Ce9Y5vhJE/2";
     let sigil: Vec<CtiSigil> =
-        fetch_json("https://opensheet.elk.sh/152SuTx1fVc4zsqL4_zVDPx69sd9vYWikc2Ce9Y5vhJE/2")
-            .map_err(CtiError::SigilFetchError)?;
+        fetch_json(sigil_url).map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
 
     let mut cards = Vec::with_capacity(raw_card.len());
 
@@ -54,14 +53,14 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<(), ()>, CtiError> {
 
                     let first = t
                         .next()
-                        .ok_or_else(|| CtiError::InvalidCostFormat(card.cost.clone()))?
+                        .ok_or_else(|| SetError::InvalidCostFormat(card.cost.clone()))?
                         .parse::<isize>()
-                        .map_err(|_| CtiError::InvalidCostFormat(card.cost.clone()))?;
+                        .map_err(|_| SetError::InvalidCostFormat(card.cost.clone()))?;
 
                     (
                         first,
                         t.next()
-                            .ok_or_else(|| CtiError::InvalidCostFormat(card.cost.clone()))?,
+                            .ok_or_else(|| SetError::InvalidCostFormat(card.cost.clone()))?,
                     )
                 };
 
@@ -88,7 +87,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<(), ()>, CtiError> {
                         }
                         _ => unreachable!(),
                     },
-                    c => return Err(CtiError::UnknowCost(c.to_string())),
+                    c => return Err(SetError::UnknownCost(c.to_string())),
                 }
             }
 
@@ -116,7 +115,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<(), ()>, CtiError> {
                 "Rare" => Rarity::RARE,
                 "Talking" | "Deathcard" => Rarity::UNIQUE,
                 "Side-Deck" => Rarity::SIDE,
-                _ => return Err(CtiError::UnknownRarity(card.rarity)),
+                _ => return Err(SetError::UnknownRarity(card.rarity)),
             },
             temple:match card.temple.as_str() {
                 "Beast" => Temple::BEAST,
@@ -124,7 +123,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<(), ()>, CtiError> {
                 "Tech" => Temple::TECH,
                 "Magicks" => Temple::MAGICK,
                 "Terrain/Extras" => Temple::empty(),
-                _ => return Err(CtiError::UnknownTemple(card.temple))
+                _ => return Err(SetError::UnknownTemple(card.temple))
             },
             tribes: None,
 
@@ -160,40 +159,6 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<(), ()>, CtiError> {
         cards,
         sigils_description,
     })
-}
-
-/// Error that happen when calling [`fetch_cti_set`].
-#[derive(Debug)]
-pub enum CtiError {
-    /// Error when trying to [`fetch_json`] cards.
-    CardFetchError(FetchError),
-    /// Error when trying to [`fetch_json`] sigils.
-    SigilFetchError(FetchError),
-    /// Invalid Rarity.
-    UnknownRarity(String),
-    /// Invalid Temple.
-    UnknownTemple(String),
-    /// Invalid cost format. The cost doesn't follow each component are a number then the cost
-    /// with space between and every cost is separated by `,`.
-    InvalidCostFormat(String),
-    /// Unknow cost.
-    UnknowCost(String),
-    /// Invalid Mox color.
-    UnknowMox(String),
-}
-
-impl Display for CtiError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CtiError::CardFetchError(e) => write!(f, "cannot fetch cards due to: {e}"),
-            CtiError::SigilFetchError(e) => write!(f, "cannot fetch sigils due to: {e}"),
-            CtiError::UnknownRarity(r) => write!(f, "unknown rarity: {r}"),
-            CtiError::UnknownTemple(r) => write!(f, "unknown temple: {r}"),
-            CtiError::InvalidCostFormat(s) => write!(f, "invalid cost: {s}"),
-            CtiError::UnknowCost(c) => write!(f, "unknow cost: {c}"),
-            CtiError::UnknowMox(m) => write!(f, "unknow mox: {m}"),
-        }
-    }
 }
 
 /// Json scheme for Cti card.

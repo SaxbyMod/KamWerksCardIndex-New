@@ -2,15 +2,16 @@
 //!
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
-use std::{collections::HashMap, fmt::Display};
+use std::collections::HashMap;
 
 use serde::Deserialize;
 
 use crate::{
-    fetch::{fetch_json, FetchError},
-    self_upgrade, Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode, Temple, Traits,
-    TraitsFlag,
+    fetch::fetch_json, self_upgrade, Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode,
+    Temple, Traits, TraitsFlag,
 };
+
+use super::{SetError, SetResult};
 
 /// Augmented's [`Card`] extensions.
 #[derive(Debug, Default, Clone)]
@@ -33,14 +34,14 @@ self_upgrade!(AugExt, AugCosts);
 /// Fetch Augmented from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk).
 #[allow(clippy::too_many_lines)]
-pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
+pub fn fetch_aug_set(code: SetCode) -> SetResult<AugExt, AugCosts> {
+    let card_url = "https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/1";
     let raw_card: Vec<AugCard> =
-        fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Cards")
-            .map_err(AugError::CardFetchError)?;
+        fetch_json(card_url).map_err(|e| SetError::FetchError(e, card_url.to_string()))?;
 
+    let sigil_url = "https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/2";
     let sigil: Vec<AugSigil> =
-        fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Sigils")
-            .map_err(AugError::SigilFetchError)?;
+        fetch_json(sigil_url).map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
 
     let mut cards = Vec::with_capacity(raw_card.len());
 
@@ -79,9 +80,9 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
 
                     let first = t
                         .next()
-                        .ok_or_else(|| AugError::InvalidCostFormat(card.cost.clone()))?
+                        .ok_or_else(|| SetError::InvalidCostFormat(card.cost.clone()))?
                         .parse::<isize>()
-                        .map_err(|_| AugError::InvalidCostFormat(card.cost.clone()))?;
+                        .map_err(|_| SetError::InvalidCostFormat(card.cost.clone()))?;
                     let mut rest = t.collect::<Vec<String>>();
 
                     rest.reverse();
@@ -90,7 +91,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
 
                 match cost
                     .pop()
-                    .ok_or_else(|| AugError::InvalidCostFormat(card.cost.clone()))?
+                    .ok_or_else(|| SetError::InvalidCostFormat(card.cost.clone()))?
                     .as_str()
                 {
                     "blood" => t.blood += count,
@@ -114,7 +115,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
                             t.mox |= Mox::Y;
                             shattered_count.y += count as usize;
                         }
-                        m => return Err(AugError::UnknowMox(m.to_owned())),
+                        m => return Err(SetError::UnknownMoxColor(m.to_owned())),
                     },
                     m @ ("ruby" | "sapphire" | "emerald" | "prism") => match m {
                         "ruby" => {
@@ -136,7 +137,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
                         _ => unreachable!(),
                     },
                     "asterisk" => (),
-                    c => return Err(AugError::UnknowCost(c.to_string())),
+                    c => return Err(SetError::UnknownMoxColor(c.to_string())),
                 }
             }
 
@@ -167,7 +168,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
                 "Rare" => Rarity::RARE,
                 "Talking" => Rarity::UNIQUE,
                 "Side Deck" => Rarity::SIDE,
-                _ => return Err(AugError::UnknownRarity(card.rarity)),
+                _ => return Err(SetError::UnknownRarity(card.rarity)),
             },
             temple:match card.temple.as_str() {
                 "Beast" => Temple::BEAST,
@@ -175,7 +176,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
                 "Tech" => Temple::TECH,
                 "Magick" => Temple::MAGICK,
                 "Fool" => Temple::FOOL,
-                _ => return Err(AugError::UnknownTemple(card.temple))
+                _ => return Err(SetError::UnknownTemple(card.temple))
             },
             tribes: (!card.tribes.is_empty()).then_some(card.tribes),
 
@@ -227,40 +228,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
         cards,
         sigils_description,
     })
-}
-
-/// Error that happen when calling [`fetch_aug_set`].
-#[derive(Debug)]
-pub enum AugError {
-    /// Error when trying to [`fetch_json`] cards.
-    CardFetchError(FetchError),
-    /// Error when trying to [`fetch_json`] sigils.
-    SigilFetchError(FetchError),
-    /// Unkown rarity.
-    UnknownRarity(String),
-    /// Unkown temple.
-    UnknownTemple(String),
-    /// Invalid cost format. The cost doesn't follow each component are a number then the cost
-    /// with space between and every cost is separted by `'+'`.
-    InvalidCostFormat(String),
-    /// Unknow cost.
-    UnknowCost(String),
-    /// Unkown Mox color.
-    UnknowMox(String),
-}
-
-impl Display for AugError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AugError::CardFetchError(e) => write!(f, "cannot fetch augmented cards due to: {e}"),
-            AugError::SigilFetchError(e) => write!(f, "cannot fetch sigils due to: {e}"),
-            AugError::UnknownRarity(r) => write!(f, "unknown augmented rarity: {r}"),
-            AugError::UnknownTemple(r) => write!(f, "unknown augmented temple: {r}"),
-            AugError::InvalidCostFormat(s) => write!(f, "invalid augmented cost format: {s}"),
-            AugError::UnknowCost(c) => write!(f, "unknow augmented cost: {c}"),
-            AugError::UnknowMox(m) => write!(f, "unknow augmented mox: {m}"),
-        }
-    }
 }
 
 /// Json scheme for aug card.

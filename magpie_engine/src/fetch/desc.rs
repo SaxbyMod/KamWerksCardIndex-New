@@ -1,11 +1,12 @@
-use std::{collections::HashMap, error::Error, fmt::Display};
+use std::collections::HashMap;
 
 use serde::Deserialize;
 
 use crate::{
-    fetch::{fetch_json, FetchError},
-    Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits, TraitsFlag,
+    fetch::fetch_json, Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits, TraitsFlag,
 };
+
+use super::{SetError, SetResult};
 
 /// Descryption's [`Costs`] extension.
 #[derive(Default, Clone, PartialEq)]
@@ -18,15 +19,14 @@ pub struct DescCosts {
 
 /// Fetch Descryption from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE).
-pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
+pub fn fetch_desc_set(code: SetCode) -> SetResult<(), DescCosts> {
+    let card_url = "https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/2";
     let card_raw: Vec<DescCard> =
-        fetch_json("https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/Cards")
-            .map_err(DescError::CardFetchError)?;
+        fetch_json(card_url).map_err(|e| SetError::FetchError(e, card_url.to_string()))?;
 
-    let sigils: Vec<DescSigil> = fetch_json(
-        "https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/[Sigils]",
-    )
-    .map_err(DescError::SigilFetchError)?;
+    let sigil_url = "https://opensheet.elk.sh/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE/3";
+    let sigils: Vec<DescSigil> =
+        fetch_json(sigil_url).map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
 
     let mut cards = Vec::with_capacity(card_raw.len());
     let sigils_description = {
@@ -54,7 +54,7 @@ pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                     "Magnificus" => Temple::MAGICK,
                     "Galliard" => Temple::ARTISTRY,
 
-                    _ => return Err(DescError::UnknownTemple(t.to_owned())),
+                    _ => return Err(SetError::UnknownTemple(t.to_owned())),
                 }
             }
         }
@@ -75,7 +75,7 @@ pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                                 Mox::P
                             }
                         }
-                        _ => return Err(DescError::UnknownMoxColor(m.to_owned())),
+                        _ => return Err(SetError::UnknownMoxColor(m.to_owned())),
                     }
                 }
             } else {
@@ -93,7 +93,7 @@ pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                     "energy" => costs.energy += count,
                     "links" | "link" => costs.extra.link += count,
                     "gold" | "golds" => costs.extra.gold += count,
-                    _ => return Err(DescError::UnknownCost(cost.to_owned())),
+                    _ => return Err(SetError::UnknownCost(cost.to_owned())),
                 }
             }
         }
@@ -120,7 +120,7 @@ pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
                     "Common" => Rarity::COMMON,
                     "Rare" => Rarity::RARE,
                     "Unique" => Rarity::UNIQUE,
-                    _ => return Err(DescError::UnknownRarity(card.rarity)),
+                    _ => return Err(SetError::UnknownRarity(card.rarity)),
                 }
             },
             temple,
@@ -182,41 +182,6 @@ pub fn fetch_desc_set(code: SetCode) -> Result<Set<(), DescCosts>, DescError> {
 fn is_empty(str: &str) -> bool {
     str.is_empty() || str == "-" || str == "N/A"
 }
-
-/// Error that happen when calling [`fetch_desc_set`].
-#[derive(Debug)]
-pub enum DescError {
-    /// Error when trying to [`fetch_json`] cards.
-    CardFetchError(FetchError),
-    /// Error when trying to [`fetch_json`] sigils.
-    SigilFetchError(FetchError),
-
-    /// Unknown Temple or Scrybe.
-    UnknownTemple(String),
-    /// Unknown rarity.
-    UnknownRarity(String),
-    /// Unknown Mox color.
-    UnknownMoxColor(String),
-    /// Unknown cost type.
-    UnknownCost(String),
-}
-
-impl Display for DescError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            DescError::CardFetchError(e) => write!(f, "cannot fetch descryption cards due to: {e}"),
-            DescError::SigilFetchError(e) => {
-                write!(f, "cannot fetch descryption sigils due to : {e}")
-            }
-            DescError::UnknownTemple(e) => write!(f, "unknown descryption scrybe: {e}"),
-            DescError::UnknownRarity(e) => write!(f, "unknown descryption rarity: {e}"),
-            DescError::UnknownMoxColor(e) => write!(f, "unknown descryption mox color: {e}"),
-            DescError::UnknownCost(e) => write!(f, "unknown descryption cost: {e}"),
-        }
-    }
-}
-
-impl Error for DescError {}
 
 /// Json scheme for desc card.
 #[derive(Deserialize)]

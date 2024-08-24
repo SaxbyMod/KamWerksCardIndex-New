@@ -2,19 +2,20 @@
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
-use std::{collections::HashMap, error::Error, fmt::Display};
+use std::collections::HashMap;
 
 use serde::Deserialize;
 
 use crate::{
-    fetch::{fetch_json, FetchError},
-    helper::FlagsExt,
-    Attack, Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag,
+    fetch::fetch_json, helper::FlagsExt, Attack, Card, Costs, Mox, Rarity, Set, SetCode, SpAtk,
+    Temple, Traits, TraitsFlag,
 };
 
+use super::{SetError, SetResult};
+
 /// Fetch a IMF Set from a url.
-pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> {
-    let set: ImfSet = fetch_json(url).map_err(ImfError::FetchError)?;
+pub fn fetch_imf_set(url: &str, code: SetCode) -> SetResult<(), ()> {
+    let set: ImfSet = fetch_json(url).map_err(|e| SetError::FetchError(e, url.to_string()))?;
 
     let mut cards = Vec::with_capacity(set.cards.len() + 1);
 
@@ -63,7 +64,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> 
                         "green_mox" => SpAtk::GREEN_MOX,
                         "mirror" => SpAtk::MIRROR,
                         "ant" => SpAtk::ANT,
-                        _ => return Err(ImfError::InvalidSpAtk(c.atkspecial)),
+                        _ => return Err(SetError::UnknownSpAtk(c.atkspecial)),
                     })
                 }
             },
@@ -141,25 +142,6 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> 
     })
 }
 
-#[derive(Debug)]
-/// Error that happen when calling [`fetch_imf_set`].
-pub enum ImfError {
-    /// Error when calling [`fetch_json`].
-    FetchError(FetchError),
-    /// Invalid `atkspecial` when converting to [`Card`].
-    InvalidSpAtk(String),
-}
-
-impl Display for ImfError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ImfError::FetchError(e) => write!(f, "unable to fetch json: {e}"),
-            ImfError::InvalidSpAtk(e) => write!(f, "invalid special attack: {e}"),
-        }
-    }
-}
-
-impl Error for ImfError {}
 /// Json scheme for IMF set.
 #[derive(Deserialize, Debug)]
 struct ImfSet {

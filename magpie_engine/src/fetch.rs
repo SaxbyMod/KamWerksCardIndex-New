@@ -15,6 +15,10 @@ pub use cti::*;
 pub use desc::*;
 pub use imf::*;
 
+use crate::Set;
+
+pub type SetResult<E, C> = Result<Set<E, C>, SetError>;
+
 /// Error that happen when calling [`fetch_json`].
 #[derive(Debug)]
 pub enum FetchError {
@@ -66,3 +70,40 @@ where
 {
     fetch_json(format!("https://opensheet.elk.sh/{id}/{tab_name}").as_str())
 }
+
+/// Error when fetching any set.
+#[derive(Debug)]
+pub enum SetError {
+    /// Error when trying to [`fetch_json`] cards.
+    FetchError(FetchError, String),
+    /// Unknown Temple or Scrybe.
+    UnknownTemple(String),
+    /// Unknown rarity.
+    UnknownRarity(String),
+    /// Unknown Mox color.
+    UnknownMoxColor(String),
+    /// Unknown cost type.
+    UnknownCost(String),
+    /// Unknown special attack type
+    UnknownSpAtk(String),
+    /// Invalid cost format
+    InvalidCostFormat(String),
+}
+
+impl Display for SetError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SetError::FetchError(e, url) => {
+                write!(f, "cannot fetch set's data from `{url}` due to: {e}")
+            }
+            SetError::UnknownTemple(e) => write!(f, "unknown scrybe: {e}"),
+            SetError::UnknownRarity(e) => write!(f, "unknown rarity: {e}"),
+            SetError::UnknownMoxColor(e) => write!(f, "unknown mox color: {e}"),
+            SetError::UnknownCost(e) => write!(f, "unknown cost: {e}"),
+            SetError::UnknownSpAtk(e) => write!(f, "unknown special attack: {e}"),
+            SetError::InvalidCostFormat(e) => write!(f, "unknown cost format: {e}"),
+        }
+    }
+}
+
+impl Error for SetError {}
