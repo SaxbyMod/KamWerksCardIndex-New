@@ -71,7 +71,7 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
                     m @ ("ruby" | "sapphire" | "emerald" | "prism") => match m {
                         "ruby" => {
                             t.mox |= Mox::O;
-                            mox_count.r += count as usize;
+                            mox_count.o += count as usize;
                         }
                         "emerald" => {
                             t.mox |= Mox::G;

@@ -101,7 +101,7 @@ pub fn fetch_aug_set(code: SetCode) -> SetResult<AugExt, AugCosts> {
                     "shattered" => match cost.pop().unwrap().as_str() {
                         "ruby" => {
                             t.mox |= Mox::O;
-                            shattered_count.r += count as usize;
+                            shattered_count.o += count as usize;
                         }
                         "emerald" => {
                             t.mox |= Mox::G;
@@ -120,7 +120,7 @@ pub fn fetch_aug_set(code: SetCode) -> SetResult<AugExt, AugCosts> {
                     m @ ("ruby" | "sapphire" | "emerald" | "prism") => match m {
                         "ruby" => {
                             t.mox |= Mox::O;
-                            mox_count.r += count as usize;
+                            mox_count.o += count as usize;
                         }
                         "emerald" => {
                             t.mox |= Mox::G;

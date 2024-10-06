@@ -131,7 +131,7 @@ lazy_static! {
             energy: 100,
             mox: Mox::all(),
             mox_count: Some(MoxCount {
-                r: 6,
+                o: 6,
                 g: 9,
                 b: 4,
                 y: 2,
@@ -139,7 +139,7 @@ lazy_static! {
             }),
             extra: MagpieCosts {
                 shattered_count: Some(MoxCount {
-                    r: 1,
+                    o: 1,
                     g: 9,
                     b: 8,
                     y: 4,

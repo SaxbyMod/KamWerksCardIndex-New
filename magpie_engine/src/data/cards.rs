@@ -260,8 +260,8 @@ bitflags! {
 /// Component for when card cost multiple of 1 Mox color.
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct MoxCount {
-    /// The Red component.
-    pub r: usize,
+    /// The Orange component.
+    pub o: usize,
     /// The Green component.
     pub g: usize,
     /// The Blue component.
