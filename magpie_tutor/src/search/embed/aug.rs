@@ -60,18 +60,34 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
         append_cost(&mut out, costs.extra.max, "Max", cost::MAX);
 
         if !costs.mox.is_empty() {
-            let mut mox_cost = String::from("**Mox cost:** ");
+            let mut mox_cost = String::new();
             let count = costs.mox_count.clone().unwrap_or_default();
 
             for m in costs.mox.iter() {
                 match m {
-                    Mox::O => mox_cost.extend(vec![cost::ORANGE; count.r]),
+                    Mox::O => mox_cost.extend(vec![cost::ORANGE; count.o]),
                     Mox::G => mox_cost.extend(vec![cost::GREEN; count.g]),
                     Mox::B => mox_cost.extend(vec![cost::BLUE; count.b]),
                     Mox::Y => mox_cost.extend(vec![cost::GRAY; count.y]),
                     _ => unreachable!(),
                 }
             }
+
+            if !mox_cost.is_empty() {
+                out.push_str("**Mox Cost:**");
+                out.push_str(&mox_cost);
+                out.push('\n');
+            }
+        }
+
+        if let Some(shattered) = &costs.extra.shattered_count {
+            let mut mox_cost = String::from("**Shattered cost:** ");
+
+            mox_cost.extend(vec![cost::SHATTERED_ORANGE; shattered.o]);
+            mox_cost.extend(vec![cost::SHATTERED_GREEN; shattered.g]);
+            mox_cost.extend(vec![cost::SHATTERED_BLUE; shattered.b]);
+            mox_cost.extend(vec![cost::SHATTERED_GRAY; shattered.y]);
+
             out.push_str(&mox_cost);
             out.push('\n');
         }

@@ -38,14 +38,21 @@ emoji_table! {
         ENERGY = "<:energy_cost:1274030884508667904>";
         MAX = "<:max_cost:1274030993518624843>";
         LINK = "<:link_cost:1274031021104431175>";
-        GOLD = "<:gold:1274031034979061762>";
+        GOLD = "<:gold_cost:1274031034979061762>";
 
         // Mox color
         ORANGE = "<:orange_cost:1274031063194407024>";
         GREEN = "<:green_cost:1274031076293214230>";
         BLUE = "<:blue_cost:1274031088594849824>";
-        GRAY = "<:gray:1274031125483884617>";
+        GRAY = "<:gray_cost:1274031125483884617>";
         BLACK = "<:black_cost:1274031104059248751>";
+
+        // Shattered Mox color
+        SHATTERED_ORANGE = "SHATTER ORANGE ";
+        SHATTERED_GREEN = "SHATTER GREEN ";
+        SHATTERED_BLUE = "SHATTER BLUE ";
+        SHATTERED_GRAY = "SHATTER GRAY ";
+
         PLUS1 = "<:1_cost:1274031134442913872>";
     }
 }

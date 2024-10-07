@@ -217,12 +217,12 @@ macro_rules! frameworks {
                     .await?;
 
                     $(
-                        poise::builtins::register_in_guild(
+                        let _ = poise::builtins::register_in_guild(
                             ctx.http(),
                             &[$($g_cmd,)*],
                             GuildId::from($g_id)
                         )
-                        .await?;
+                        .await;
                     )*
 
                     done!(

@@ -23,6 +23,11 @@ async fn test(ctx: CmdCtx<'_>) -> Res {
     Ok(())
 }
 
+#[poise::command(slash_command)]
+async fn retry(ctx: CmdCtx<'_>, msg_id: u64) -> Res {
+    todo!()
+}
+
 /// Show help on what and how to use Magpie Tutor.
 #[poise::command(slash_command)]
 async fn help(ctx: CmdCtx<'_>) -> Res {
