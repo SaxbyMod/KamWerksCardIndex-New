@@ -223,6 +223,16 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
         }
     }
 
+    if embeds.len() > 10 {
+        embeds.clear();
+        embeds.push(
+            CreateEmbed::new()
+                .title("Too many embeds")
+                .description("Too many added required, Discord only allow up to 10 embeds per message. Try separting your search across multiple message")
+                .color(roles::RED)
+        );
+    }
+
     MessageAdapter::new()
         .content(format!("Search completed in {:.1?}", start.elapsed()))
         .embeds(embeds)
