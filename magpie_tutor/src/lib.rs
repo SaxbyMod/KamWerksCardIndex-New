@@ -99,17 +99,7 @@ lazy_static! {
     pub static ref COST_REGEX: Regex = Regex::new(r"(-?\d+)?([a-zA-Z])").unwrap_or_die("Cannot compile query regex");
 
     /// Collection of all set magpie use
-    pub static ref SETS: HashMap<&'static str, Set> = {
-        set_map! {
-            standard (std) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
-            eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
-            egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
-            ---
-            augmented (aug) => fetch_aug_set,
-            descryption (des) => fetch_desc_set,
-            custom_tcg (cti) => fetch_cti_set,
-        }
-    };
+    pub static ref SETS: Mutex<HashMap<&'static str, Set>> = Mutex::new(load_set());
 
     /// Debug card use to test rendering
     pub static ref DEBUG_CARD: Card = Card {
@@ -166,6 +156,18 @@ lazy_static! {
 
     /// Portrait Caches to save times on image processing
     pub static ref CACHE: Mutex<HashMap<u64, CacheData>> = load_cache();
+}
+
+fn load_set() -> HashMap<&'static str, Set> {
+    set_map! {
+        standard (std) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
+        eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
+        egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
+        ---
+        augmented (aug) => fetch_aug_set,
+        descryption (des) => fetch_desc_set,
+        custom_tcg (cti) => fetch_cti_set,
+    }
 }
 
 fn load_cache() -> Mutex<HashMap<u64, CacheData>> {

@@ -11,7 +11,7 @@ use poise::serenity_prelude::{
 };
 
 use crate::{
-    current_epoch, debug, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
+    current_epoch, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
     CacheData, Card, Color, Death, FuzzyRes, MessageAdapter, MessageCreateExt, Res, CACHE,
     CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };
@@ -63,6 +63,8 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
     let mut embeds = vec![];
     let mut attachments: Vec<CreateAttachment> = vec![];
+
+    let g_sets = SETS.lock().unwrap();
 
     'outer: for (modifier, search_term) in SEARCH_REGEX.captures_iter(content).map(|c| {
         (
@@ -119,10 +121,10 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
         let mut sets = vec![];
         if modifier.contains(Modifier::ALL_SET) {
-            sets.extend(SETS.values());
+            sets.extend(g_sets.values());
         } else {
             for set in set_code {
-                if let Some(set) = SETS.get(set) {
+                if let Some(set) = g_sets.get(set) {
                     sets.push(set);
                 }
             }
@@ -130,15 +132,16 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
         if sets.is_empty() {
             sets.push(
-                SETS.get(match guild_id.get() {
-                    // Default to aug in the augmented server
-                    1028530290727063604 => "aug",
-                    // Default to des in the descryption server
-                    1257552767984074803 => "des",
+                g_sets
+                    .get(match guild_id.get() {
+                        // Default to aug in the augmented server
+                        1028530290727063604 => "aug",
+                        // Default to des in the descryption server
+                        1257552767984074803 => "des",
 
-                    _ => "std",
-                })
-                .unwrap(),
+                        _ => "std",
+                    })
+                    .unwrap(),
             );
         }
 
@@ -183,7 +186,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             let mut embed = gen_embed(
                 rank,
                 card,
-                SETS.get(card.set.code()).unwrap(),
+                g_sets.get(card.set.code()).unwrap(),
                 modifier.contains(Modifier::COMPACT),
             );
             let hash = hash_card_url(card);

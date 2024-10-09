@@ -3,7 +3,8 @@
 use std::panic::PanicInfo;
 
 use magpie_tutor::{
-    done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE, SETS,
+    debug, done, error, frameworks, handler, info, lev, CmdCtx, Color, Data, Res, CACHE,
+    CACHE_FILE, SETS,
 };
 use poise::{
     serenity_prelude::{CacheHttp, ClientBuilder, CreateEmbed, GatewayIntents, GuildId},
@@ -114,7 +115,10 @@ async fn main() {
     };
 
     info!("Fetching set...");
-    done!("Finish fetching {} sets", SETS.len().green());
+    done!(
+        "Finish fetching {} sets",
+        SETS.lock().unwrap().len().green()
+    );
 
     info!("Loading caches from {}...", CACHE_FILE.green());
     done!(
