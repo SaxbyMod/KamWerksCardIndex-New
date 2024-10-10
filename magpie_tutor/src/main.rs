@@ -3,8 +3,7 @@
 use std::panic::PanicInfo;
 
 use magpie_tutor::{
-    debug, done, error, frameworks, handler, info, lev, CmdCtx, Color, Data, Res, CACHE,
-    CACHE_FILE, SETS,
+    done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE, SETS,
 };
 use poise::{
     serenity_prelude::{CacheHttp, ClientBuilder, CreateEmbed, GatewayIntents, GuildId},
@@ -22,11 +21,6 @@ async fn test(ctx: CmdCtx<'_>) -> Res {
     ctx.send(msg).await?;
 
     Ok(())
-}
-
-#[poise::command(slash_command)]
-async fn retry(ctx: CmdCtx<'_>, msg_id: u64) -> Res {
-    todo!()
 }
 
 /// Show help on what and how to use Magpie Tutor.

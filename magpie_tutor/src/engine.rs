@@ -1,5 +1,7 @@
 //! Some code, implementation and extension for the engine
 
+use std::fmt::Display;
+
 use bitflags::bitflags;
 use magpie_engine::prelude::*;
 
@@ -17,6 +19,27 @@ bitflags! {
         const ENERGY = 1 << 2;
         /// Mox cost
         const MOX = 1 << 3;
+    }
+}
+
+impl Display for CostType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut out = vec![];
+
+        let flags = [
+            (CostType::BLOOD, "blood"),
+            (CostType::BONE, "bone"),
+            (CostType::ENERGY, "energy"),
+            (CostType::MOX, "mox"),
+        ];
+
+        for (f, v) in flags {
+            if self.contains(f) {
+                out.push(v);
+            }
+        }
+
+        write!(f, "{}", out.join(" and "))
     }
 }
 
@@ -49,6 +72,15 @@ impl ToFilter<MagpieExt, MagpieCosts> for FilterExt {
     }
 }
 
+impl Display for FilterExt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FilterExt::Fuzzy(n) => write!(f, "name similar to {n}"),
+            FilterExt::CostType(t) => write!(f, "cost includes {t}"),
+        }
+    }
+}
+
 /// Magpie's [`Card`] Extension to unify all the extension
 #[derive(Debug, Clone, Default)]
 pub struct MagpieExt {
@@ -69,7 +101,42 @@ pub struct MagpieCosts {
     pub gold: isize,
 }
 
-// there no error here ra is just having a stroke
+impl Display for MagpieCosts {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut out = vec![];
+
+        if let Some(ref m) = self.shattered_count {
+            if m.o != 0 {
+                out.push(format!("{} shattered orange", m.o));
+            }
+            if m.g != 0 {
+                out.push(format!("{} shattered green", m.g));
+            }
+            if m.b != 0 {
+                out.push(format!("{} shattered blue", m.b));
+            }
+            if m.y != 0 {
+                out.push(format!("{} shattered gray", m.y));
+            }
+            if m.k != 0 {
+                out.push(format!("{} shattered black", m.k));
+            }
+        }
+
+        if self.max != 0 {
+            out.push(format!("{} max energy", self.max));
+        }
+        if self.link != 0 {
+            out.push(format!("{} link", self.link));
+        }
+        if self.gold != 0 {
+            out.push(format!("{} gold", self.gold));
+        }
+
+        write!(f, "{}", out.join(" and "))
+    }
+}
+
 impl UpgradeCard<MagpieExt, MagpieCosts> for Card<AugExt, AugCosts> {
     fn upgrade(self) -> Card<MagpieExt, MagpieCosts> {
         upgrade_card! {

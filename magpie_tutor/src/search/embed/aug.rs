@@ -42,7 +42,7 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
     desc.push_str(&format!(
         "**Tier:** {}\n",
         match &card.rarity {
-            Rarity::UNIQUE => String::from("Talking"),
+            Rarity::UNIQUE => String::from("talking"),
             a => a.to_string(),
         }
     ));

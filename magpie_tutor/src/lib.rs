@@ -9,7 +9,7 @@ use std::{
     sync::Mutex,
 };
 
-use image::{GenericImageView, ImageFormat};
+use image::GenericImageView;
 use isahc::ReadResponseExt;
 use lazy_static::lazy_static;
 use magpie_engine::prelude::*;

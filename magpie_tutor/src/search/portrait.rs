@@ -1,7 +1,6 @@
 use image::{imageops, ImageFormat};
 use magpie_engine::Temple;
 use std::io::Cursor;
-use std::u8;
 
 use crate::{get_portrait, resize_img, Card};
 

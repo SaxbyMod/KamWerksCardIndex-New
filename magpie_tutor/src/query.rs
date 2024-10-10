@@ -61,6 +61,15 @@ pub fn query_message(sets: Vec<&Set>, query: &str) -> CreateEmbed {
         .description(if query.cards.len() >= 200 || output.len() >= 2000 {
             String::from("Too many results...Try narrowing your search")
         } else {
-            format!("Filters: {:?}\n{}", query.filters, output)
+            format!(
+                "Cards that {}\n{}",
+                query
+                    .filters
+                    .into_iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(" and "),
+                output
+            )
         })
 }
