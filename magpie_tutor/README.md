@@ -20,3 +20,5 @@
     -   [ ] Retry
     -   [x] Tunnel status (only on imf)
 -   [ ] Server Default
+-   [x] Human Readable query listing
+-   [ ] Query Documentation
