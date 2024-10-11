@@ -22,3 +22,7 @@
 -   [ ] Server Default
 -   [x] Human Readable query listing
 -   [ ] Query Documentation
+-   [ ] Rewrite of query backend
+-   [ ] Query improvement
+    -   [ ] Better color matching
+    -   [ ] Allow resolving of expression
