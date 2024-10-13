@@ -1,5 +1,5 @@
 use image::{imageops, ImageFormat};
-use magpie_engine::Temple;
+use magpie_engine::{Rarity, Temple};
 use std::io::Cursor;
 
 use crate::{get_portrait, resize_img, Card};
@@ -30,11 +30,11 @@ fn gen_aug_portrait(card: &Card) -> Vec<u8> {
     let bg = &format!(
         "https://raw.githubusercontent.com/answearingmachine/card-printer/main/dist/printer/assets/bg/bg_{}_{}.png",
 
-        match card.rarity.to_string().as_str(){
-            "Common" | "Uncommon" | "Side" => "common",
-            "Rare" | "Unique" => "rare",
-            r => unreachable!("{}", r)
+        match &card.rarity {
+            Rarity::COMMON | Rarity::UNCOMMON | Rarity::SIDE => "common",
+            Rarity::RARE | Rarity::UNIQUE => "rare",
         },
+
         if let Some(t) = card.temple.iter().next() {
             match t {
                 Temple::BEAST => "beast",
