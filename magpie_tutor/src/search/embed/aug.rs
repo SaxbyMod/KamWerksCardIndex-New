@@ -2,7 +2,6 @@ use magpie_engine::prelude::*;
 use poise::serenity_prelude::{colours::roles, CreateEmbed};
 
 use crate::{
-    debug,
     emojis::{cost, ToEmoji},
     hash_card_url, Card, Set,
 };
@@ -65,7 +64,6 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
             let count = costs.mox_count.clone().unwrap_or_default();
 
             for m in costs.mox.iter() {
-                debug!(m);
                 match m {
                     Mox::O => mox_cost.extend(vec![cost::ORANGE; count.o]),
                     Mox::G => mox_cost.extend(vec![cost::GREEN; count.g]),
@@ -77,8 +75,6 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
                     _ => unreachable!(),
                 }
             }
-
-            debug!(mox_cost);
 
             if !mox_cost.is_empty() {
                 out.push_str("**Mox Cost:**");

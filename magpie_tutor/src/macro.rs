@@ -113,7 +113,7 @@ macro_rules! set_map {
     (
         $($name:ident ($code:ident) => $link:literal,)*
         ---
-        $($key:ident ($($arg:expr)*) ($key_code:ident) => $func:ident,)*
+        $($key:ident ($key_code:ident) => $func:ident($($func_arg:expr),*),)*
     ) => {
         hashmap! {
             $(
@@ -140,7 +140,7 @@ macro_rules! set_map {
                 stringify!($key_code) => {
                     let now = std::time::Instant::now();
                     let t = $func(
-                        $($arg,)*
+                        $($func_arg,)*
                         SetCode::new(stringify!($key_code)).unwrap()
                     )
                     .unwrap_or_die(&format!("Cannot process {} set", stringify!($key)))

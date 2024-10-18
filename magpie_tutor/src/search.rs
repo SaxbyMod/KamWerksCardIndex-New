@@ -192,6 +192,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             let hash = hash_card_url(card);
             let mut cache_guard = CACHE.lock().unwrap_or_die("Cannot lock cache");
 
+            #[allow(clippy::cast_lossless)]
             match cache_guard.get(&hash) {
                 Some(CacheData {
                     channel_id,

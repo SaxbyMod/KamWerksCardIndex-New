@@ -89,7 +89,7 @@ pub struct CacheData {
 }
 
 /// Location of the cache file.
-pub const CACHE_FILE: &str = "./cache.bin";
+pub const CACHE_FILE_PATH: &str = "./cache.bin";
 
 lazy_static! {
     /// The regex use to match for general search.
@@ -173,16 +173,17 @@ fn load_set() -> HashMap<&'static str, Set> {
         eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
         egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
         ---
-        augmented(AugBranch::Snapshot) (aug) => fetch_aug_set,
-        descryption() (des) => fetch_desc_set,
-        custom_tcg() (cti) => fetch_cti_set,
+        augmented (aug) => fetch_aug_set(AugBranch::Snapshot),
+        aug_main (Aug) => fetch_aug_set(AugBranch::Main),
+        descryption (des) => fetch_desc_set(),
+        custom_tcg (cti) => fetch_cti_set(),
     }
 }
 
 fn load_cache() -> Mutex<HashMap<u64, CacheData>> {
     let bytes = {
-        let mut f =
-            File::open(CACHE_FILE).unwrap_or_else(|_| File::create_new(CACHE_FILE).unwrap());
+        let mut f = File::open(CACHE_FILE_PATH)
+            .unwrap_or_else(|_| File::create_new(CACHE_FILE_PATH).unwrap());
 
         let mut buf = vec![
             0;
@@ -209,11 +210,11 @@ fn load_cache() -> Mutex<HashMap<u64, CacheData>> {
 /// Save the cache to the cache file.
 pub fn save_cache() {
     bincode::serialize_into(
-        File::create(CACHE_FILE).expect("Cannot create cache file"),
+        File::create(CACHE_FILE_PATH).expect("Cannot create cache file"),
         &*CACHE,
     )
     .unwrap();
-    done!("Caches save successfully to {}", CACHE_FILE.green());
+    done!("Caches save successfully to {}", CACHE_FILE_PATH.green());
 }
 
 /// Hash a card url. Just a wrapper around DefaultHasher.
