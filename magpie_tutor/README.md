@@ -1,5 +1,10 @@
 # Magpie Tutor
 
+<a href="https://discord.com/oauth2/authorize?client_id=1204952722697224240">
+        <img src="https://img.shields.io/badge/Invite_the_Bot-blue"
+            alt="Invite the Bot">
+</a>
+
 ## Todo
 
 -   [x] Augmented support
