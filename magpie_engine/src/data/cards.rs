@@ -277,8 +277,7 @@ impl Display for SpAtk {
 }
 
 bitflags! {
-    /// Bits flag for Mox, If you need more than these 4 colors you need to make you own mox type and
-    /// extend it.
+    /// Bits flag for Moxes.
     #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct Mox: u16 {
         /// Orange or Ruby Mox.
@@ -290,10 +289,18 @@ bitflags! {
         /// Gray or Prism Mox
         const Y = 1 << 3;
 
+        /// Red or Garnet Mox
+        const R = 1<< 4;
+        /// Yellow or Topaz Mox
+        const E = 1 << 5;
+        /// Purple or Amethyst Mox
+        const P = 1 << 6;
+
+
         /// Black or Onyx Mox.
-        const K = 1 << 4;
+        const K = 1 << 7;
         /// Plus 1 indicator for Descryption
-        const P = 1<< 5;
+        const P1 = 1<< 8;
     }
 }
 
@@ -308,6 +315,14 @@ pub struct MoxCount {
     pub b: usize,
     /// The Gray component.
     pub y: usize,
+
+    /// The Red component
+    pub r: usize,
+    /// The Yellow component
+    pub e: usize,
+    /// The Purple component
+    pub p: usize,
+
     /// The Black component.
     pub k: usize,
 }

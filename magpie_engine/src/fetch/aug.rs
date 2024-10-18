@@ -31,17 +31,31 @@ pub struct AugCosts {
 
 self_upgrade!(AugExt, AugCosts);
 
+/// The branches of Augmented
+pub enum AugBranch {
+    /// The default branch on TTS for now.
+    Main,
+    /// Experimental and newest branch.
+    Snapshot,
+}
+
 /// Fetch Augmented from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk).
 #[allow(clippy::too_many_lines)]
-pub fn fetch_aug_set(code: SetCode) -> SetResult<AugExt, AugCosts> {
-    let card_url = "https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/2";
-    let raw_card: Vec<AugCard> =
-        fetch_json(card_url).map_err(|e| SetError::FetchError(e, card_url.to_string()))?;
+#[allow(clippy::needless_pass_by_value)]
+pub fn fetch_aug_set(branch: AugBranch, code: SetCode) -> SetResult<AugExt, AugCosts> {
+    let sheet_id = match branch {
+        AugBranch::Main => "1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk",
+        AugBranch::Snapshot => "1en8UMcHTfCyTK_yyqLiSyHk3cfvoJkENfJVWE_IzAn8",
+    };
 
-    let sigil_url = "https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/3";
+    let card_url = format!("https://opensheet.elk.sh/{sheet_id}/2");
+    let raw_card: Vec<AugCard> =
+        fetch_json(&card_url).map_err(|e| SetError::FetchError(e, card_url.to_string()))?;
+
+    let sigil_url = format!("https://opensheet.elk.sh/{sheet_id}/3");
     let sigil: Vec<AugSigil> =
-        fetch_json(sigil_url).map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
+        fetch_json(&sigil_url).map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
 
     let mut cards = Vec::with_capacity(raw_card.len());
 
@@ -115,9 +129,22 @@ pub fn fetch_aug_set(code: SetCode) -> SetResult<AugExt, AugCosts> {
                             t.mox |= Mox::Y;
                             shattered_count.y += count as usize;
                         }
+                        "garnet" => {
+                            t.mox |= Mox::R;
+                            shattered_count.r += count as usize;
+                        }
+                        "topaz" => {
+                            t.mox |= Mox::E;
+                            shattered_count.e += count as usize;
+                        }
+                        "amethyst" => {
+                            t.mox |= Mox::P;
+                            shattered_count.p += count as usize;
+                        }
                         m => return Err(SetError::UnknownMoxColor(m.to_owned())),
                     },
-                    m @ ("ruby" | "sapphire" | "emerald" | "prism") => match m {
+                    m @ ("ruby" | "sapphire" | "emerald" | "prism" | "garnet" | "topaz"
+                    | "amethyst") => match m {
                         "ruby" => {
                             t.mox |= Mox::O;
                             mox_count.o += count as usize;
@@ -133,6 +160,18 @@ pub fn fetch_aug_set(code: SetCode) -> SetResult<AugExt, AugCosts> {
                         "prism" => {
                             t.mox |= Mox::Y;
                             mox_count.y += count as usize;
+                        }
+                        "garnet" => {
+                            t.mox |= Mox::R;
+                            mox_count.r += count as usize;
+                        }
+                        "topaz" => {
+                            t.mox |= Mox::E;
+                            mox_count.e += count as usize;
+                        }
+                        "amethyst" => {
+                            t.mox |= Mox::P;
+                            mox_count.p += count as usize;
                         }
                         _ => unreachable!(),
                     },

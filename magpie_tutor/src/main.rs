@@ -3,23 +3,19 @@
 use std::panic::PanicInfo;
 
 use magpie_tutor::{
-    done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE, SETS,
+    debug, done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE,
+    SETS,
 };
 use poise::{
-    serenity_prelude::{CacheHttp, ClientBuilder, CreateEmbed, GatewayIntents, GuildId},
+    serenity_prelude::{
+        CacheHttp, ClientBuilder, CreateAttachment, CreateEmbed, GatewayIntents, GuildId,
+    },
     CreateReply,
 };
 
 /// Test command
 #[poise::command(slash_command)]
 async fn test(ctx: CmdCtx<'_>) -> Res {
-    let mut msg = CreateReply::default();
-
-    for _ in 0..15 {
-        msg = msg.embed(CreateEmbed::new().title("Embed"));
-    }
-    ctx.send(msg).await?;
-
     Ok(())
 }
 

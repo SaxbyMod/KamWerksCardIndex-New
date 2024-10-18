@@ -44,14 +44,23 @@ emoji_table! {
         ORANGE = "<:orange_cost:1274031063194407024>";
         GREEN = "<:green_cost:1274031076293214230>";
         BLUE = "<:blue_cost:1274031088594849824>";
+
+        RED = "RED,";
+        YELLOW = "YELLOW,";
+        PURPLE = "PURPLE,";
+
         GRAY = "<:gray_cost:1274031125483884617>";
         BLACK = "<:black_cost:1274031104059248751>";
 
         // Shattered Mox color
-        SHATTERED_ORANGE = "SHATTER ORANGE ";
-        SHATTERED_GREEN = "SHATTER GREEN ";
-        SHATTERED_BLUE = "SHATTER BLUE ";
-        SHATTERED_GRAY = "SHATTER GRAY ";
+        SHATTERED_ORANGE = "SHATTER ORANGE,";
+        SHATTERED_GREEN = "SHATTER GREEN,";
+        SHATTERED_BLUE = "SHATTER BLUE,";
+        SHATTERED_GRAY = "SHATTER GRAY,";
+
+        SHATTERED_RED = "SHATTER RED,";
+        SHATTERED_YELLOW = "SHATTER YELLOW,";
+        SHATTERED_PURPLE = "SHATTER PURPLE,";
 
         PLUS1 = "<:1_cost:1274031134442913872>";
     }

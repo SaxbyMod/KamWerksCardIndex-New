@@ -36,7 +36,10 @@ pub use fuzzy::*;
 #[macro_use]
 pub mod r#macro;
 
-use self::engine::{FilterExt, MagpieCosts, MagpieExt};
+use self::{
+    engine::{FilterExt, MagpieCosts, MagpieExt},
+    fetch::AugBranch,
+};
 
 // Type definition for stuff
 
@@ -121,11 +124,14 @@ lazy_static! {
             energy: 100,
             mox: Mox::all(),
             mox_count: Some(MoxCount {
-                o: 6,
-                g: 9,
-                b: 4,
-                y: 2,
-                k: 1
+                o:6,
+                g:9,
+                b:4,
+                y:2,
+                k:1,
+                r: 1,
+                e: 1,
+                p: 1,
             }),
             extra: MagpieCosts {
                 shattered_count: Some(MoxCount {
@@ -133,7 +139,10 @@ lazy_static! {
                     g: 9,
                     b: 8,
                     y: 4,
-                    k: 1
+                    k: 1,
+                    r: 1,
+                    e: 1,
+                    p: 1,
                 }),
                 max: 451,
                 link: 6,
@@ -164,9 +173,9 @@ fn load_set() -> HashMap<&'static str, Set> {
         eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
         egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
         ---
-        augmented (aug) => fetch_aug_set,
-        descryption (des) => fetch_desc_set,
-        custom_tcg (cti) => fetch_cti_set,
+        augmented(AugBranch::Snapshot) (aug) => fetch_aug_set,
+        descryption() (des) => fetch_desc_set,
+        custom_tcg() (cti) => fetch_cti_set,
     }
 }
 

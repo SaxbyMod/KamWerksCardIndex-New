@@ -64,7 +64,7 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
                     Mox::G => mox_cost.push_str(cost::GREEN),
                     Mox::B => mox_cost.push_str(cost::BLUE),
                     Mox::K => mox_cost.push_str(cost::BLACK),
-                    Mox::P => mox_cost.push_str(cost::PLUS1),
+                    Mox::P1 => mox_cost.push_str(cost::PLUS1),
                     Mox::Y => mox_cost.push_str(cost::GRAY),
                     _ => todo!(),
                 }

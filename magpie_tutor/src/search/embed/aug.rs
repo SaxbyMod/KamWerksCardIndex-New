@@ -2,6 +2,7 @@ use magpie_engine::prelude::*;
 use poise::serenity_prelude::{colours::roles, CreateEmbed};
 
 use crate::{
+    debug,
     emojis::{cost, ToEmoji},
     hash_card_url, Card, Set,
 };
@@ -64,14 +65,20 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
             let count = costs.mox_count.clone().unwrap_or_default();
 
             for m in costs.mox.iter() {
+                debug!(m);
                 match m {
                     Mox::O => mox_cost.extend(vec![cost::ORANGE; count.o]),
                     Mox::G => mox_cost.extend(vec![cost::GREEN; count.g]),
                     Mox::B => mox_cost.extend(vec![cost::BLUE; count.b]),
                     Mox::Y => mox_cost.extend(vec![cost::GRAY; count.y]),
+                    Mox::R => mox_cost.extend(vec![cost::RED; count.r]),
+                    Mox::E => mox_cost.extend(vec![cost::YELLOW; count.e]),
+                    Mox::P => mox_cost.extend(vec![cost::PURPLE; count.p]),
                     _ => unreachable!(),
                 }
             }
+
+            debug!(mox_cost);
 
             if !mox_cost.is_empty() {
                 out.push_str("**Mox Cost:**");
@@ -87,6 +94,9 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
             mox_cost.extend(vec![cost::SHATTERED_GREEN; shattered.g]);
             mox_cost.extend(vec![cost::SHATTERED_BLUE; shattered.b]);
             mox_cost.extend(vec![cost::SHATTERED_GRAY; shattered.y]);
+            mox_cost.extend(vec![cost::SHATTERED_RED; shattered.r]);
+            mox_cost.extend(vec![cost::SHATTERED_YELLOW; shattered.e]);
+            mox_cost.extend(vec![cost::SHATTERED_PURPLE; shattered.p]);
 
             out.push_str(&mox_cost);
             out.push('\n');
