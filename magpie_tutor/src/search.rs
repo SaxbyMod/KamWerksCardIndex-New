@@ -135,6 +135,8 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                     1028530290727063604 => "aug",
                     // Default to des in the descryption server
                     1257552767984074803 => "des",
+                    // Default to pvp in the pvp server
+                    1115010083168997376 => "cti",
 
                     _ => "std",
                 })

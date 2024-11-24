@@ -100,8 +100,8 @@ async fn main() {
     // poise framework
     let framework = frameworks! {
         global: help(), show_modifiers();
-        guild (1199457939333849118): test();
-        guild (994573431880286289): tunnel_status();
+        guild (1115010083168997376): test();
+        guild (1115010083168997376): tunnel_status();
         ---
         {
             Ok(Data::new())
