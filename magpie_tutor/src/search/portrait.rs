@@ -1,13 +1,12 @@
 use image::{imageops, ImageFormat};
-use magpie_engine::Temple;
+use magpie_engine::{Rarity, Temple};
 use std::io::Cursor;
-use std::u8;
 
 use crate::{get_portrait, resize_img, Card};
 
 pub fn gen_portrait(card: &Card) -> Vec<u8> {
     match card.set.code() {
-        "aug" => gen_aug_portrait(card),
+        "aug" | "Aug" => gen_aug_portrait(card),
         "cti" => gen_simple_portrait(card),
         "std" | "ete" | "egg" | "des" => gen_scale_portrait(card, 4),
         code => todo!("portrait for set code is not implemented yet: {code}"),
@@ -31,11 +30,11 @@ fn gen_aug_portrait(card: &Card) -> Vec<u8> {
     let bg = &format!(
         "https://raw.githubusercontent.com/answearingmachine/card-printer/main/dist/printer/assets/bg/bg_{}_{}.png",
 
-        match card.rarity.to_string().as_str(){
-            "Common" | "Uncommon" | "Side" => "common",
-            "Rare" | "Unique" => "rare",
-            r => unreachable!("{}", r)
+        match &card.rarity {
+            Rarity::COMMON | Rarity::UNCOMMON | Rarity::SIDE => "common",
+            Rarity::RARE | Rarity::UNIQUE => "rare",
         },
+
         if let Some(t) = card.temple.iter().next() {
             match t {
                 Temple::BEAST => "beast",

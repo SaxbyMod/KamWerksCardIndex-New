@@ -322,7 +322,7 @@ impl TryFrom<Keyword> for Filters {
                         'r' => {
                             costs.mox |= Mox::O;
                             if let Some(ref mut c) = costs.mox_count {
-                                c.r = count as usize;
+                                c.o = count as usize;
                             }
                         }
                         'g' => {

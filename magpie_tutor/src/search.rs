@@ -11,7 +11,7 @@ use poise::serenity_prelude::{
 };
 
 use crate::{
-    current_epoch, debug, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
+    current_epoch, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
     CacheData, Card, Color, Death, FuzzyRes, MessageAdapter, MessageCreateExt, Res, CACHE,
     CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };
@@ -63,6 +63,8 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
     let mut embeds = vec![];
     let mut attachments: Vec<CreateAttachment> = vec![];
+
+    let g_sets = SETS.lock().unwrap();
 
     'outer: for (modifier, search_term) in SEARCH_REGEX.captures_iter(content).map(|c| {
         (
@@ -119,10 +121,10 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
         let mut sets = vec![];
         if modifier.contains(Modifier::ALL_SET) {
-            sets.extend(SETS.values());
+            sets.extend(g_sets.values());
         } else {
             for set in set_code {
-                if let Some(set) = SETS.get(set) {
+                if let Some(set) = g_sets.get(set) {
                     sets.push(set);
                 }
             }
@@ -138,9 +140,9 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                     // Default to pvp in the pvp server
                     1115010083168997376 => "cti",
 
-                    _ => "std",
-                })
-                .unwrap(),
+                        _ => "std",
+                    })
+                    .unwrap(),
             );
         }
 
@@ -185,12 +187,13 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             let mut embed = gen_embed(
                 rank,
                 card,
-                SETS.get(card.set.code()).unwrap(),
+                g_sets.get(card.set.code()).unwrap(),
                 modifier.contains(Modifier::COMPACT),
             );
             let hash = hash_card_url(card);
             let mut cache_guard = CACHE.lock().unwrap_or_die("Cannot lock cache");
 
+            #[allow(clippy::cast_lossless)]
             match cache_guard.get(&hash) {
                 Some(CacheData {
                     channel_id,
@@ -220,6 +223,16 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
             embeds.push(embed);
         }
+    }
+
+    if embeds.len() > 10 {
+        embeds.clear();
+        embeds.push(
+            CreateEmbed::new()
+                .title("Too many embeds")
+                .description("Too many added required, Discord only allow up to 10 embeds per message. Try separting your search across multiple message")
+                .color(roles::RED)
+        );
     }
 
     MessageAdapter::new()

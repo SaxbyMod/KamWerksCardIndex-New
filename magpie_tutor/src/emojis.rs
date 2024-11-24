@@ -46,6 +46,17 @@ emoji_table! {
         BLUE = "<:sapphire:1254812816351952956>";
         GRAY = "<:prism:1254812757757268142>";
         BLACK = "<:onyx:1292911543159230746>";
+        // Shattered Mox color
+        
+        SHATTERED_ORANGE = "SHATTER ORANGE,";
+        SHATTERED_GREEN = "SHATTER GREEN,";
+        SHATTERED_BLUE = "SHATTER BLUE,";
+        SHATTERED_GRAY = "SHATTER GRAY,";
+
+        SHATTERED_RED = "SHATTER RED,";
+        SHATTERED_YELLOW = "SHATTER YELLOW,";
+        SHATTERED_PURPLE = "SHATTER PURPLE,";
+
         PLUS1 = "<:1_cost:1274031134442913872>";
     }
 }

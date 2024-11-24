@@ -45,24 +45,31 @@ pub fn query_message(sets: Vec<&Set>, query: &str) -> CreateEmbed {
 
     let query = QueryBuilder::with_filters(sets, filters).query();
 
+    let output = query
+        .cards
+        .iter()
+        .map(|c| c.name.as_str())
+        .collect::<Vec<_>>()
+        .join(", ");
+
     CreateEmbed::new()
         .color(roles::PURPLE)
         .title(format!(
             "Result: {} cards in selected sets",
             query.cards.len()
         ))
-        .description(if query.cards.len() >= 200 {
+        .description(if query.cards.len() >= 200 || output.len() >= 2000 {
             String::from("Too many results...Try narrowing your search")
         } else {
             format!(
-                "Filters: {:?}\n{}",
-                query.filters,
+                "Cards that {}\n{}",
                 query
-                    .cards
-                    .iter()
-                    .map(|c| c.name.as_str())
-                    .collect::<Vec<_>>()
-                    .join(", ")
+                    .filters
+                    .into_iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(" and "),
+                output
             )
         })
 }

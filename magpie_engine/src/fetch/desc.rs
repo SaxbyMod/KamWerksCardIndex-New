@@ -72,7 +72,7 @@ pub fn fetch_desc_set(code: SetCode) -> SetResult<(), DescCosts> {
                             if costs.mox.is_empty() {
                                 Mox::K
                             } else {
-                                Mox::P
+                                Mox::P1
                             }
                         }
                         _ => return Err(SetError::UnknownMoxColor(m.to_owned())),

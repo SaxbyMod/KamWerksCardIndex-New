@@ -176,11 +176,11 @@ impl Display for Rarity {
             f,
             "{}",
             match self {
-                Rarity::SIDE => "Side",
-                Rarity::COMMON => "Common",
-                Rarity::UNCOMMON => "Uncommon",
-                Rarity::RARE => "Rare",
-                Rarity::UNIQUE => "Unique",
+                Rarity::SIDE => "side",
+                Rarity::COMMON => "common",
+                Rarity::UNCOMMON => "uncommon",
+                Rarity::RARE => "rare",
+                Rarity::UNIQUE => "unique",
             }
         )
     }
@@ -202,6 +202,28 @@ bitflags! {
         const FOOL = 1 << 4;
         /// The Artistry or Galliard Temple from Descryprion.
         const ARTISTRY = 1 << 5;
+    }
+}
+
+impl Display for Temple {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut out = vec![];
+
+        let flags = [
+            (Temple::BEAST, "beast"),
+            (Temple::UNDEAD, "undead"),
+            (Temple::TECH, "tech"),
+            (Temple::FOOL, "fool"),
+            (Temple::ARTISTRY, "artistry"),
+        ];
+
+        for (f, v) in flags {
+            if self.contains(f) {
+                out.push(v);
+            }
+        }
+
+        write!(f, "{}", out.join(" or "))
     }
 }
 
@@ -236,9 +258,26 @@ pub enum SpAtk {
     CARD,
 }
 
+impl Display for SpAtk {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                SpAtk::MOX => "mox",
+                SpAtk::GREEN_MOX => "green mox",
+                SpAtk::MIRROR => "mirror",
+                SpAtk::ANT => "ant",
+                SpAtk::BONE => "bone",
+                SpAtk::BELL => "bell",
+                SpAtk::CARD => "card",
+            }
+        )
+    }
+}
+
 bitflags! {
-    /// Bits flag for Mox, If you need more than these 4 colors you need to make you own mox type and
-    /// extend it.
+    /// Bits flag for Moxes.
     #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct Mox: u16 {
         /// Orange or Ruby Mox.
@@ -250,24 +289,40 @@ bitflags! {
         /// Gray or Prism Mox
         const Y = 1 << 3;
 
+        /// Red or Garnet Mox
+        const R = 1<< 4;
+        /// Yellow or Topaz Mox
+        const E = 1 << 5;
+        /// Purple or Amethyst Mox
+        const P = 1 << 6;
+
+
         /// Black or Onyx Mox.
-        const K = 1 << 4;
+        const K = 1 << 7;
         /// Plus 1 indicator for Descryption
-        const P = 1<< 5;
+        const P1 = 1<< 8;
     }
 }
 
 /// Component for when card cost multiple of 1 Mox color.
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct MoxCount {
-    /// The Red component.
-    pub r: usize,
+    /// The Orange component.
+    pub o: usize,
     /// The Green component.
     pub g: usize,
     /// The Blue component.
     pub b: usize,
     /// The Gray component.
     pub y: usize,
+
+    /// The Red component
+    pub r: usize,
+    /// The Yellow component
+    pub e: usize,
+    /// The Purple component
+    pub p: usize,
+
     /// The Black component.
     pub k: usize,
 }
@@ -293,6 +348,83 @@ pub struct Costs<E> {
     pub extra: E,
 }
 
+impl<E> Display for Costs<E>
+where
+    E: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut out = vec![];
+
+        if self.blood != 0 {
+            out.push(format!("{} blood", self.blood));
+        }
+        if self.bone != 0 {
+            out.push(format!("{} bone", self.bone));
+        }
+        if self.energy != 0 {
+            out.push(format!("{} energy", self.energy));
+        }
+        if self.blood != 0 {
+            out.push(format!("{} blood", self.blood));
+        }
+
+        if self.mox.contains(Mox::O) {
+            out.push(format!(
+                "{}orange",
+                if let Some(ref m) = self.mox_count {
+                    m.o
+                } else {
+                    1
+                }
+            ));
+        }
+        if self.mox.contains(Mox::G) {
+            out.push(format!(
+                "{}green",
+                if let Some(ref m) = self.mox_count {
+                    m.g
+                } else {
+                    1
+                }
+            ));
+        }
+        if self.mox.contains(Mox::B) {
+            out.push(format!(
+                "{}blue",
+                if let Some(ref m) = self.mox_count {
+                    m.b
+                } else {
+                    1
+                }
+            ));
+        }
+        if self.mox.contains(Mox::Y) {
+            out.push(format!(
+                "{}gray",
+                if let Some(ref m) = self.mox_count {
+                    m.y
+                } else {
+                    1
+                }
+            ));
+        }
+        if self.mox.contains(Mox::K) {
+            out.push(format!(
+                "{}black",
+                if let Some(ref m) = self.mox_count {
+                    m.k
+                } else {
+                    1
+                }
+            ));
+        }
+
+        out.push(format!("{}", self.extra));
+
+        write!(f, "{}", out.join(" and "))
+    }
+}
+
 bitflags! {
     /// Bit flags for a card trait.
     #[derive(Default, Debug, Clone, Copy, PartialEq)]
@@ -308,6 +440,27 @@ bitflags! {
     }
 }
 
+impl Display for TraitsFlag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut out = vec![];
+
+        let flags = [
+            (TraitsFlag::CONDUCTIVE, "conductive"),
+            (TraitsFlag::BAN, "banned"),
+            (TraitsFlag::TERRAIN, "terrain"),
+            (TraitsFlag::HARD, "hard"),
+        ];
+
+        for (f, v) in flags {
+            if self.contains(f) {
+                out.push(v);
+            }
+        }
+
+        write!(f, "{}", out.join(" and "))
+    }
+}
+
 /// Store both flag based traits and string based traits.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Traits {
@@ -319,6 +472,21 @@ pub struct Traits {
     ///
     /// Common traits are store using bit flags to save space.
     pub flags: TraitsFlag,
+}
+
+impl Display for Traits {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}{}",
+            if let Some(ref strs) = self.strings {
+                strs.join(" and ") + " and "
+            } else {
+                String::new()
+            },
+            self.flags
+        )
+    }
 }
 
 impl Traits {

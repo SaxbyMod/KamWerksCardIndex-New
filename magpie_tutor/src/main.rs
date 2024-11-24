@@ -1,25 +1,16 @@
 #![allow(missing_docs)]
 
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo;
 
 use magpie_tutor::{
-    done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE, SETS,
+    done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE_PATH, SETS,
 };
-use poise::{
-    serenity_prelude::{CacheHttp, ClientBuilder, CreateEmbed, GatewayIntents, GuildId},
-    CreateReply,
-};
+use poise::serenity_prelude::{CacheHttp, ClientBuilder, GatewayIntents, GuildId};
 
 /// Test command
 #[poise::command(slash_command)]
 async fn test(ctx: CmdCtx<'_>) -> Res {
-    let mut msg = CreateReply::default();
-
-    for _ in 0..15 {
-        msg = msg.embed(CreateEmbed::new().title("Embed"));
-    }
-    ctx.send(msg).await?;
-
+    ctx.say("Testing").await?;
     Ok(())
 }
 
@@ -109,9 +100,12 @@ async fn main() {
     };
 
     info!("Fetching set...");
-    done!("Finish fetching {} sets", SETS.len().green());
+    done!(
+        "Finish fetching {} sets",
+        SETS.lock().unwrap().len().green()
+    );
 
-    info!("Loading caches from {}...", CACHE_FILE.green());
+    info!("Loading caches from {}...", CACHE_FILE_PATH.green());
     done!(
         "Finish loading {} caches",
         CACHE.lock().unwrap().len().green()
@@ -127,7 +121,7 @@ async fn main() {
     client.unwrap().start().await.unwrap();
 }
 
-fn panic_hook(info: &PanicInfo) {
+fn panic_hook(info: &PanicHookInfo) {
     if let Some(loc) = info.location() {
         error!(
             "Panic in file {} at line {}",

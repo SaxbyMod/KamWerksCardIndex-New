@@ -242,6 +242,22 @@ pub enum QueryOrder {
     Less,
 }
 
+impl Display for QueryOrder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                QueryOrder::Greater => ">",
+                QueryOrder::GreaterEqual => "≥",
+                QueryOrder::Equal => "=",
+                QueryOrder::LessEqual => "≤",
+                QueryOrder::Less => "<",
+            }
+        )
+    }
+}
+
 /// Filters to be apply to when querying card.
 ///
 /// You can add custom filter by providing the `F` generic and implementing [`ToFilter`] trait for
@@ -434,5 +450,42 @@ where
 {
     fn to_fn(self) -> FilterFn<E, C> {
         unimplemented!()
+    }
+}
+
+impl<E, C, F> Display for Filters<E, C, F>
+where
+    E: Clone + 'static,
+    C: Clone + PartialEq + Display + 'static,
+    F: ToFilter<E, C> + Display + 'static,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Filters::Name(n) => write!(f, "name includes {n}"),
+            Filters::Description(d) => write!(f, "description includes {d}"),
+            Filters::Rarity(r) => write!(f, "is {r}"),
+            Filters::Temple(t) => write!(f, "from the {t} temple"),
+            Filters::Tribe(t) => match t {
+                None => write!(f, "is tribeless"),
+                Some(t) => write!(f, "is a {t}"),
+            },
+            Filters::Attack(o, a) => write!(f, "attack {o} {a}"),
+            Filters::Health(o, a) => write!(f, "health {o} {a}"),
+            Filters::Sigil(s) => write!(f, "have {s}"),
+            Filters::SpAtk(a) => write!(f, "attack value is {a}"),
+            Filters::StrAtk(s) => write!(f, "attack value is {s}"),
+            Filters::Costs(c) => match c {
+                None => write!(f, "is free"),
+                Some(c) => write!(f, "cost {c}"),
+            },
+            Filters::Traits(t) => match t {
+                None => write!(f, "is traitless"),
+                Some(t) => write!(f, "is {t}"),
+            },
+            Filters::Or(a, b) => write!(f, "{a} or {b}"),
+            Filters::Not(a) => write!(f, "not {a}"),
+            Filters::Extra(e) => write!(f, "{e}"),
+            Filters::McGuffin(..) | Filters::Cake(..) => unreachable!(),
+        }
     }
 }

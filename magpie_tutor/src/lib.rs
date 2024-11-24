@@ -9,7 +9,7 @@ use std::{
     sync::Mutex,
 };
 
-use image::{GenericImageView, ImageFormat};
+use image::GenericImageView;
 use isahc::ReadResponseExt;
 use lazy_static::lazy_static;
 use magpie_engine::prelude::*;
@@ -36,7 +36,10 @@ pub use fuzzy::*;
 #[macro_use]
 pub mod r#macro;
 
-use self::engine::{FilterExt, MagpieCosts, MagpieExt};
+use self::{
+    engine::{FilterExt, MagpieCosts, MagpieExt},
+    fetch::AugBranch,
+};
 
 // Type definition for stuff
 
@@ -86,7 +89,7 @@ pub struct CacheData {
 }
 
 /// Location of the cache file.
-pub const CACHE_FILE: &str = "./cache.bin";
+pub const CACHE_FILE_PATH: &str = "./cache.bin";
 
 lazy_static! {
     /// The regex use to match for general search.
@@ -99,17 +102,7 @@ lazy_static! {
     pub static ref COST_REGEX: Regex = Regex::new(r"(-?\d+)?([a-zA-Z])").unwrap_or_die("Cannot compile query regex");
 
     /// Collection of all set magpie use
-    pub static ref SETS: HashMap<&'static str, Set> = {
-        set_map! {
-            standard (std) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
-            eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
-            egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
-            ---
-            augmented (aug) => fetch_aug_set,
-            descryption (des) => fetch_desc_set,
-            custom_tcg (cti) => fetch_cti_set,
-        }
-    };
+    pub static ref SETS: Mutex<HashMap<&'static str, Set>> = Mutex::new(load_set());
 
     /// Debug card use to test rendering
     pub static ref DEBUG_CARD: Card = Card {
@@ -131,19 +124,25 @@ lazy_static! {
             energy: 100,
             mox: Mox::all(),
             mox_count: Some(MoxCount {
-                r: 6,
-                g: 9,
-                b: 4,
-                y: 2,
-                k: 1
+                o:6,
+                g:9,
+                b:4,
+                y:2,
+                k:1,
+                r: 1,
+                e: 1,
+                p: 1,
             }),
             extra: MagpieCosts {
                 shattered_count: Some(MoxCount {
-                    r: 1,
+                    o: 1,
                     g: 9,
                     b: 8,
                     y: 4,
-                    k: 1
+                    k: 1,
+                    r: 1,
+                    e: 1,
+                    p: 1,
                 }),
                 max: 451,
                 link: 6,
@@ -168,10 +167,23 @@ lazy_static! {
     pub static ref CACHE: Mutex<HashMap<u64, CacheData>> = load_cache();
 }
 
+fn load_set() -> HashMap<&'static str, Set> {
+    set_map! {
+        standard (std) => "https://raw.githubusercontent.com/107zxz/inscr-onln-ruleset/main/standard.json",
+        eternal (ete) => "https://raw.githubusercontent.com/EternalHours/EternalFormat/main/IMF_Eternal.json",
+        egg (egg) => "https://raw.githubusercontent.com/senor-huevo/Mr.Egg-s-Goofy/main/Mr.Egg's%20Goofy.json",
+        ---
+        augmented (aug) => fetch_aug_set(AugBranch::Snapshot),
+        aug_main (Aug) => fetch_aug_set(AugBranch::Main),
+        descryption (des) => fetch_desc_set(),
+        custom_tcg (cti) => fetch_cti_set(),
+    }
+}
+
 fn load_cache() -> Mutex<HashMap<u64, CacheData>> {
     let bytes = {
-        let mut f =
-            File::open(CACHE_FILE).unwrap_or_else(|_| File::create_new(CACHE_FILE).unwrap());
+        let mut f = File::open(CACHE_FILE_PATH)
+            .unwrap_or_else(|_| File::create_new(CACHE_FILE_PATH).unwrap());
 
         let mut buf = vec![
             0;
@@ -198,11 +210,11 @@ fn load_cache() -> Mutex<HashMap<u64, CacheData>> {
 /// Save the cache to the cache file.
 pub fn save_cache() {
     bincode::serialize_into(
-        File::create(CACHE_FILE).expect("Cannot create cache file"),
+        File::create(CACHE_FILE_PATH).expect("Cannot create cache file"),
         &*CACHE,
     )
     .unwrap();
-    done!("Caches save successfully to {}", CACHE_FILE.green());
+    done!("Caches save successfully to {}", CACHE_FILE_PATH.green());
 }
 
 /// Hash a card url. Just a wrapper around DefaultHasher.

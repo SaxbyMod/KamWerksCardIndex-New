@@ -110,7 +110,11 @@ macro_rules! hashmap {
 /// Helper to create set map.
 #[macro_export]
 macro_rules! set_map {
-    ($($name:ident ($code:ident) => $link:literal,)* --- $($key:ident ($key_code:ident) => $func:ident,)*) => {
+    (
+        $($name:ident ($code:ident) => $link:literal,)*
+        ---
+        $($key:ident ($key_code:ident) => $func:ident($($func_arg:expr),*),)*
+    ) => {
         hashmap! {
             $(
                 stringify!($code) => {
@@ -136,6 +140,7 @@ macro_rules! set_map {
                 stringify!($key_code) => {
                     let now = std::time::Instant::now();
                     let t = $func(
+                        $($func_arg,)*
                         SetCode::new(stringify!($key_code)).unwrap()
                     )
                     .unwrap_or_die(&format!("Cannot process {} set", stringify!($key)))
@@ -217,12 +222,12 @@ macro_rules! frameworks {
                     .await?;
 
                     $(
-                        poise::builtins::register_in_guild(
+                        let _ = poise::builtins::register_in_guild(
                             ctx.http(),
                             &[$($g_cmd,)*],
                             GuildId::from($g_id)
                         )
-                        .await?;
+                        .await;
                     )*
 
                     done!(
