@@ -54,10 +54,10 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
     let mut out = String::new();
 
     if let Some(costs) = &card.costs {
-        append_cost(&mut out, costs.blood, "Blood", cost::BLOOD);
-        append_cost(&mut out, costs.bone, "Bone", cost::BONE);
-        append_cost(&mut out, costs.energy, "Energy", cost::ENERGY);
-        append_cost(&mut out, costs.extra.max, "Max", cost::MAX);
+        append_cost(&mut out, costs.blood, " Blood", cost::BLOOD);
+        append_cost(&mut out, costs.bone, " Bone", cost::BONE);
+        append_cost(&mut out, costs.energy, " Energy", cost::ENERGY);
+        append_cost(&mut out, costs.extra.max, " Overcharge", cost::MAX);
 
         if !costs.mox.is_empty() {
             let mut mox_cost = String::new();

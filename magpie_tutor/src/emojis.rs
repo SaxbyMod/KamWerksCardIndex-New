@@ -44,10 +44,12 @@ emoji_table! {
         ORANGE = "<:ruby:1254812785985196134>";
         GREEN = "<:emerald:1254812654795624531>";
         BLUE = "<:sapphire:1254812816351952956>";
+        RED = "Garnet,";
+        YELLOW = "Topaz,";
+        PURPLE = "Amethyst,";
         GRAY = "<:prism:1254812757757268142>";
         BLACK = "<:onyx:1292911543159230746>";
         // Shattered Mox color
-        
         SHATTERED_ORANGE = "SHATTER ORANGE,";
         SHATTERED_GREEN = "SHATTER GREEN,";
         SHATTERED_BLUE = "SHATTER BLUE,";

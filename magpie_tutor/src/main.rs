@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use std::panic::PanicHookInfo;
+use std::panic::PanicInfo;
 
 use magpie_tutor::{
     done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE_PATH, SETS,
@@ -82,7 +82,7 @@ async fn tunnel_status(ctx: CmdCtx<'_>) -> Res {
 // main entry point of the bot
 #[tokio::main]
 async fn main() {
-    // your token need to be in the enviroment variable
+    // your token need to be in the environment variable
     let token = std::env::var("TUTOR_TOKEN").expect("missing token in env var");
     let intents = GatewayIntents::privileged()
         | GatewayIntents::GUILD_MESSAGES
@@ -100,16 +100,22 @@ async fn main() {
     };
 
     info!("Fetching set...");
-    done!(
-        "Finish fetching {} sets",
-        SETS.lock().unwrap().len().green()
-    );
+    // Use block_in_place for blocking operations
+    tokio::task::block_in_place(|| {
+        done!(
+            "Finish fetching {} sets",
+            SETS.lock().unwrap().len().green()
+        );
+    });
 
     info!("Loading caches from {}...", CACHE_FILE_PATH.green());
-    done!(
-        "Finish loading {} caches",
-        CACHE.lock().unwrap().len().green()
-    );
+    // Use block_in_place for loading caches (since it's a blocking operation)
+    tokio::task::block_in_place(|| {
+        done!(
+            "Finish loading {} caches",
+            CACHE.lock().unwrap().len().green()
+        );
+    });
 
     std::panic::set_hook(Box::new(panic_hook));
 
@@ -121,7 +127,8 @@ async fn main() {
     client.unwrap().start().await.unwrap();
 }
 
-fn panic_hook(info: &PanicHookInfo) {
+
+fn panic_hook(info: &PanicInfo) {
     if let Some(loc) = info.location() {
         error!(
             "Panic in file {} at line {}",

@@ -132,7 +132,8 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
 
         if sets.is_empty() {
             sets.push(
-                SETS.get(match guild_id.get() {
+                g_sets
+                    .get(match guild_id.get() {
                     // Default to aug in the augmented server
                     1028530290727063604 => "aug",
                     // Default to des in the descryption server
@@ -140,11 +141,11 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                     // Default to pvp in the pvp server
                     1115010083168997376 => "cti",
 
-                        _ => "std",
-                    })
-                    .unwrap(),
-            );
-        }
+                    _ => "std",
+                })
+                .unwrap(),
+        );
+    }
 
         if modifier.contains(Modifier::QUERY) {
             embeds.push(query_message(sets, search_term));

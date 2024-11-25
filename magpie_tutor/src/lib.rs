@@ -15,6 +15,7 @@ use lazy_static::lazy_static;
 use magpie_engine::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use tokio::task;
 
 pub mod emojis;
 pub mod engine;
@@ -181,7 +182,7 @@ fn load_set() -> HashMap<&'static str, Set> {
 }
 
 fn load_cache() -> Mutex<HashMap<u64, CacheData>> {
-    let bytes = {
+    let bytes = task::block_in_place(|| {
         let mut f = File::open(CACHE_FILE_PATH)
             .unwrap_or_else(|_| File::create_new(CACHE_FILE_PATH).unwrap());
 
@@ -197,7 +198,7 @@ fn load_cache() -> Mutex<HashMap<u64, CacheData>> {
         f.read_exact(&mut buf).expect("Buffer overflow");
 
         buf
-    };
+    });
 
     if bytes.is_empty() {
         return Mutex::new(HashMap::new());
@@ -206,6 +207,7 @@ fn load_cache() -> Mutex<HashMap<u64, CacheData>> {
     let t: Mutex<Cache> = bincode::deserialize(&bytes).unwrap();
     t
 }
+
 
 /// Save the cache to the cache file.
 pub fn save_cache() {
@@ -224,19 +226,21 @@ fn hash_card_url(card: &Card) -> u64 {
     hasher.finish()
 }
 
-/// Resize a image from it's bytes.
 fn resize_img(img: &[u8], scale: u32) -> Vec<u8> {
-    if img.is_empty() {
-        return Vec::new();
-    }
-    let t = image::load_from_memory(img).expect("Decode image fails");
-    let (w, h) = t.dimensions();
-    let mut out = vec![];
-    t.resize_exact(w * scale, h * scale, image::imageops::Nearest)
-        .write_to(&mut Cursor::new(&mut out), image::ImageFormat::Png)
-        .expect("Resize fails");
-    out
+    task::block_in_place(|| {
+        if img.is_empty() {
+            return Vec::new();
+        }
+        let t = image::load_from_memory(img).expect("Decode image fails");
+        let (w, h) = t.dimensions();
+        let mut out = vec![];
+        t.resize_exact(w * scale, h * scale, image::imageops::Nearest)
+            .write_to(&mut Cursor::new(&mut out), image::ImageFormat::Png)
+            .expect("Resize fails");
+        out
+    })
 }
+
 
 /// Generate card embed from a card data.
 pub fn get_portrait(url: &str) -> Vec<u8> {
