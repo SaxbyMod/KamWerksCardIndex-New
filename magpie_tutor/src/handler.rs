@@ -10,7 +10,10 @@ use poise::{
 use crate::{done, error, search::search_message, Color, Data, Error, Res};
 
 mod button;
+mod message;
+
 use button::button_handler;
+use message::message_handler;
 
 /// The event handler or dispatcher for serenity event.
 pub async fn handler(
@@ -30,9 +33,14 @@ pub async fn handler(
             Ok(())
         }
 
-        Message { new_message: msg } if msg.author.id != ctx.cache.current_user().id => {
+        // only search if message contain [[
+        Message { new_message: msg }
+            if msg.author.id != ctx.cache.current_user().id && msg.content.contains("[[") =>
+        {
             search_message(ctx, msg, msg.guild_id.unwrap()).await
         }
+
+        Message { new_message: msg } => message_handler(msg, ctx).await,
 
         // handle button shit
         InteractionCreate {
