@@ -14,7 +14,7 @@ pub async fn message_handler(msg: &Message, ctx: &Context) -> Res {
 
 fn desc_faq(what: &str) -> &'static str {
     match what {
-        "what is link" | "what is <:cost_link:1240999261831958599>" => "
+        "what is link" | "what is <:cost_link:1240999261831958599>" | "what are links" => "
 Links are an alternate cost type in Descryption. This cost type predominantly appears on Artistry cards. 
 
 Links work as follows:
@@ -22,10 +22,10 @@ Links work as follows:
 - Cards which cost links expend that many links as they are being played. (They then still yield the normal 1.)
 - All links are lost whenever your turn ends. Links yielded to you during your opponent's turn will be available to spend on your next turn. ",
 
-"what is heat" | "what is <:cost_heat:1099344819492495451>" => "
+"what is heat" | "what is <:cost_heat:1099344819492495451>" | "what are heats" => "
 Heats are an alernate cost type in IMR (Inscryption Multiplayer Redux). You gain heats when a card is discarded from your hand. Unspent heat are kept across turn.",
 
-"what is sap" | "what is <:cost_sap:1125555492853403708>" => "
+"what is sap" | "what is <:cost_sap:1125555492853403708>" | "what are saps"=> "
 Saps are an alternate cost type in IMR (Inscryption Multiplayer Redux). Saps function identical to blood only you can also sacrifice bloodless card for saps.",
 
         _ => ""
