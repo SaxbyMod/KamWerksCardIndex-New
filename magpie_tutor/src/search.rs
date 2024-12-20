@@ -1,5 +1,5 @@
 //! Contain the main search function and implementations.
-use std::{time::Instant, vec};
+use std::{hash::Hash, time::Instant, vec};
 
 use bitflags::bitflags;
 use poise::serenity_prelude::{
@@ -39,9 +39,10 @@ pub async fn search_message(ctx: &Context, msg: &Message, guild_id: GuildId) -> 
         return Ok(());
     }
     info!(
-        "Message with {} by {} seaching time",
+        "Message with {} by {} in {}. Seaching time!",
         msg.content.red(),
-        msg.author.name.magenta()
+        msg.author.name.magenta(),
+        msg.guild_id.unwrap().name(ctx).unwrap().blue()
     );
 
     let msg = msg
@@ -112,6 +113,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                 }
             }
 
+            // smart detech query
             if search_term.contains(':') {
                 t |= Modifier::QUERY;
             }
@@ -175,11 +177,10 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             };
 
             if modifier.contains(Modifier::DEBUG) {
-                embeds.push(
-                    CreateEmbed::new()
-                        .color(roles::BLUE)
-                        .description(format!("```\n{card:#?}\n```")),
-                );
+                embeds.push(CreateEmbed::new().color(roles::BLUE).description(format!(
+                    "Hash: {:?}\n```\n{card:#?}\n```",
+                    hash_card_url(card)
+                )));
                 continue;
             }
 
@@ -206,7 +207,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                     if option.is_some() {
                         info!("Cache for {} have expire removing...", hash.blue());
                         cache_guard.remove(&hash);
-                        done!("{} cache for card hash {}", "Remove".red(), hash.blue());
+                        done!("{} cache for card hash {}", "Removed".red(), hash.blue());
                     }
 
                     let filename = hash.to_string() + ".png";
@@ -288,7 +289,7 @@ fn update_cache(msg: &Message) {
         if cache_guard.insert(filename, cache_data).is_none() {
             done!(
                 "{} cache for card hash {}",
-                "Create".green(),
+                "Created".green(),
                 filename.blue()
             );
             new_cache += 1;

@@ -1,4 +1,4 @@
-use poise::serenity_prelude::{Context, Message};
+use poise::serenity_prelude::{ChannelId, Context, GuildId, Message};
 
 use crate::Res;
 
@@ -8,6 +8,21 @@ pub async fn message_handler(msg: &Message, ctx: &Context) -> Res {
         if !content.is_empty() {
             msg.reply(ctx, content).await?;
         }
+    } else if msg.content.contains("want to play")
+        || msg.content.contains("want to fight")
+            && msg
+                .guild_id
+                .is_some_and(|id| id == GuildId::new(994573431880286289))
+            && msg.channel_id != ChannelId::new(1065751579485032629)
+    {
+        msg.reply(ctx, "
+You seem to be asking for a game in the the wrong channel!
+You can look at [this faq](https://discord.com/channels/994573431880286289/1168644586319659100/1181115229610983424), or:
+- Host a room in the game
+- Go to the <#:1065751579485032629> channel
+- Choose a inactive lobby (choose one that no one is talking in). Competive lobby usually entail harder and more meta gameplay.
+- Send a message with the room code and ping the `Gamer (PING IF LFG)` role"
+        ).await?;
     }
     Ok(())
 }
