@@ -136,6 +136,7 @@ fn panic_hook(info: &PanicInfo) {
             loc.line().blue()
         );
     }
+
     let s = info
         .payload()
         .downcast_ref::<String>()
