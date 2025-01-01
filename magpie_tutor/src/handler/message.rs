@@ -1,6 +1,6 @@
-use poise::serenity_prelude::{ChannelId, Context, GuildId, Message};
+use poise::serenity_prelude::{Context, GuildId, Message};
 
-use crate::Res;
+use crate::{Res, FIGHT_REGEX};
 
 pub async fn message_handler(msg: &Message, ctx: &Context) -> Res {
     if msg.content.starts_with("what") {
@@ -8,12 +8,14 @@ pub async fn message_handler(msg: &Message, ctx: &Context) -> Res {
         if !content.is_empty() {
             msg.reply(ctx, content).await?;
         }
-    } else if msg.content.contains("want to play")
-        || msg.content.contains("want to fight")
-            && msg
-                .guild_id
-                .is_some_and(|id| id == GuildId::new(994573431880286289))
-            && msg.channel_id != ChannelId::new(1065751579485032629)
+    } else if (FIGHT_REGEX.is_match(&msg.content))
+        && msg
+            .guild_id
+            .is_some_and(|id| id == GuildId::new(994573431880286289))
+        && !matches!(
+            msg.channel_id.get(),
+            1067593222987198465 | 1067561938969710754 | 1066543653339791440
+        )
     {
         msg.reply(ctx, "
 You seem to be asking for a game in the the wrong channel!
