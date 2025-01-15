@@ -117,6 +117,7 @@ where
         return Err(FetchError::HttpError(response.status()));
     }    
 
+    
     let data = response
         .json::<S>()
         .map_err(|err| FetchError::RequestError(err))?;

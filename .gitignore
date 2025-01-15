@@ -2,3 +2,5 @@ target/
 */target/
 magpie_engine/src/main.rs
 *.bin
+magpie_engine/src/fetch/Untitled-1.http
+magpie_engine/src/fetch/Untitled-2.url

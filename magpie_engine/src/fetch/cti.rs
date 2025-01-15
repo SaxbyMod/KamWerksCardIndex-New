@@ -1,28 +1,30 @@
 use std::collections::HashMap;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::{fetch::{fetch_from_notion, FetchError}, Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode, Temple};
 
 use super::{SetError, SetResult};
 
-/// Struct to represent the wrapping of the response containing the `results` field.
-#[derive(Deserialize, Debug)] // Derive Debug for printing
+#[derive(Deserialize, Debug)]
 struct NotionResponse {
-    results: Option<Vec<CtiCard>>, // Make the results field optional to handle missing results
+    results: Option<Vec<NotionResult>>, // Wrap the results in an Option<Vec> to handle missing results
+}
+
+#[derive(Deserialize, Debug)]
+struct NotionResult {
+    properties: CtiCard, // The properties field contains a CtiCard
 }
 
 /// Fetch Custom TCG Inscryption from the
 /// [Notion Database](https://www.notion.so/inscryption-pvp-wiki/Custom-TCG-Inscryption-3f22fc55858d4cfab2061783b5120f87).
 #[allow(clippy::too_many_lines)]
 pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
-    
     let notion_api_key = std::env::var("NOTION_API_KEY")
         .map_err(|_| SetError::MissingApiKey("Notion API key not found".to_string()))?;
-    
-        match std::env::var("NOTION_API_KEY") {
-            Ok(key) => println!("Retrieved API Key: {}", key),
-            Err(err) => println!("Failed to retrieve API Key: {:?}", err),
-        }
-        
+
+    match std::env::var("NOTION_API_KEY") {
+        Ok(key) => println!("Retrieved API Key: {}", key),
+        Err(err) => println!("Failed to retrieve API Key: {:?}", err),
+    }
 
     let card_url = "https://api.notion.com/v1/databases/e19c88aa75b44bfe89321bcde8dc7d9f/query";
     let sigil_url = "https://api.notion.com/v1/databases/933d6166cb3f4ee89db51e4cf464f5bd/query";
@@ -52,19 +54,19 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
     }
 
     sigils_description.insert(
-        String::from("UNDEFINDED SIGILS"),
+        String::from("UNDEFINED SIGILS"),
         "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
     );
 
     // Process the raw card data
     for card in raw_card {
         let costs;
-        if card.cost != "Free" && !card.cost.is_empty() {
+        if card.properties.cost.rich_text[0].plain_text != "Free" && !card.properties.cost.rich_text[0].plain_text.is_empty() {
             let mut t: Costs<()> = Costs::default();
             let mut mox_count = MoxCount::default();
 
             for c in card
-                .cost
+                .properties.cost.rich_text[0].plain_text
                 .to_lowercase()
                 .replace("bones", "bone")
                 .split(", ")
@@ -75,14 +77,14 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
 
                     let first = t
                         .next()
-                        .ok_or_else(|| SetError::InvalidCostFormat(card.cost.clone()))?
+                        .ok_or_else(|| SetError::InvalidCostFormat(card.properties.cost.rich_text[0].plain_text.clone()))?
                         .parse::<isize>()
-                        .map_err(|_| SetError::InvalidCostFormat(card.cost.clone()))?;
+                        .map_err(|_| SetError::InvalidCostFormat(card.properties.cost.rich_text[0].plain_text.clone()))?;
 
                     (
                         first,
                         t.next()
-                            .ok_or_else(|| SetError::InvalidCostFormat(card.cost.clone()))?,
+                            .ok_or_else(|| SetError::InvalidCostFormat(card.properties.cost.rich_text[0].plain_text.clone()))?,
                     )
                 };
 
@@ -124,40 +126,43 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
         }
 
         cards.push(Card {
-            portrait: format!("https://raw.githubusercontent.com/SaxbyMod/NotionAssets/main/Formats/Custom%20TCG%20Inscryption/Portraits/{}.png", card.name.replace(' ', "%20")),
+            portrait: card.properties.image.url.clone(), // Using the image URL directly
             set: code,
-            name: card.name,
-            description: card.description,
-            rarity: match card.rarity.as_str() {
+            name: card.properties.name.rich_text[0].plain_text.clone(),
+            description: card.properties.flavor.rich_text[0].plain_text.clone(),
+            rarity: match card.properties.rarity.select.name.as_str() {
                 "Common" | "Common (Joke Card)" | "" => Rarity::COMMON,
                 "Uncommon" => Rarity::UNCOMMON,
                 "Rare" => Rarity::RARE,
                 "Talking" | "Deathcard" => Rarity::UNIQUE,
                 "Side-Deck" => Rarity::SIDE,
-                _ => return Err(SetError::UnknownRarity(card.rarity)),
+                _ => return Err(SetError::UnknownRarity(card.properties.rarity.select.name)),
             },
-            temple: match card.temple.as_str() {
+            temple: match card.properties.temple.select.name.as_str() {
                 "Beast" => Temple::BEAST,
                 "Undead" => Temple::UNDEAD,
                 "Tech" => Temple::TECH,
                 "Magicks" => Temple::MAGICK,
                 "Terrain/Extras" => Temple::empty(),
-                _ => return Err(SetError::UnknownTemple(card.temple))
+                _ => return Err(SetError::UnknownTemple(card.properties.temple.select.name))
             },
             tribes: None,
-            attack: Attack::Num(card.attack.parse().unwrap_or(0)),
-            health: card.health.parse().unwrap_or(0),
-            sigils: [card.sigil_1, card.sigil_2, card.sigil_3, card.sigil_4]
+            attack: Attack::Num(card.properties.power.rich_text[0].plain_text.parse().unwrap_or(0)),
+            health: card.properties.health.rich_text[0].plain_text.parse().unwrap_or(0),
+            sigils: [card.properties.sigil_1, card.properties.sigil_2, card.properties.sigil_3, card.properties.sigil_4]
                 .into_iter()
-                .filter(|s| !s.is_empty())
-                .map(|s| if sigils_description.contains_key(&s) { s } else { String::from("UNDEFINED SIGIL") })
-                .collect(),
+                .filter(|s| s.is_some() && !s.as_ref().unwrap().rich_text[0].plain_text.is_empty()) // Check for Some and content
+                .map(|s| match s {
+                Some(sigil) => sigil.rich_text[0].plain_text.clone(), // Return the content as String
+                None => "None Found".to_string()
+            })
+            .collect(),
             costs,
             traits: None,
-            related: if card.token.is_empty() {
-                vec![]
+            related: if card.properties.token.is_some() {
+                vec![card.properties.token.unwrap().rich_text[0].plain_text.clone()] // Only adding token if it's available
             } else {
-                card.token.split(", ").map(ToOwned::to_owned).collect()
+                vec![]
             },
             extra: (),
         });
@@ -172,33 +177,99 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
     })
 }
 
-/// Json scheme for Cti card.
-#[derive(Deserialize, Debug)] // Derive Debug for printing
-struct CtiCard {
-    #[serde(rename = "Internal Name")]
-    name: String,
-    #[serde(rename = "Flavor")]
-    description: String,
-    #[serde(rename = "Temple")]
-    temple: String,
-    #[serde(rename = "Rarity")]
-    rarity: String,
-    #[serde(rename = "Cost")]
-    cost: String,
-    #[serde(rename = "Power")]
-    attack: String,
-    #[serde(rename = "Health")]
-    health: String,
-    #[serde(rename = "Token")]
-    token: String,
-    #[serde(rename = "Sigil 1")]
-    sigil_1: String,
-    #[serde(rename = "Sigil 2")]
-    sigil_2: String,
-    #[serde(rename = "Sigil 3")]
-    sigil_3: String,
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CtiCard {
+    #[serde(rename = "Name")]
+    name: RichTextContent,
+
     #[serde(rename = "Sigil 4")]
-    sigil_4: String,
+    sigil_4: Option<RichTextContent>,
+
+    #[serde(rename = "Health")]
+    health: RichTextContent,
+
+    #[serde(rename = "Sigil 3")]
+    sigil_3: Option<RichTextContent>,
+
+    #[serde(rename = "Image")]
+    image: Link, // URL as String
+
+    #[serde(rename = "Sigil 1")]
+    sigil_1: Option<RichTextContent>,
+
+    #[serde(rename = "Token")]
+    token: Option<RichTextContent>,
+
+    #[serde(rename = "Cost")]
+    cost: RichTextContent,
+
+    #[serde(rename = "Rarity")]
+    rarity: SelectPrerequisite,
+
+    #[serde(rename = "Flavor")]
+    flavor: RichTextContent,
+
+    #[serde(rename = "Power")]
+    power: RichTextContent,
+
+    #[serde(rename = "Wiki-Page")]
+    wiki_page: Link, // URL as String
+
+    #[serde(rename = "From")]
+    from: RichTextContent,
+
+    #[serde(rename = "Sigil 2")]
+    sigil_2: Option<RichTextContent>,
+
+    #[serde(rename = "Temple")]
+    temple: SelectPrerequisite,
+
+    #[serde(rename = "Internal Name")]
+    internal_name: InternalName,
+}
+
+// RichText type that represents rich_text structure
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RichTextContent {
+    #[serde(rename = "rich_text")]
+    pub rich_text: Vec<PlainText>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PlainText {
+    #[serde(rename = "plain_text")]
+    pub plain_text: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Link {
+    #[serde(rename = "url")]
+    pub url: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SelectPrerequisite {
+    #[serde(rename = "select")]
+    pub select: SelectOption
+}
+
+// Select option for Rarity and Temple (with the name)
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SelectOption {
+    #[serde(rename = "name")]
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct InternalName {
+    #[serde(rename = "title")]
+    pub title: Vec<InternalNamePlainText>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct InternalNamePlainText {
+    #[serde(rename = "plain_text")]
+    pub plain_text: String,
 }
 
 /// A Sigil in the set.
