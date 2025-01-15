@@ -14,6 +14,16 @@ struct NotionResult {
     properties: CtiCard, // The properties field contains a CtiCard
 }
 
+#[derive(Deserialize, Debug)]
+struct NotionResponseSigils {
+    results: Option<Vec<NotionResultSigils>>, // Wrap the results in an Option<Vec> to handle missing results
+}
+
+#[derive(Deserialize, Debug)]
+struct NotionResultSigils {
+    properties: CtiSigil, // The properties field contains a CtiCard
+}
+
 /// Fetch Custom TCG Inscryption from the
 /// [Notion Database](https://www.notion.so/inscryption-pvp-wiki/Custom-TCG-Inscryption-3f22fc55858d4cfab2061783b5120f87).
 #[allow(clippy::too_many_lines)]
@@ -31,6 +41,7 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
 
     // Example payload (empty query for fetching all items)
     let payload = serde_json::json!({});
+    let payload2 = serde_json::json!({});
 
     let raw_response: NotionResponse =
         fetch_from_notion(card_url, Some(&notion_api_key), Some(payload))
@@ -41,22 +52,25 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
     let raw_card = raw_response.results.ok_or_else(|| SetError::DeserializeError(card_url.to_string()))?;
 
     // Fetch sigils
-    let sigil: Vec<CtiSigil> = fetch_from_notion(sigil_url, Some(&notion_api_key), None)
-        .map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
+    let sigil: NotionResponseSigils =
+        fetch_from_notion(sigil_url, Some(&notion_api_key), Some(payload2))
+            .map_err(|e| SetError::FetchError(e, sigil_url.to_string()))?;
+    
+    println!("{:?}", sigil);
+
+    let raw_sigil = sigil.results.ok_or_else(|| SetError::DeserializeError(sigil_url.to_string()))?;
 
     // Initialize containers for the cards and sigils descriptions
     let mut cards = Vec::with_capacity(raw_card.len());
-    let mut sigils_description = HashMap::with_capacity(sigil.len());
+    let mut sigils_description = HashMap::with_capacity(raw_sigil.len());
 
     // Populate the sigils description map
-    for s in sigil {
-        sigils_description.insert(s.name, s.text.replace('\n', ""));
+    for s in raw_sigil {
+        sigils_description.insert(
+            s.properties.name.rich_text[0].plain_text.clone(), 
+            s.properties.description.rich_text[0].plain_text.clone().replace('\n', "")
+        );
     }
-
-    sigils_description.insert(
-        String::from("UNDEFINED SIGILS"),
-        "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
-    );
 
     // Process the raw card data
     for card in raw_card {
@@ -149,13 +163,19 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
             tribes: None,
             attack: Attack::Num(card.properties.power.rich_text[0].plain_text.parse().unwrap_or(0)),
             health: card.properties.health.rich_text[0].plain_text.parse().unwrap_or(0),
-            sigils: [card.properties.sigil_1, card.properties.sigil_2, card.properties.sigil_3, card.properties.sigil_4]
-                .into_iter()
-                .filter(|s| s.is_some() && !s.as_ref().unwrap().rich_text[0].plain_text.is_empty()) // Check for Some and content
-                .map(|s| match s {
-                Some(sigil) => sigil.rich_text[0].plain_text.clone(), // Return the content as String
-                None => "None Found".to_string()
-            })
+            sigils: [
+                card.properties.sigil_1.unwrap().rich_text[0].plain_text.clone(), 
+                card.properties.sigil_2.unwrap().rich_text[0].plain_text.clone(), 
+                card.properties.sigil_3.unwrap().rich_text[0].plain_text.clone(), 
+                card.properties.sigil_4.unwrap().rich_text[0].plain_text.clone()
+            ]
+            .into_iter()
+            .filter(|s| !s.is_empty())
+            .map(
+                |s|
+                if sigils_description.contains_key(&s) { s }
+                else { String::from("UNDEFINED SIGIL") }
+            )
             .collect(),
             costs,
             traits: None,
