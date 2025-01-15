@@ -275,6 +275,12 @@ pub struct InternalNamePlainText {
 /// A Sigil in the set.
 #[derive(Deserialize, Debug)] // Derive Debug for printing
 struct CtiSigil {
-    name: String,
-    text: String,
+    #[serde(rename = "Description")]
+    description: RichTextContent,
+    #[serde(rename = "Category")]
+    category: SelectPrerequisite,
+    #[serde(rename = "Name")]
+    name: RichTextContent,
+    #[serde(rename = "Internal Name")]
+    internam_name: InternalName,
 }
