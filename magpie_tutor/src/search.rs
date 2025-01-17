@@ -39,10 +39,9 @@ pub async fn search_message(ctx: &Context, msg: &Message, guild_id: GuildId) -> 
         return Ok(());
     }
     info!(
-        "Message with {} by {} in {}. Seaching time!",
+        "Message with {} by {}. Seaching time!",
         msg.content.red(),
-        msg.author.name.magenta(),
-        msg.guild_id.unwrap().name(ctx).unwrap().blue()
+        msg.author.name.magenta()
     );
 
     let msg = msg

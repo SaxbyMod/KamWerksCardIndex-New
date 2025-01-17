@@ -101,6 +101,8 @@ lazy_static! {
     pub static ref QUERY_REGEX: Regex = Regex::new(r#"(?:"(.+)")|([-\w]+)|([^\s\w"-]*)"#) .unwrap_or_die("Cannot compile query regex");
     /// The regex use to match cost value in query
     pub static ref COST_REGEX: Regex = Regex::new(r"(-?\d+)?([a-zA-Z])").unwrap_or_die("Cannot compile query regex");
+    /// The regex use to detech if a messagae asking for a game
+    pub static ref FIGHT_REGEX: Regex = Regex::new(r"wants? to (?:play|fight)").unwrap_or_die("Cannot compile asking for fight regex");
 
     /// Collection of all set magpie use
     pub static ref SETS: Mutex<HashMap<&'static str, Set>> = Mutex::new(load_set());
@@ -166,6 +168,26 @@ lazy_static! {
 
     /// Portrait Caches to save times on image processing
     pub static ref CACHE: Mutex<HashMap<u64, CacheData>> = load_cache();
+
+    /// List of response that ping will return
+    pub static ref PING_RESPONSE: [&'static str;16] = [
+        "o jan Mike. sina toki la sina lape suli lon luka tenpo sike. mi mute li lukin e sin nasin. o pini lape",
+        "ijo ijo",
+        "tenpo kama",
+        "mi mute li lukin toki e ni. tomo tawa sina li tenpo suli awen.",
+        "suwi olin mi a. ilo jan li lon aaa",
+        "mi unpa mama sini lon tenpo ni",
+        "mi sona semi",
+        "sin ijo lon tenpo",
+        "mi olin toki pona",
+        "mi olin musi Insison",
+        "sina sona ala sona toki pona",
+        "o sewi sewi anpa anpa poka poka teje teje A B A B",
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "https://www.youtube.com/watch?v=b7vWLz9iGsk",
+        "I don't know who you are. I don't know what you want. If you are looking for ransom I can tell you I don't have money, but what I do have are a very particular set of skills. Skills I have acquired over a very long career. Skills that make me a nightmare for people like you. If you let my daughter go now that'll be the end of it. I will not look for you, I will not pursue you, but if you don't, I will look for you, I will find you and I will kill you.",
+        "Crazy?\nI was crazy once\nThey lock me in a room\nA rubber room\nA rubber room with rats\nThe rats make me crazy\nCrazy?\nI was crazy once\nThey lock me in a room\nA rubber room\nA rubber room with rats\nThe rats make me crazy\nCrazy?\nI was crazy once\nThey lock me in a room\nA rubber room\nA rubber room with rats\nThe rats make me crazy\nCrazy?\nI was crazy once\nThey lock me in a room\nA rubber room\nA rubber room with rats\nThe rats make me crazy\n",
+    ];
 }
 
 fn load_set() -> HashMap<&'static str, Set> {

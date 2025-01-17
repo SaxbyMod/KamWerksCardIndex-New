@@ -85,61 +85,23 @@ macro_rules! color_fn {
 
 /// Allow value to be convert to a string with ansi color code.
 pub trait Color {
-    #[doc = r" Convert value to black text."]
-    fn black(&self) -> String
-    where
-        Self: Display,
-    {
-        format!(concat!("\x1b[0;", stringify!(30), "m{}\x1b[0m"), self)
-    }
-    #[doc = r" Convert value to red text."]
-    fn red(&self) -> String
-    where
-        Self: Display,
-    {
-        format!(concat!("\x1b[0;", stringify!(31), "m{}\x1b[0m"), self)
-    }
-    #[doc = r" Convert value to green text."]
-    fn green(&self) -> String
-    where
-        Self: Display,
-    {
-        format!(concat!("\x1b[0;", stringify!(32), "m{}\x1b[0m"), self)
-    }
-    #[doc = r" Convert value to yellow text."]
-    fn yellow(&self) -> String
-    where
-        Self: Display,
-    {
-        format!(concat!("\x1b[0;", stringify!(33), "m{}\x1b[0m"), self)
-    }
-    #[doc = r" Convert value to blue text."]
-    fn blue(&self) -> String
-    where
-        Self: Display,
-    {
-        format!(concat!("\x1b[0;", stringify!(34), "m{}\x1b[0m"), self)
-    }
-    #[doc = r" Convert value to magenta text."]
-    fn magenta(&self) -> String
-    where
-        Self: Display,
-    {
-        format!(concat!("\x1b[0;", stringify!(35), "m{}\x1b[0m"), self)
-    }
-    #[doc = r" Convert value to cyan text."]
-    fn cyan(&self) -> String
-    where
-        Self: Display,
-    {
-        format!(concat!("\x1b[0;", stringify!(36), "m{}\x1b[0m"), self)
-    }
-    #[doc = r" Convert value to white text."]
-    fn white(&self) -> String
-    where
-        Self: Display,
-    {
-        format!(concat!("\x1b[0;", stringify!(37), "m{}\x1b[0m"), self)
+    color_fn! {
+        /// Convert value to black text.
+        fn black -> 30;
+        /// Convert value to red text.
+        fn red -> 31;
+        /// Convert value to green text.
+        fn green -> 32;
+        /// Convert value to yellow text.
+        fn yellow -> 33;
+        /// Convert value to blue text.
+        fn blue -> 34;
+        /// Convert value to magenta text.
+        fn magenta -> 35;
+        /// Convert value to cyan text.
+        fn cyan -> 36;
+        /// Convert value to white text.
+        fn white -> 37;
     }
 }
 

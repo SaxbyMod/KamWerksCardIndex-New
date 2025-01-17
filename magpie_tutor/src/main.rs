@@ -3,9 +3,12 @@
 use std::panic::PanicInfo;
 
 use magpie_tutor::{
-    done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE_PATH, SETS,
+    done, error, frameworks, handler, info, CmdCtx, Color, Data, Res, CACHE, CACHE_FILE_PATH,
+    PING_RESPONSE, SETS,
 };
 use poise::serenity_prelude::{CacheHttp, ClientBuilder, GatewayIntents, GuildId};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 /// Test command
 #[poise::command(slash_command)]
@@ -81,6 +84,13 @@ async fn tunnel_status(ctx: CmdCtx<'_>) -> Res {
     Ok(())
 }
 
+#[poise::command(slash_command)]
+async fn ping(ctx: CmdCtx<'_>) -> Res {
+    let choose = PING_RESPONSE.choose(&mut thread_rng());
+    ctx.say(*choose.unwrap()).await?;
+    Ok(())
+}
+
 // main entry point of the bot
 #[tokio::main]
 async fn main() {
@@ -92,7 +102,7 @@ async fn main() {
 
     // poise framework
     let framework = frameworks! {
-        global: help(), show_modifiers();
+        global: help(), show_modifiers(), ping();
         guild (1115010083168997376): test();
         guild (1115010083168997376): tunnel_status();
         ---
