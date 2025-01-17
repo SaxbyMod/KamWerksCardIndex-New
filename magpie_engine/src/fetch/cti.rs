@@ -163,27 +163,32 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
             tribes: None,
             attack: Attack::Num(card.properties.power.rich_text[0].plain_text.parse().unwrap_or(0)),
             health: card.properties.health.rich_text[0].plain_text.parse().unwrap_or(0),
-            sigils: [
-                card.properties.sigil_1.unwrap().rich_text[0].plain_text.clone(), 
-                card.properties.sigil_2.unwrap().rich_text[0].plain_text.clone(), 
-                card.properties.sigil_3.unwrap().rich_text[0].plain_text.clone(), 
-                card.properties.sigil_4.unwrap().rich_text[0].plain_text.clone()
-            ]
-            .into_iter()
-            .filter(|s| !s.is_empty())
-            .map(
-                |s|
-                if sigils_description.contains_key(&s) { s }
-                else { String::from("UNDEFINED SIGIL") }
-            )
+            sigils: card.properties.sigil_1
+            .iter()
+            .chain(card.properties.sigil_2.iter())
+            .chain(card.properties.sigil_3.iter())
+            .chain(card.properties.sigil_4.iter())
+            .filter_map(|sigil| {
+                let sigil_name = sigil.rich_text.get(0)?.plain_text.clone();
+                if sigil_name.is_empty() {
+                    None
+                } else {
+                    Some(
+                        sigils_description
+                            .get(&sigil_name)
+                            .cloned()
+                            .unwrap_or_else(|| "UNDEFINED SIGIL".to_string()),
+                    )
+                }
+            })
             .collect(),
             costs,
             traits: None,
-            related: if card.properties.token.is_some() {
-                vec![card.properties.token.unwrap().rich_text[0].plain_text.clone()] // Only adding token if it's available
-            } else {
-                vec![]
-            },
+            related: card.properties.token
+            .as_ref()
+            .and_then(|token| token.rich_text.get(0))
+            .map(|token_text| vec![token_text.plain_text.clone()])
+            .unwrap_or_else(Vec::new),      
             extra: (),
         });
     }
